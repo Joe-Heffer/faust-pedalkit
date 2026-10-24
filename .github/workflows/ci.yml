@@ -18,7 +18,7 @@ jobs:
     name: Lint and format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
@@ -47,7 +47,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             faust lv2 lv2lint boost python python-numpy python-matplotlib
           faust --version
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Build LV2 bundles
         run: make lv2
       - name: lv2lint
