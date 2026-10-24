@@ -24,7 +24,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
    - the confidence level for each claim
    - a numbered source list with links
    - open questions
-   
+
    Use `docs/bassdrive/circuit-notes.md` as the template.
 2. **DSP.** Write `src/<name>.dsp`:
    - `declare name/description/author/license/version/lv2class`. The LV2 plugin takes its name from `declare name`. `license` is an SPDX identifier (e.g. `MIT`), `version` is `major.minor.micro`, and `lv2class` is an LV2 plugin class without its prefix (e.g. `DistortionPlugin`, `DelayPlugin`, `FilterPlugin`). `tools/fix-ttl.py` turns these into the LV2 metadata `lv2lint` requires. An optional `declare homepage "https://…"` adds the maintainer's homepage.
@@ -41,7 +41,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
    - Each script ends with `finish()`, which exits non-zero on any failed `check`.
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
    - Write plots and WAVs to `OUT` (`tests/out/<name>/`).
-4. **Build and check:** `make lv2 lint test FX=<name>`. Fix every `lv2lint` failure. Read the plots before reporting results.
+4. **Build and check:** `make lv2 lint test FX=<name>`, then `pre-commit run --all-files`. Fix every `lv2lint` and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
 5. **Docs.** Add a row to the README's effect table and a controls table for the effect.
 
 ## Shared library (`src/lib/pedalkit.lib`)
