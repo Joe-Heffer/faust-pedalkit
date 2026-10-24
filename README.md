@@ -86,6 +86,10 @@ make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first 
 make pluginval            # pluginval at strictness 10 on every VST3 bundle
 make install-vst3         # copies VST3 bundles to ~/.vst3
 make uninstall            # removes both
+make check                # every pre-commit hook on every file, as CI runs them
+make format               # fix Python lint and formatting with ruff
+make clean                # removes build/ and tests/out/ (keeps the VST3 SDK; make distclean removes it)
+make help                 # lists every target and effect
 ```
 
 Add `FX=bassdrive` or `FX=basspreamp` to any target to build one effect only.
@@ -107,7 +111,7 @@ jalv urn:pedalkit/bassdrive          # console host; jalv.gtk3 or jalv.qt5 for a
 ```sh
 pipx install pre-commit   # or: pacman -S python-pre-commit
 pre-commit install        # once per clone
-pre-commit run --all-files
+make check                # same as: pre-commit run --all-files
 ```
 
 | Hook | Checks |
@@ -294,6 +298,10 @@ These are measured approximations, not listening-tested. Each item names the con
 `make test FX=basspreamp` also renders ten realistic settings (clean, warm, grit, heavy, a hot input, low B, slap, extreme EQ and the Blend cancellation case) to `tests/out/basspreamp/scenarios/`. Each has the dry input, the output, an RMS-matched output and an `_ab.wav` that alternates dry and matched, so loudness does not bias the comparison. Measurements (peak, crest factor, spectral centroid, band spectra) are in `scenarios_metrics.csv` and `scenarios_spectra.csv`.
 
 The default source is a synthesised plucked bass. To audition a real clean DI recording instead, save it as `tests/data/bass-di.flac` (or `.wav`), or set `BASS_DI=/path/to/file`. It needs `ffmpeg`, and the output then goes to `scenarios-<file name>/`. Only commit a recording whose licence allows it, and record the source in `docs/`.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the hard rules (clean-room sources only, no trademarks, British English), and [SECURITY.md](SECURITY.md) to report a vulnerability privately. Pull requests show a checklist from `.github/pull_request_template.md`.
 
 ## Licence
 
