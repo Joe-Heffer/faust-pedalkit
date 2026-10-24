@@ -12,6 +12,7 @@ Each effect is one Faust file. It comes with research notes that say where every
 | Effect | What it is | Pages |
 |---|---|---|
 | **BassDrive** | Bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal | [controls and measurements](bassdrive/index.md) · [circuit notes](bassdrive/circuit-notes.md) |
+| **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) · [REAPER guide](basspreamp/reaper.md) |
 
 ## Quick start
 

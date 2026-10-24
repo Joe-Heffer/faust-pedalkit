@@ -118,11 +118,17 @@ $(BUILD)/%/stage.stamp: src/%.dsp $(LIBS)
 	cp $< $(LIBS) $(@D)/
 	touch $@
 
-$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py
+# Factory presets are optional: src/<name>.presets.toml, if present, is added
+# to the bundle as LV2 presets by tools/make-presets.py.
+.SECONDEXPANSION:
+$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py tools/make-presets.py $$(wildcard src/$$*.presets.toml)
 	cd $(BUILD)/$* && faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
 	rm -rf $(BUILD)/$*.lv2
 	mv $(BUILD)/$*/$*.lv2 $(BUILD)/
 	python3 tools/fix-ttl.py src/$*.dsp $(BUILD)/$*.lv2/$*.ttl
+	if [ -f src/$*.presets.toml ]; then \
+	    python3 tools/make-presets.py src/$*.presets.toml $(BUILD)/$*.lv2 $(URI_PREFIX)/$*; \
+	fi
 
 # VST3: faust compiles the effect into the architecture in tools/vst3/,
 # tools/vst3-meta.py writes its names and class ID, and the SDK's CMake

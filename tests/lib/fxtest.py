@@ -15,6 +15,7 @@ import csv
 import os
 import subprocess
 import sys
+import tomllib
 
 import matplotlib
 import numpy as np
@@ -29,6 +30,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 RENDER = os.path.join(ROOT, "build", FX, "render")
 RENDER_1X = os.path.join(ROOT, "build", FX, "render_1x")
 OUT = os.path.join(ROOT, "tests", "out", FX)
+PRESETS = os.path.join(ROOT, "src", f"{FX}.presets.toml")
 os.makedirs(OUT, exist_ok=True)
 
 _failures = []
@@ -83,6 +85,28 @@ def harmonics(y, f0, n=10):
     seg = y[-SR:]
     spec = np.abs(np.fft.rfft(seg)) * 2 / len(seg)
     return np.array([spec[int(f0 * k)] if f0 * k < SR / 2 else 0.0 for k in range(1, n + 1)])
+
+
+def loudness(y):
+    """K-weighted mean square of y in dB (the ITU-R BS.1770 filter at 48 kHz,
+    without gating). Good for comparing renders, not an absolute LUFS meter."""
+    n = 2 * len(y)
+    z = np.exp(2j * np.pi * np.fft.rfftfreq(n, 1 / SR) / SR)
+    shelf = np.polyval([1.53512485958697, -2.69169618940638, 1.19839281085285], z) / np.polyval(
+        [1, -1.69065929318241, 0.73248077421585], z
+    )
+    hp = np.polyval([1, -2, 1], z) / np.polyval([1, -1.99004745483398, 0.99007225036621], z)
+    yk = np.fft.irfft(np.fft.rfft(y, n) * shelf * hp, n)[: len(y)]
+    return 10 * np.log10(np.mean(yk**2) + 1e-30)
+
+
+def presets():
+    """Factory presets from src/<FX>.presets.toml as (name, controls) pairs,
+    with controls keyed by label so they can be passed straight to render."""
+    if not os.path.exists(PRESETS):
+        return []
+    with open(PRESETS, "rb") as f:
+        return [(p["name"], p["controls"]) for p in tomllib.load(f).get("preset", [])]
 
 
 def write_wav(path, y):
