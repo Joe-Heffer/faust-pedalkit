@@ -11,3 +11,4 @@ ignores:
   - build/**
   - tests/out/**
   - .claude/**
+  - .venv/**
