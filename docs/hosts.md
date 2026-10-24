@@ -32,7 +32,7 @@ Connect its ports with your patchbay of choice (`qpwgraph`, `helvum` or Carla on
 
 ## Latency
 
-Effects that oversample add a fixed delay, which they report through an LV2 latency port. BassDrive adds 32 samples, which is 0.67 ms at 48 kHz. Hosts with plugin delay compensation, including Ardour and REAPER, use the reported value to line the track up with the others.
+Effects that oversample add a fixed delay, which they report through an LV2 latency port. BassDrive adds 32 samples (0.67 ms at 48 kHz) and BassPreamp, with two oversampled stages, adds 64 samples (1.3 ms). Hosts with plugin delay compensation, including Ardour and REAPER, use the reported value to line the track up with the others.
 
 ## Input level
 

@@ -11,17 +11,37 @@ approximation.
 
 import numpy as np
 
-from fxtest import OUT, SR, check, db, finish, plt, render, transfer
+from fxtest import SR, check, db, finish, plt, render, save_plot, transfer, write_csv
 
 print("test_freqresp")
 rng = np.random.default_rng(7)
 noise = rng.normal(0, 1, 8 * SR)
 SHIFT = ("Bass Shift", "Mid Shift")
+DEFAULTS = {
+    "Blend": 50,
+    "Drive": 50,
+    "Presence": 50,
+    "Bass": 0,
+    "Mid": 0,
+    "Treble": 0,
+    "Bass Shift": 0,
+    "Mid Shift": 0,
+}
+rows = []
 
 
-def resp(lvl, **params):
+def resp(lvl, panel=None, **params):
+    """Transfer function at input level lvl. With a panel name, also keep
+    about 200 log-spaced points from 20 Hz to 20 kHz for the CSV."""
     x = noise * 10 ** (lvl / 20)
-    return transfer(x, render(x, **params))
+    f, H = transfer(x, render(x, **params))
+    if panel:
+        p = {**DEFAULTS, **params}
+        idx = np.unique(
+            np.geomspace(np.searchsorted(f, 20), np.searchsorted(f, 20000), 200).astype(int)
+        )
+        rows.extend((panel, lvl, *p.values(), f[i], db(H[i])) for i in idx)
+    return f, H
 
 
 def at(f, H, hz):
@@ -43,7 +63,7 @@ fig, axes = plt.subplots(2, 3, figsize=(17, 9), constrained_layout=True)
 # Preamp path only (Blend 100) against Drive, small signal and driven.
 for ax, lvl in ((axes[0, 0], -70), (axes[1, 0], -20)):
     for d in (0, 25, 50, 75, 100):
-        f, H = resp(lvl, Drive=d, Blend=100)
+        f, H = resp(lvl, "drive", Drive=d, Blend=100)
         ax.semilogx(f[1:], db(H[1:]), label=f"Drive {d}%")
     panel(ax, f"Blend 100%, Presence 50%, {lvl} dBFS noise", (-40, 40 if lvl == -70 else 20))
 
@@ -51,7 +71,7 @@ for ax, lvl in ((axes[0, 0], -70), (axes[1, 0], -20)):
 ax = axes[0, 1]
 curves = {}
 for p in (0, 25, 50, 75, 100):
-    f, H = resp(-70, Drive=0, Presence=p, Blend=100)
+    f, H = resp(-70, "presence", Drive=0, Presence=p, Blend=100)
     curves[p] = db(H)
     ax.semilogx(f[1:], db(H[1:]), label=f"Presence {p}%")
 panel(ax, "Presence (Drive 0%, Blend 100%, -70 dBFS)", (-40, 20))
@@ -88,7 +108,7 @@ check(dev < 0.5, f"Blend 0, flat EQ: within +/-{dev:.2f} dB from 30 Hz to 15 kHz
 ax = axes[0, 2]
 for shift, fx in ((0, 80), (1, 40)):
     for g in (-12, 12):
-        f, H = resp(-20, Blend=0, Bass=g, **{SHIFT[0]: shift})
+        f, H = resp(-20, "bass_treble", Blend=0, Bass=g, **{SHIFT[0]: shift})
         ax.semilogx(f[1:], db(H[1:]), label=f"Bass {g:+d}, shift {shift}")
         if g == 12:
             # 3rd-order shelf: about 3 dB short of full boost at fx.
@@ -99,7 +119,7 @@ for shift, fx in ((0, 80), (1, 40)):
                 f"{fx / 3:.0f} Hz, {above:+.1f} dB at {4 * fx} Hz",
             )
 for g in (-12, 12):
-    f, H = resp(-20, Blend=0, Treble=g)
+    f, H = resp(-20, "bass_treble", Blend=0, Treble=g)
     ax.semilogx(f[1:], db(H[1:]), "--", label=f"Treble {g:+d}")
     if g == 12:
         check(
@@ -113,7 +133,7 @@ panel(ax, "Bass and Treble (Blend 0%)", (-15, 15))
 ax = axes[1, 1]
 for shift, fx in ((0, 500), (1, 1000)):
     for g in (-12, 12):
-        f, H = resp(-20, Blend=0, Mid=g, **{SHIFT[1]: shift})
+        f, H = resp(-20, "mid", Blend=0, Mid=g, **{SHIFT[1]: shift})
         ax.semilogx(f[1:], db(H[1:]), label=f"Mid {g:+d}, shift {shift}")
         band = (f > 100) & (f < 5000)
         k = np.argmax(np.sign(g) * db(H[band]))
@@ -127,10 +147,27 @@ panel(ax, "Mid (Blend 0%)", (-15, 15))
 # Blend at full Drive: the C16 coupling keeps the clean lows below ~34 Hz.
 ax = axes[1, 2]
 for b in (0, 25, 50, 75, 100):
-    f, H = resp(-20, Drive=100, Blend=b)
+    f, H = resp(-20, "blend", Drive=100, Blend=b)
     ax.semilogx(f[1:], db(H[1:]), label=f"Blend {b}%")
 panel(ax, "Blend at Drive 100% (-20 dBFS)", (-30, 30))
 
-fig.savefig(f"{OUT}/freqresp.png", dpi=110)
-print(f"  wrote {OUT}/freqresp.png")
+save_plot(fig, "freqresp")
+write_csv(
+    "freqresp",
+    (
+        "panel",
+        "input_dbfs",
+        "blend",
+        "drive",
+        "presence",
+        "bass",
+        "mid",
+        "treble",
+        "bass_shift",
+        "mid_shift",
+        "freq_hz",
+        "gain_db",
+    ),
+    rows,
+)
 finish()

@@ -8,7 +8,21 @@ level against the instantaneous sweep frequency for several Drive settings.
 
 import numpy as np
 
-from fxtest import OUT, SR, check, db, finish, harmonics, log_sweep, plt, render, sine, write_wav
+from fxtest import (
+    OUT,
+    SR,
+    check,
+    db,
+    finish,
+    harmonics,
+    log_sweep,
+    plt,
+    render,
+    save_plot,
+    sine,
+    write_csv,
+    write_wav,
+)
 
 print("test_sweep")
 DUR = 8.0
@@ -16,6 +30,7 @@ x, finst = log_sweep(41.2, 2000, DUR, amp_db=-12)
 drives = (0, 50, 100)
 
 fig, axes = plt.subplots(2, 3, figsize=(15, 8), constrained_layout=True)
+level_rows = []
 for col, g in enumerate(drives):
     y = render(x, Drive=g, Blend=100)
     check(np.all(np.isfinite(y)), f"sweep, Drive {g}: output finite")
@@ -35,6 +50,7 @@ for col, g in enumerate(drives):
     rms = np.sqrt(np.mean(y[: n * w].reshape(n, w) ** 2, axis=1))
     fmid = finst[w // 2 :: w][:n]
     ax.semilogx(fmid, db(rms) + 3.01, label=f"Drive {g}%")
+    level_rows.extend((g, fq, lv) for fq, lv in zip(fmid, db(rms) + 3.01, strict=True))
 
 ax = axes[1, 0]
 ax.set_title("Output level vs sweep frequency (Blend 100%)")
@@ -72,6 +88,11 @@ ax.set_ylabel("fundamental (dBFS)")
 ax.grid(True, alpha=0.3)
 print("  fundamental dBFS by Blend:", {k: round(v, 2) for k, v in lvl.items()})
 
-fig.savefig(f"{OUT}/sweep_lowE.png", dpi=110)
-print(f"  wrote {OUT}/sweep_lowE.png")
+save_plot(fig, "sweep_lowE")
+write_csv("sweep_level", ("drive", "freq_hz", "level_db"), level_rows)
+write_csv(
+    "lowE_fundamental",
+    ("sweep", "setting", "fundamental_dbfs"),
+    [("drive", k, v) for k, v in fund.items()] + [("blend", k, v) for k, v in lvl.items()],
+)
 finish()

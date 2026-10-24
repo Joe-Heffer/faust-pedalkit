@@ -93,6 +93,10 @@ nav:
       - BassDrive:
           - bassdrive/index.md
           - Circuit notes: bassdrive/circuit-notes.md
+      - BassPreamp:
+          - basspreamp/index.md
+          - Circuit notes: basspreamp/circuit-notes.md
+          - Using it in REAPER: basspreamp/reaper.md
   - Development:
       - development/index.md
       - Adding an effect: development/adding-an-effect.md
