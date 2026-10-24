@@ -5,27 +5,29 @@ import os
 
 import numpy as np
 
-from fxtest import (OUT, RENDER, RENDER_1X, SR, check, db, finish, harmonics,
-                    plt, render, sine)
+from fxtest import OUT, RENDER, RENDER_1X, SR, check, db, finish, harmonics, plt, render, sine
 
 print("test_harmonics")
 fig, axes = plt.subplots(1, 3, figsize=(16, 5), constrained_layout=True)
 
 # Harmonic spectra for low E (41 Hz) and A (110 Hz) at -12 dBFS.
-for ax, f0 in zip(axes[:2], (41, 110)):
+for ax, f0 in zip(axes[:2], (41, 110), strict=True):
     width = 0.25
     for i, g in enumerate((0, 50, 100)):
         y = render(sine(f0, 3, -12), Gain=g, Balance=100)
         hk = harmonics(y, f0, 10)
         rel = db(hk / hk[0])
-        ax.bar(np.arange(1, 11) + (i - 1) * width, rel + 100, width,
-               bottom=-100, label=f"Gain {g}%")
+        ax.bar(
+            np.arange(1, 11) + (i - 1) * width, rel + 100, width, bottom=-100, label=f"Gain {g}%"
+        )
         thd = np.sqrt(np.sum(hk[1:] ** 2)) / hk[0]
         even = np.sqrt(np.sum(hk[1::2] ** 2))
         odd = np.sqrt(np.sum(hk[2::2] ** 2))
-        print(f"  {f0} Hz Gain {g:3d}%: THD {100 * thd:5.1f}%  "
-              f"H2 {rel[1]:6.1f} dBc  H3 {rel[2]:6.1f} dBc  "
-              f"even/odd {db(even / max(odd, 1e-12)):+5.1f} dB")
+        print(
+            f"  {f0} Hz Gain {g:3d}%: THD {100 * thd:5.1f}%  "
+            f"H2 {rel[1]:6.1f} dBc  H3 {rel[2]:6.1f} dBc  "
+            f"even/odd {db(even / max(odd, 1e-12)):+5.1f} dB"
+        )
     ax.set_title(f"Harmonics of {f0} Hz, -12 dBFS in, Balance 100%")
     ax.set_xlabel("harmonic number")
     ax.set_ylabel("level relative to fundamental (dB)")
@@ -33,6 +35,7 @@ for ax, f0 in zip(axes[:2], (41, 110)):
     ax.set_ylim(-100, 5)
     ax.grid(True, axis="y", alpha=0.3)
     ax.legend()
+
 
 # Aliasing. With f0 a whole number of hertz that does not divide 48 kHz, the
 # true harmonics (multiples of f0 below Nyquist) and the aliases (folded
@@ -45,8 +48,8 @@ def alias_spectrum(binary, f0):
     spec /= spec[f0]
     harm = np.zeros(len(spec), bool)
     for k in range(1, int((SR / 2) // f0) + 1):
-        harm[max(k * f0 - 3, 0):k * f0 + 4] = True
-    harm[:20] = True                     # ignore DC and the window skirt
+        harm[max(k * f0 - 3, 0) : k * f0 + 4] = True
+    harm[:20] = True  # ignore DC and the window skirt
     return spec, db(np.max(np.where(harm, 0.0, spec)))
 
 
@@ -74,8 +77,10 @@ if ("1x (reference)", 3700) in results and ("4x oversampled", 3700) in results:
     for f0 in (3700, 1100):
         gain = results[("1x (reference)", f0)] - results[("4x oversampled", f0)]
         check(gain >= 20, f"{f0} Hz: 4x reduces worst alias by {gain:.1f} dB (>= 20 dB)")
-    check(results[("4x oversampled", 1100)] < -60,
-          f"1100 Hz: worst alias with 4x {results[('4x oversampled', 1100)]:.1f} dBc (< -60 dBc)")
+    check(
+        results[("4x oversampled", 1100)] < -60,
+        f"1100 Hz: worst alias with 4x {results[('4x oversampled', 1100)]:.1f} dBc (< -60 dBc)",
+    )
 fig.savefig(f"{OUT}/harmonics.png", dpi=110)
 print(f"  wrote {OUT}/harmonics.png")
 finish()

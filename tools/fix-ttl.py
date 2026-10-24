@@ -26,8 +26,9 @@ if not sep:
     sys.exit(f"{ttl_path}: no lv2:port found, unexpected faust2lv2 output")
 
 if "license" in decl:
-    head = re.sub(r'doap:license "[^"]*"',
-                  f'doap:license <https://spdx.org/licenses/{decl["license"]}>', head)
+    head = re.sub(
+        r'doap:license "[^"]*"', f"doap:license <https://spdx.org/licenses/{decl['license']}>", head
+    )
 
 extra = []
 if "version" in decl:
@@ -38,8 +39,11 @@ if "version" in decl:
 if "lv2class" in decl:
     head = head.replace("a lv2:Plugin ;", f"a lv2:Plugin, lv2:{decl['lv2class']} ;", 1)
 if "homepage" in decl:
-    head = re.sub(r'doap:maintainer \[ foaf:name "([^"]*)" \]',
-                  rf'doap:maintainer [ foaf:name "\1" ; foaf:homepage <{decl["homepage"]}> ]', head)
+    head = re.sub(
+        r'doap:maintainer \[ foaf:name "([^"]*)" \]',
+        rf'doap:maintainer [ foaf:name "\1" ; foaf:homepage <{decl["homepage"]}> ]',
+        head,
+    )
 
 if extra:
     head = head.rstrip("\n") + "\n" + "".join(f"       {e} ;\n" for e in extra)

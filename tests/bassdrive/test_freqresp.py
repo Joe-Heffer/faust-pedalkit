@@ -17,7 +17,7 @@ gains = (0, 25, 50, 75, 100)
 
 fig, axes = plt.subplots(2, 3, figsize=(16, 9), constrained_layout=True)
 panels = [(-70, 100), (-70, 50), (-20, 100), (-20, 50)]
-for ax, (lvl, bal) in zip(axes.flat[[0, 1, 3, 4]], panels):
+for ax, (lvl, bal) in zip(axes.flat[[0, 1, 3, 4]], panels, strict=True):
     x = noise * 10 ** (lvl / 20)
     for g in gains:
         y = render(x, Gain=g, Balance=bal)
@@ -36,8 +36,10 @@ x = noise * 10 ** (-20 / 20)
 y = render(x, Gain=50, Balance=0)
 f, H = transfer(x, y)
 band = (f > 30) & (f < 100)
-check(np.all(np.abs(db(H[band])) < 1.5),
-      "clean path, flat EQ: 30-100 Hz within +/-1.5 dB (low end intact)")
+check(
+    np.all(np.abs(db(H[band])) < 1.5),
+    "clean path, flat EQ: 30-100 Hz within +/-1.5 dB (low end intact)",
+)
 
 # EQ curves with the drive out of the way (Balance 0).
 ax = axes[0, 2]

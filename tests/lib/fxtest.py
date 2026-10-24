@@ -10,11 +10,12 @@ import os
 import subprocess
 import sys
 
+import matplotlib
 import numpy as np
 
-import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+# Re-exported for the test scripts; must come after selecting the backend.
+import matplotlib.pyplot as plt  # noqa: E402, F401
 
 SR = 48000
 FX = os.environ.get("FX", "bassdrive")
@@ -30,8 +31,9 @@ _failures = []
 def render(x, binary=RENDER, **params):
     """Process signal x through the effect, overriding sliders by label."""
     args = [binary, str(SR)] + [f"{k}={v}" for k, v in params.items()]
-    res = subprocess.run(args, input=np.asarray(x, dtype=np.float32).tobytes(),
-                         capture_output=True, check=True)
+    res = subprocess.run(
+        args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
+    )
     return np.frombuffer(res.stdout, dtype=np.float32).astype(np.float64)
 
 
@@ -59,8 +61,8 @@ def transfer(x, y, nfft=16384):
     sxy = np.zeros(nfft // 2 + 1, complex)
     sxx = np.zeros(nfft // 2 + 1)
     for i in range(0, len(x) - nfft, hop):
-        X = np.fft.rfft(win * x[i:i + nfft])
-        Y = np.fft.rfft(win * y[i:i + nfft])
+        X = np.fft.rfft(win * x[i : i + nfft])
+        Y = np.fft.rfft(win * y[i : i + nfft])
         sxy += Y * np.conj(X)
         sxx += np.abs(X) ** 2
     f = np.fft.rfftfreq(nfft, 1 / SR)
@@ -74,14 +76,14 @@ def harmonics(y, f0, n=10):
     """
     seg = y[-SR:]
     spec = np.abs(np.fft.rfft(seg)) * 2 / len(seg)
-    return np.array([spec[int(f0 * k)] if f0 * k < SR / 2 else 0.0
-                     for k in range(1, n + 1)])
+    return np.array([spec[int(f0 * k)] if f0 * k < SR / 2 else 0.0 for k in range(1, n + 1)])
 
 
 def write_wav(path, y):
     """Write y as 24-bit mono WAV for listening."""
     import wave
-    pcm = (np.clip(y, -1, 1) * (2 ** 23 - 1)).astype("<i4")
+
+    pcm = (np.clip(y, -1, 1) * (2**23 - 1)).astype("<i4")
     raw = b"".join(int(v).to_bytes(4, "little", signed=True)[:3] for v in pcm)
     with wave.open(path, "wb") as w:
         w.setnchannels(1)

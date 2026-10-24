@@ -1,0 +1,68 @@
+# Pre-commit hooks for this repo. Install once with `pre-commit install`;
+# run everything with `pre-commit run --all-files`. CI runs the same hooks.
+#
+# The faust-compile hook needs the `faust` compiler locally. The CI lint job
+# skips it because the CI build job compiles every effect anyway.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.2
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.24.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      # General typos everywhere.
+      - id: codespell
+        name: codespell (typos)
+        additional_dependencies: [tomli]
+      # Hard rule 3: British English in docs, comments and UI text. Only
+      # prose-bearing files are checked, so code such as matplotlib's
+      # `color=` is not flagged.
+      - id: codespell
+        name: codespell (British English)
+        args: [--builtin=, --dictionary=tools/en-gb.codespell]
+        files: \.(md|dsp|lib)$
+
+  - repo: local
+    hooks:
+      # Hard rule: generated files live only in build/ and tests/out/.
+      - id: no-generated-files
+        name: no generated files (build/, tests/out/)
+        language: fail
+        entry: generated files belong in build/ or tests/out/ and must not be committed
+        files: ^(build|tests/out)/
+      - id: faust-compile
+        name: faust compiles every effect
+        language: system
+        entry: tools/check-faust.sh
+        files: \.(dsp|lib)$
+        pass_filenames: false

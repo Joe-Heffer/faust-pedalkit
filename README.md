@@ -10,7 +10,7 @@ A small repository for building guitar and bass effects in [Faust](https://faust
 
 ## Layout
 
-```
+```text
 src/<name>.dsp              one file per effect
 src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, output safety limiter
 docs/<name>/circuit-notes.md  research, sources and modelling decisions
@@ -81,6 +81,29 @@ Quick check from a terminal once it is installed:
 jalv urn:pedalkit/bassdrive          # console host; jalv.gtk3 or jalv.qt5 for a GUI if packaged
 ```
 
+### Linting and CI
+
+[pre-commit](https://pre-commit.com/) runs the linters and formatters before each commit:
+
+```sh
+pipx install pre-commit   # or: pacman -S python-pre-commit
+pre-commit install        # once per clone
+pre-commit run --all-files
+```
+
+| Hook | Checks |
+|---|---|
+| `ruff-check`, `ruff-format` | Python lint and formatting (config in `pyproject.toml`) |
+| `shellcheck` | shell scripts |
+| `markdownlint-cli2` | Markdown (config in `.markdownlint-cli2.yaml`) |
+| `codespell (typos)` | common misspellings everywhere |
+| `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
+| `faust-compile` | every `src/*.dsp` compiles (needs `faust`) |
+| `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
+| whitespace, YAML/TOML, shebangs, large files | general hygiene |
+
+GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test`. The plots and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run.
+
 ## Loading in a host
 
 All three hosts below find plugins in `~/.lv2` once `make install` has run.
@@ -88,11 +111,13 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run.
 **Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" and add it.
 
 **REAPER (Linux).**
+
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
 2. Open the track's FX window, choose *Add*, and find "BassDrive" under *LV2*.
 3. BassDrive is mono. On a stereo track, REAPER feeds it channel 1, so record bass on a mono track or set the plugin's pin connector.
 
 **Carla.**
+
 1. Open *Settings → Configure Carla → Paths → LV2* and check that `~/.lv2` is listed.
 2. Click *Add Plugin*, then *Refresh* with LV2 ticked.
 3. Pick "BassDrive". In the patchbay, connect your audio input to it and it to the system outputs.

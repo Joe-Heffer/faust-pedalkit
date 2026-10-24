@@ -20,7 +20,9 @@ for name, x in signals.items():
         y = render(x, Level=12, Gain=100, Balance=bal, Bass=12, Treble=15)
         peak = np.max(np.abs(y))
         worst = max(worst, db(peak))
-        check(peak <= 1.0 and np.all(np.isfinite(y)),
-              f"{name}, Balance {bal}: peak {db(peak):+.2f} dBFS")
+        check(
+            peak <= 1.0 and np.all(np.isfinite(y)),
+            f"{name}, Balance {bal}: peak {db(peak):+.2f} dBFS",
+        )
 print(f"  worst-case peak {worst:+.3f} dBFS")
 finish()

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pip install pre-commit
+      # faust-compile needs the Faust compiler, which the build job has.
+      - run: pre-commit run --all-files --show-diff-on-failure --color=always
+        env:
+          SKIP: faust-compile
+
+  build-test:
+    name: Build, lv2lint and tests
+    runs-on: ubuntu-latest
+    # Arch matches the development machine and packages current faust and lv2lint.
+    container: archlinux:base-devel
+    steps:
+      - name: Install toolchain
+        run: |
+          pacman -Syu --noconfirm --needed \
+            faust lv2 lv2lint boost python python-numpy python-matplotlib
+          faust --version
+      - uses: actions/checkout@v5
+      - name: Build LV2 bundles
+        run: make lv2
+      - name: lv2lint
+        run: make lint
+      - name: Offline tests
+        run: make test
+      - name: Upload plots and renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: tests/out/
+          if-no-files-found: ignore
