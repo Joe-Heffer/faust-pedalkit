@@ -1,0 +1,112 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Factory presets for BassPreamp. tools/make-presets.py turns this file into
+# LV2 presets inside build/basspreamp.lv2, and tests/basspreamp/test_presets.py
+# renders each one.
+#
+# Keys under `controls` are the UI labels from src/basspreamp.dsp. Every
+# preset sets every control, because an LV2 host leaves unlisted controls
+# where they were.
+#
+# The control settings are chosen starting points, not measurements of the
+# hardware. Level is chosen per preset so that a -12 dBFS bass test signal
+# comes out within about 1 dB of "Clean DI" (measured by test_presets.py), so
+# switching presets doesn't jump in loudness.
+
+[[preset]]
+name = "Clean DI"
+comment = "Clean path only with a flat EQ: the reference for the other presets' levels."
+[preset.controls]
+Level = 0
+Blend = 0
+Drive = 0
+Presence = 50
+Bass = 0
+Mid = 0
+Treble = 0
+"Bass Shift" = 0
+"Mid Shift" = 0
+
+[[preset]]
+name = "Warm Blend"
+comment = "A little preamp under the clean signal, for warmth without obvious distortion."
+[preset.controls]
+Level = 0.2
+Blend = 40
+Drive = 35
+Presence = 40
+Bass = 2
+Mid = 0
+Treble = -2
+"Bass Shift" = 0
+"Mid Shift" = 0
+
+[[preset]]
+name = "Growl"
+comment = "Mostly preamp with audible breakup and a 1 kHz mid lift for definition."
+[preset.controls]
+Level = -2.5
+Blend = 70
+Drive = 65
+Presence = 60
+Bass = 2
+Mid = 4
+Treble = 0
+"Bass Shift" = 0
+"Mid Shift" = 1
+
+[[preset]]
+name = "Grind"
+comment = "Preamp path only at high Drive, with a 500 Hz lift to fill the preamp voicing's fixed mid dip."
+[preset.controls]
+Level = -8.5
+Blend = 100
+Drive = 90
+Presence = 70
+Bass = 3
+Mid = 3
+Treble = 2
+"Bass Shift" = 0
+"Mid Shift" = 0
+
+[[preset]]
+name = "Scooped Slap"
+comment = "Mostly clean with boosted lows and highs and a cut at 500 Hz, for slap and pop."
+[preset.controls]
+Level = -1
+Blend = 25
+Drive = 20
+Presence = 70
+Bass = 5
+Mid = -6
+Treble = 6
+"Bass Shift" = 0
+"Mid Shift" = 0
+
+[[preset]]
+name = "Low B Thump"
+comment = "Bass shelf moved to 40 Hz for five- and six-string basses, with a softened top."
+[preset.controls]
+Level = 0.5
+Blend = 35
+Drive = 40
+Presence = 40
+Bass = 4
+Mid = -2
+Treble = -3
+"Bass Shift" = 1
+"Mid Shift" = 0
+
+[[preset]]
+name = "Dark Dub"
+comment = "Heavy low end and little treble, with just a touch of drive."
+[preset.controls]
+Level = -1.5
+Blend = 45
+Drive = 25
+Presence = 20
+Bass = 6
+Mid = 2
+Treble = -9
+"Bass Shift" = 0
+"Mid Shift" = 0

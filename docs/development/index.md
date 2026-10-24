@@ -1,6 +1,6 @@
 # Development
 
-This section is for anyone, human or coding agent, adding an effect or changing an existing one. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth.
+This section is for anyone, human or coding agent, adding an effect or changing an existing one. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth. To get a change merged, see [`CONTRIBUTING.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/CONTRIBUTING.md). To report a vulnerability, see [`SECURITY.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/SECURITY.md).
 
 - [Adding an effect](adding-an-effect.md): from research notes to DSP, tests and docs.
 - [Shared library](pedalkit-lib.md): the oversampler, clippers and safety limiter in `pedalkit.lib`.
@@ -10,7 +10,7 @@ This section is for anyone, human or coding agent, adding an effect or changing 
 ## Ground rules
 
 1. **Clean-room only.** Work from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a reference to match against.
-2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. A manufacturer's product name may appear in the docs *only* to identify the reference hardware, never as branding.
+2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. A manufacturer's product name may appear in the docs *only* to identify the reference hardware, never as branding. The `no-trademarks` pre-commit hook enforces this against the deny-list in `tools/trademarks.txt` (see [Linting and CI](ci.md#extending-the-trademark-deny-list)).
 3. **British English** in all documentation, comments and UI text: colour, behaviour, modelling, analyse, centre.
 4. **Say when you're unsure.** Every circuit value in the DSP is documented, reported, inferred or chosen. The circuit notes say which, with a link for anything sourced.
 5. **Judge sound by measurement.** Describe results in terms of harmonics, frequency response, aliasing and levels, and list the parameters a human should tune by ear.

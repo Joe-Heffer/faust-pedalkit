@@ -1,7 +1,9 @@
 # Dependabot version updates.
 # Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 #
-# Tracks the actions used in .github/workflows. There is no Python manifest:
+# Tracks the actions used in .github/workflows and the Dockerfile's base
+# image digest. The Arch packages in the image are pinned by ARCH_SNAPSHOT in
+# the Dockerfile, which is bumped by hand. There is no Python manifest:
 # numpy and matplotlib come from system packages, and pyproject.toml only
 # holds tool configuration. Pre-commit hook revisions are not covered by
 # Dependabot; use `pre-commit autoupdate` for those.
@@ -9,6 +11,11 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"

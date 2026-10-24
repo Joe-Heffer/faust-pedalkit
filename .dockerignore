@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+#
+# The Dockerfile copies nothing (the repository is bind-mounted at run time),
+# so send no build context.
+*

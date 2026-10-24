@@ -13,16 +13,26 @@
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make docs         build the documentation site into build/site (run `make test` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
+#   make check        run every pre-commit hook on every file (as CI does)
+#   make format       fix Python lint and formatting with ruff
 #   make install      copy the LV2 bundles into ~/.lv2
 #   make install-vst3 copy the VST3 bundles into ~/.vst3
 #   make install-clap copy the CLAP plugins into ~/.clap
 #   make uninstall    remove them from ~/.lv2, ~/.vst3 and ~/.clap
-#   make clean        remove build/ and tests/out/
+#   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
+#   make distclean    remove build/ and tests/out/ entirely
+#   make help         list these targets and the effects
+#   make image        build the toolchain image from the Dockerfile
+#   make container    run the RUN targets in that image (default RUN="lv2 lint test")
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
 
 EFFECTS    := $(basename $(notdir $(wildcard src/*.dsp)))
 FX         ?= $(EFFECTS)
+UNKNOWN_FX := $(filter-out $(EFFECTS),$(FX))
+ifneq ($(UNKNOWN_FX),)
+$(error Unknown effect(s): $(UNKNOWN_FX). Choose from: $(EFFECTS))
+endif
 LIBS       := $(wildcard src/lib/*.lib)
 BUILD      := build
 URI_PREFIX := urn:pedalkit
@@ -49,10 +59,28 @@ CXXFLAGS   ?= -O2 -std=c++17
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
+PRE_COMMIT ?= pre-commit
 
-.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe docs docs-serve \
-        install install-vst3 install-clap uninstall clean
+# Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
+# `run` options go in CONTAINER_FLAGS.
+CONTAINER       ?= docker
+IMAGE           ?= pedalkit-build
+RUN             ?= lv2 lint test
+CONTAINER_FLAGS ?=
+# Run as the caller so build/ and tests/out/ stay theirs. Rootless Podman
+# maps the caller's UID with keep-id instead.
+ifneq ($(findstring podman,$(CONTAINER)),)
+CONTAINER_USER  := --userns=keep-id
+else
+CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
+endif
+
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe docs docs-serve check format \
+        install install-vst3 install-clap uninstall clean distclean help \
+        image container
 .SECONDARY:
+# A failed recipe deletes its half-written target, so the next run rebuilds it.
+.DELETE_ON_ERROR:
 
 all: lv2
 
@@ -97,6 +125,17 @@ docs:
 docs-serve:
 	$(MKDOCS) serve
 
+check:
+	$(PRE_COMMIT) run --all-files
+
+# Uses the ruff pinned in .pre-commit-config.yaml, so the result matches CI.
+# pre-commit exits non-zero whenever a hook changes a file, so only the last
+# run decides the status: it fails if ruff left anything it could not fix.
+format:
+	@$(PRE_COMMIT) run ruff-check --all-files || true
+	@$(PRE_COMMIT) run ruff-format --all-files || true
+	$(PRE_COMMIT) run ruff-check --all-files
+
 install: lv2
 	mkdir -p $(LV2DIR)
 	for f in $(FX); do rm -rf $(LV2DIR)/$$f.lv2 && cp -r $(BUILD)/$$f.lv2 $(LV2DIR)/; done
@@ -119,11 +158,17 @@ $(BUILD)/%/stage.stamp: src/%.dsp $(LIBS)
 	cp $< $(LIBS) $(@D)/
 	touch $@
 
-$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py
+# Factory presets are optional: src/<name>.presets.toml, if present, is added
+# to the bundle as LV2 presets by tools/make-presets.py.
+.SECONDEXPANSION:
+$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py tools/make-presets.py $$(wildcard src/$$*.presets.toml)
 	cd $(BUILD)/$* && faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
 	rm -rf $(BUILD)/$*.lv2
 	mv $(BUILD)/$*/$*.lv2 $(BUILD)/
 	python3 tools/fix-ttl.py src/$*.dsp $(BUILD)/$*.lv2/$*.ttl
+	if [ -f src/$*.presets.toml ]; then \
+	    python3 tools/make-presets.py src/$*.presets.toml $(BUILD)/$*.lv2 $(URI_PREFIX)/$*; \
+	fi
 
 # VST3: faust compiles the effect into the architecture in tools/vst3/,
 # tools/vst3-meta.py writes its names and class ID, and the SDK's CMake
@@ -192,5 +237,22 @@ $(BUILD)/%/render_1x: src/%.dsp $(LIBS) $(ARCH)
 	faust -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
 	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
 
+# The VST3 SDK clone is slow to fetch and rarely changes, so `clean` keeps it.
 clean:
+	rm -rf tests/out
+	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk -exec rm -rf {} +
+
+distclean:
 	rm -rf $(BUILD) tests/out
+
+help:
+	@sed -n 's/^#   make /make /p' $(firstword $(MAKEFILE_LIST))
+	@echo
+	@echo "Effects: $(EFFECTS)"
+
+image:
+	$(CONTAINER) build -t $(IMAGE) .
+
+container: image
+	$(CONTAINER) run --rm $(CONTAINER_USER) $(CONTAINER_FLAGS) -v "$(CURDIR)":/src -w /src \
+	    $(IMAGE) make $(RUN) FX="$(FX)"
