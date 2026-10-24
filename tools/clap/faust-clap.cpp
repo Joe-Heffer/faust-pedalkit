@@ -207,10 +207,10 @@ struct FaustEffect {
 
     clap_process_status process(const clap_process_t* p)
     {
-        const uint32_t nIn = uint32_t(fIn.size()), nOut = uint32_t(fOut.size());
-        if (p->audio_outputs_count < 1 || p->audio_outputs[0].channel_count < nOut || !p->audio_outputs[0].data32)
+        const uint32_t numIn = uint32_t(fIn.size()), numOut = uint32_t(fOut.size());
+        if (p->audio_outputs_count < 1 || p->audio_outputs[0].channel_count < numOut || !p->audio_outputs[0].data32)
             return CLAP_PROCESS_ERROR;
-        if (nIn > 0 && (p->audio_inputs_count < 1 || p->audio_inputs[0].channel_count < nIn ||
+        if (numIn > 0 && (p->audio_inputs_count < 1 || p->audio_inputs[0].channel_count < numIn ||
                         !p->audio_inputs[0].data32))
             return CLAP_PROCESS_ERROR;
 
@@ -228,8 +228,8 @@ struct FaustEffect {
                 }
                 applyEvent(hdr);
             }
-            for (uint32_t c = 0; c < nIn; ++c) fIn[c] = p->audio_inputs[0].data32[c] + pos;
-            for (uint32_t c = 0; c < nOut; ++c) fOut[c] = p->audio_outputs[0].data32[c] + pos;
+            for (uint32_t c = 0; c < numIn; ++c) fIn[c] = p->audio_inputs[0].data32[c] + pos;
+            for (uint32_t c = 0; c < numOut; ++c) fOut[c] = p->audio_outputs[0].data32[c] + pos;
             fDSP.compute(int(next - pos), fIn.data(), fOut.data());
             pos = next;
         }
