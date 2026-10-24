@@ -57,7 +57,7 @@ jobs:
       - name: Describe effects (JSON and block diagrams)
         run: make container RUN=describe
       - name: Upload effect descriptions
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: describe
           path: |
