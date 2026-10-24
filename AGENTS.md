@@ -38,12 +38,13 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
    - End `process` with `pk.safety(0.989)` so no sample can exceed 0 dBFS.
    - Comment the signal flow at the top of the file.
 3. **Tests.** Add `tests/<name>/test_*.py`:
-   - Each script does `from fxtest import ...` (`tests/lib/fxtest.py` provides `render`, `sine`, `log_sweep`, `transfer`, `harmonics`, `write_wav`, `save_plot`, `write_csv`, `check`, `finish`, `plt`, `SR`, `OUT`).
+   - Each script does `from fxtest import ...` (`tests/lib/fxtest.py` provides `render`, `sine`, `log_sweep`, `transfer`, `harmonics`, `write_wav`, `save_plot`, `write_csv`, `check`, `finish`, `loudness`, `presets`, `plt`, `SR`, `OUT`).
    - Each script ends with `finish()`, which exits non-zero on any failed `check`.
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
    - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
 4. **Build and check:** `make lv2 lint test FX=<name>`, then `pre-commit run --all-files`. Fix every `lv2lint` and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
 5. **Docs.** Add a row to the README's effect table and a controls table for the effect.
+6. **Presets (optional).** Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. Treat the settings as chosen values and say so in the file. Add a `tests/<name>/test_presets.py` that renders each preset, checks its peak and loudness-matches it with `loudness()`, and list the presets in the README.
 
 ## Shared library (`src/lib/pedalkit.lib`)
 
@@ -66,6 +67,7 @@ When you add something reusable, put it here rather than copying it into an effe
 - `faust2lv2` and `faust2jaqt` build in the current directory, so each effect is staged in `build/<name>/`, with `src/lib/*.lib` copied next to the `.dsp`. The bundle ends up in `build/<name>.lv2`.
 - Plugin URI: `urn:pedalkit/<name>`.
 - After `faust2lv2`, the Makefile runs `tools/fix-ttl.py` on the bundle's TTL. `faust2lv2` writes the licence as a string, and has no way to express `lv2:minorVersion`/`microVersion` or a plugin class. Without the script, `lv2lint` fails.
+- If `src/<name>.presets.toml` exists, the Makefile then runs `tools/make-presets.py`. It maps labels to port symbols by reading the generated TTL (faust2lv2 names ports `<Label>_<index>`, e.g. `Bass_Shift_8`, so never hard-code symbols), fails on an unknown, missing or out-of-range control, writes `presets.ttl` and adds the presets to `manifest.ttl`. Check them with `jalv`: its `presets` command lists them, and `preset <URI>` followed by `controls` shows the applied values. Preset URIs are `urn:pedalkit/<name>/preset/<slug>`.
 - `faust2lv2` prints spurious "bad port property 'unit:…'" messages. These are a quirk of its template and can be ignored.
 - `faust2lv2` needs the Boost headers (`boost` on Arch, `libboost-dev` on Debian), even for effects that use no MIDI.
 - Tests use a separate renderer, `build/<name>/render`, built from `tests/lib/render-arch.cpp`. It reads and writes raw float32 on stdin and stdout, takes `Label=value` arguments, and pre-rolls 2 s of silence so the smoothers settle. `render_1x` is the same DSP with `oversample4(` replaced by `oversample1(`.

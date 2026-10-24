@@ -56,9 +56,11 @@ Tips:
 
 The plugin reports 64 samples of latency (about 1.3 ms at 48 kHz) because of its 4x oversampling. REAPER compensates automatically for playback. While monitoring through the plugin, you hear that delay. Use a smaller audio buffer in *Options → Preferences → Audio → Device* to reduce the total.
 
-## 7. Saving your settings
+## 7. Presets and saving your settings
 
-Save the settings as an FX preset with the *+* button next to the preset box. Or save the chain as a track template (*Track → Save tracks as track template…*).
+The plugin comes with factory presets, such as "Clean DI", "Growl" and "Grind". Pick one from the preset box at the top of the plugin window. They are loudness-matched, so you can switch between them without a jump in level. The README lists every preset's settings.
+
+Save your own settings as an FX preset with the *+* button next to the preset box. Or save the chain as a track template (*Track → Save tracks as track template…*).
 
 ## What to check by listening
 
