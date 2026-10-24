@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+
+# Enables auto-merge on Dependabot pull requests. GitHub then merges each one
+# only once the branch's required status checks (see CI) have passed.
+# Needs "Allow auto-merge" in the repository settings, and a branch protection
+# rule on main that requires the CI jobs; without one it merges immediately.
+
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: Enable auto-merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
