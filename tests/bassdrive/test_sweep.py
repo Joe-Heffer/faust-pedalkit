@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Low E string sweep (41 Hz to 2 kHz), plus a low-end retention check.
 
 The plots show the output spectrum over time (spectrogram) and the output
@@ -6,12 +8,27 @@ level against the instantaneous sweep frequency for several Gain settings.
 
 import numpy as np
 
-from fxtest import OUT, SR, check, db, finish, harmonics, log_sweep, plt, render, sine, write_wav
+from fxtest import (
+    OUT,
+    SR,
+    check,
+    db,
+    finish,
+    harmonics,
+    log_sweep,
+    plt,
+    render,
+    save_plot,
+    sine,
+    write_csv,
+    write_wav,
+)
 
 print("test_sweep")
 DUR = 8.0
 x, finst = log_sweep(41.2, 2000, DUR, amp_db=-12)
 gains = (0, 50, 100)
+level_rows = []
 
 fig, axes = plt.subplots(2, 3, figsize=(15, 8), constrained_layout=True)
 for col, g in enumerate(gains):
@@ -33,6 +50,7 @@ for col, g in enumerate(gains):
     rms = np.sqrt(np.mean(y[: n * w].reshape(n, w) ** 2, axis=1))
     fmid = finst[w // 2 :: w][:n]
     ax.semilogx(fmid, db(rms) + 3.01, label=f"Gain {g}%")
+    level_rows.extend((g, fq, lv) for fq, lv in zip(fmid, db(rms) + 3.01, strict=True))
 
 ax = axes[1, 0]
 ax.set_title("Output level vs sweep frequency (Balance 100%)")
@@ -70,6 +88,11 @@ ax.set_ylabel("fundamental (dBFS)")
 ax.grid(True, alpha=0.3)
 print("  fundamental dBFS by Balance:", {k: round(v, 2) for k, v in lvl.items()})
 
-fig.savefig(f"{OUT}/sweep_lowE.png", dpi=110)
-print(f"  wrote {OUT}/sweep_lowE.png")
+save_plot(fig, "sweep_lowE")
+write_csv("sweep_level", ("gain", "freq_hz", "level_db"), level_rows)
+write_csv(
+    "lowE_fundamental",
+    ("sweep", "setting", "fundamental_dbfs"),
+    [("gain", k, v) for k, v in fund.items()] + [("balance", k, v) for k, v in lvl.items()],
+)
 finish()

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Silence in must give silence out, at every extreme setting."""
 
 import itertools

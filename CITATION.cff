@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software or its circuit research, please cite it as below."
+title: "Faust Pedal Kit"
+abstract: >-
+  Clean-room models of classic guitar and bass pedals, written in Faust and
+  built as native Linux LV2 plugins, with offline measurement tests and
+  documented circuit research.
+type: software
+authors:
+  - family-names: Heffer
+    given-names: Joe
+# A single SPDX identifier: Zenodo rejects a list here. Documentation under
+# docs/ is CC-BY-4.0; see REUSE.toml.
+license: MIT
+version: 0.1.0
+repository-code: "https://github.com/Joe-Heffer/faust-pedalkit"
+url: "https://github.com/Joe-Heffer/faust-pedalkit"
+keywords:
+  - audio
+  - Faust
+  - LV2
+  - guitar effects
+  - bass overdrive
+  - virtual analogue
+  - DSP

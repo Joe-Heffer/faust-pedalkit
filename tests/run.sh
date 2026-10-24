@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 # Run every tests/<effect>/test_*.py for one effect.
 # Usage: tests/run.sh <effect>      (the Makefile's `test` target calls this)
 # Exits non-zero if any test fails. Plots and WAVs go to tests/out/<effect>/.

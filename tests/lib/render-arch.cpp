@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Joe Heffer
+// SPDX-License-Identifier: MIT
 // Offline render harness for the effect tests (one binary per effect).
 //
 // Usage: render <samplerate> [Label=value ...] < in.f32 > out.f32
