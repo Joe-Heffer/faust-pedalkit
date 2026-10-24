@@ -216,7 +216,8 @@ for ax, (name, src, peak_db, params) in zip(axes.flat, SCENARIOS, strict=False):
         f"  {name:13s} peak {m['out_peak']:6.2f} dBFS  match {m['match_gain']:+6.1f} dB  "
         f"crest {m['in_crest']:4.1f} -> {m['out_crest']:4.1f} dB  "
         f"centroid {m['in_centroid']:5.0f} -> {m['out_centroid']:5.0f} Hz  "
-        f"HF>300 {100 * m['in_hf']:4.1f} -> {100 * m['out_hf']:4.1f} %  tail {m['tail_rms']:6.1f} dBFS"
+        f"HF>300 {100 * m['in_hf']:4.1f} -> {100 * m['out_hf']:4.1f} %  "
+        f"tail {m['tail_rms']:6.1f} dBFS"
     )
     check(np.all(np.isfinite(wet)), f"{name}: output is finite")
     check(m["out_peak"] <= 0.0, f"{name}: peak {m['out_peak']:.2f} dBFS <= 0 dBFS")
@@ -252,12 +253,16 @@ check(
 )
 check(
     abs(c["out_centroid"] / c["in_centroid"] - 1) < 0.05,
-    f"clean_di keeps the tone: centroid {c['in_centroid']:.0f} -> {c['out_centroid']:.0f} Hz (within 5 %)",
+    f"clean_di keeps the tone: centroid {c['in_centroid']:.0f} -> "
+    f"{c['out_centroid']:.0f} Hz (within 5 %)",
 )
 ladder = ("clean_di", "warm", "grit", "heavy")
 crest = [metrics[s]["out_crest"] for s in ladder]
-check(all(a >= b - 0.5 for a, b in zip(crest, crest[1:], strict=False)),
-      "more Drive does not raise the crest factor (0.5 dB tolerance): " + " >= ".join(f"{v:.1f}" for v in crest))  # fmt: skip
+check(
+    all(a >= b - 0.5 for a, b in zip(crest, crest[1:], strict=False)),
+    "more Drive does not raise the crest factor (0.5 dB tolerance): "
+    + " >= ".join(f"{v:.1f}" for v in crest),
+)
 check(
     crest[0] - crest[-1] >= 2,
     f"heavy squashes the dynamics: crest {crest[0]:.1f} -> {crest[-1]:.1f} dB (>= 2 dB less)",
