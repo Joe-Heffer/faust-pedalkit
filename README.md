@@ -258,8 +258,9 @@ These are measured approximations, not listening-tested. Each item below names t
 | Treble | −12 to +12 dB | 0 dB | High shelf at 2.8 kHz |
 | Bass Shift | off/on | off | Moves Bass from 80 Hz to 40 Hz, for 5- and 6-string basses |
 | Mid Shift | off/on | off | Moves Mid from 500 Hz to 1 kHz |
+| Cab Bypass | off/on | off | Removes the fixed speaker voicing from the preamp path, for a real cabinet or an impulse response. Not on the hardware. |
 
-Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin reports 64 samples of latency (two 4x-oversampled clipping stages).
+Every control is smoothed, including the switches: the shifts glide the band frequency rather than jumping, and Cab Bypass crossfades. The plugin reports 64 samples of latency (two 4x-oversampled clipping stages).
 
 ### BassPreamp: presets
 
@@ -282,7 +283,7 @@ Levels are in dB and Blend, Drive and Presence in %. The presets live in `src/ba
 1. a bass-weighted input network
 2. the Presence gain stage, with 4x-oversampled op-amp rail clipping
 3. the Drive gain stage, also with 4x-oversampled rail clipping
-4. the fixed "speaker" voicing: two Sallen-Key low-passes, one with a shelf leg, and a bridged-T notch at 424 Hz
+4. the fixed "speaker" voicing: two Sallen-Key low-passes, one with a shelf leg, and a bridged-T notch at 424 Hz. Cab Bypass (not on the hardware) replaces it with a −11 dB trim, for use with a real cabinet or an impulse response.
 
 The two paths meet at Blend, which models the hardware's capacitor-coupled pot exactly. Then come Bass, Mid, Treble, Level and the safety limiter (at most −0.1 dBFS). The design reasoning is in [the circuit notes](docs/basspreamp/circuit-notes.md).
 
@@ -294,6 +295,7 @@ From `make test FX=basspreamp` at 48 kHz. The plots are in `tests/out/basspreamp
 - **Peak level.** With every control at maximum and 0 dBFS square waves, noise, sweeps or impulses in, the worst sample is −0.10 dBFS.
 - **EQ.** Blend 0 with a flat EQ is flat within ±0.16 dB from 30 Hz to 15 kHz. The Mid peak sits within 1 % of 500 Hz and 1 kHz at exactly ±12.0 dB. Bass reaches +9.3 dB at 80 Hz and +11.8 dB at 27 Hz, or +8.8 dB at 40 Hz with Bass Shift. Treble reaches +9.1 dB at 2.8 kHz and +11.9 dB at 12 kHz.
 - **Preamp voicing.** Small-signal, the preamp path has a bass hump around 100 Hz, a dip around 450–500 Hz and a second hump near 1 kHz. It rolls off steeply above about 3 kHz and is 57 dB below its peak at 12 kHz. Presence adds up to 21.5 dB in the 1–3 kHz range and never cuts.
+- **Cab Bypass.** Bypassed, the preamp path peaks broadly near 500 Hz and is 37 dB below its peak at 12 kHz instead of 57 dB. The 100 Hz hump goes, and a dip of about −10 dB appears near 45 Hz at Blend 100 %. On a −12 dBFS bass line it is within 0.5 dB of the voiced loudness at Drive 50 %, and within 1.7 dB across Drive.
 - **Harmonics** (single sines at −12 dBFS, preamp path only):
 
   | Drive | 41 Hz THD | 110 Hz THD | Character |
@@ -317,6 +319,7 @@ These are measured approximations, not listening-tested. Each item names the con
 5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end. This is a property of the hardware's blend circuit as traced.
 6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
 7. **Presets.** Every setting in `src/basspreamp.presets.toml` is chosen. Check that each preset sounds like its name, and that the loudness match holds with a real bass and your interface gain.
+8. **Cab Bypass level.** `bypTrim` (0.28, −11 dB) is matched by K-weighted loudness. Toggle Cab Bypass at your usual settings and adjust it so the level doesn't jump.
 
 ### BassPreamp: known limitations
 

@@ -26,6 +26,7 @@ Mid = 0
 Treble = 0
 "Bass Shift" = 0
 "Mid Shift" = 0
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Warm Blend"
@@ -40,6 +41,7 @@ Mid = 0
 Treble = -2
 "Bass Shift" = 0
 "Mid Shift" = 0
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Growl"
@@ -54,6 +56,7 @@ Mid = 4
 Treble = 0
 "Bass Shift" = 0
 "Mid Shift" = 1
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Grind"
@@ -68,6 +71,7 @@ Mid = 3
 Treble = 2
 "Bass Shift" = 0
 "Mid Shift" = 0
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Scooped Slap"
@@ -82,6 +86,7 @@ Mid = -6
 Treble = 6
 "Bass Shift" = 0
 "Mid Shift" = 0
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Low B Thump"
@@ -96,6 +101,7 @@ Mid = -2
 Treble = -3
 "Bass Shift" = 1
 "Mid Shift" = 0
+"Cab Bypass" = 0
 
 [[preset]]
 name = "Dark Dub"
@@ -110,3 +116,4 @@ Mid = 2
 Treble = -9
 "Bass Shift" = 0
 "Mid Shift" = 0
+"Cab Bypass" = 0

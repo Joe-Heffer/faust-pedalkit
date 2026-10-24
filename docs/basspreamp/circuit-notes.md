@@ -126,7 +126,7 @@ After the Drive stage, all of the following are fixed:
 2. **Second Sallen-Key low-pass (IC2_B).** R16 and R17 (33 kΩ), C12 (2.2 nF) and C13 (1.2 nF): **2.97 kHz, Q 0.68**.
 3. **Bridged-T notch.** R18 (22 kΩ) bridged by C14 (22 nF) and C15 (47 nF), with R19 (6.2 kΩ) to VB: about **−11 dB at 424 Hz**.
 
-Together these give the preamp path a bass hump around 100 Hz, a dip at 450–500 Hz, a second hump around 1 kHz, and a roll-off of about −57 dB at 12 kHz relative to the peak. This is the "speaker simulation". It is always on, as on the hardware, and applies only to the preamp path.
+Together these give the preamp path a bass hump around 100 Hz, a dip at 450–500 Hz, a second hump around 1 kHz, and a roll-off of about −57 dB at 12 kHz relative to the peak. This is the "speaker simulation". It is always on, as on the hardware, and applies only to the preamp path. The plugin adds a Cab Bypass switch, which the hardware doesn't have: it replaces these three sections with a fixed trim of −11 dB, chosen so that a plucked bass line keeps the same K-weighted loudness at Drive and Presence 50 % (measured by `tests/basspreamp/test_cabsim.py`).
 
 All of these coefficients come from `tools/basspreamp-networks.py`, which takes ideal op-amps and the traced values and prints `pk.tf2a`/`pk.tf1a` sections. If a value changes, rerun it.
 
