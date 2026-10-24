@@ -65,6 +65,21 @@ sudo apt install faust libboost-dev g++ lv2-dev lv2lint jalv sox cmake git \
                  python3-numpy python3-matplotlib qtbase5-dev libjack-jackd2-dev
 ```
 
+### In a container (any OS)
+
+If your distribution's Faust is too old, or you are on macOS or Windows (WSL), build and test inside the toolchain image instead. The `Dockerfile` pins Faust and the other tools to a dated Arch Linux snapshot, and CI uses the same image. Only Docker or Podman is needed on the host.
+
+```sh
+make container                            # builds the image, then runs make lv2 lint test inside it
+make container RUN="describe" FX=bassdrive
+make container RUN="vst3 pluginval"
+make container CONTAINER=podman           # Podman instead of Docker
+```
+
+The repository is mounted into the container, so the results land in `build/` and `tests/out/` as usual, owned by you. `CONTAINER_FLAGS` passes extra options to `docker run`, for example `CONTAINER_FLAGS="--dns 1.1.1.1"` if containers on your machine cannot resolve host names. Run `make install` and the listening hosts (`jalv`, a DAW) on the host, not in the container.
+
+The bundles are built against Arch's current glibc, so they may not load on older distributions, such as an Ubuntu LTS release. They are Linux binaries, so they don't run in macOS or Windows hosts either. Use the container to build and test, and build natively for the machine you play on.
+
 ## Build, test and install
 
 ```sh

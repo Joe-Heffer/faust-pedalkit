@@ -35,25 +35,18 @@ jobs:
   build-test:
     name: Build, lv2lint and tests
     runs-on: ubuntu-latest
-    # Arch matches the development machine and packages current faust and lv2lint.
-    container: archlinux:base-devel
-    env:
-      # faust2lv2 derives its include path from `which faust`; with /usr/sbin
-      # first on the container's PATH that becomes /usr/sinclude/faust.
-      FAUSTINC: /usr/include/faust
     steps:
-      - name: Install toolchain
-        run: |
-          pacman -Syu --noconfirm --needed \
-            faust lv2 lv2lint boost python python-numpy python-matplotlib
-          faust --version
       - uses: actions/checkout@v7
+      # The toolchain image (Dockerfile) is the same one contributors use with
+      # `make container`. Later steps reuse its layer cache.
+      - name: Build toolchain image
+        run: make image
       - name: Build LV2 bundles
-        run: make lv2
+        run: make container RUN=lv2
       - name: lv2lint
-        run: make lint
+        run: make container RUN=lint
       - name: Offline tests
-        run: make test
+        run: make container RUN=test
       - name: Upload plots and renders
         if: always()
         uses: actions/upload-artifact@v7
@@ -62,7 +55,7 @@ jobs:
           path: tests/out/
           if-no-files-found: ignore
       - name: Describe effects (JSON and block diagrams)
-        run: make describe
+        run: make container RUN=describe
       - name: Upload effect descriptions
         uses: actions/upload-artifact@v5
         with:
@@ -74,32 +67,19 @@ jobs:
   vst3:
     name: VST3 build and pluginval
     runs-on: ubuntu-latest
-    container: archlinux:base-devel
-    env:
-      PLUGINVAL_VERSION: v1.0.4
     steps:
-      - name: Install toolchain
-        # git and cmake build the bundle against the VST3 SDK; alsa-lib,
-        # fontconfig and freetype2 are pluginval's runtime libraries.
-        run: |
-          pacman -Syu --noconfirm --needed \
-            faust cmake git python unzip alsa-lib fontconfig freetype2
-          faust --version
       - uses: actions/checkout@v7
+      - name: Build toolchain image
+        run: make image
       - name: Cache the VST3 SDK
         uses: actions/cache@v6
         with:
           path: build/vst3sdk
           key: vst3sdk-${{ hashFiles('Makefile') }}
       - name: Build VST3 bundles (runs Steinberg's validator)
-        run: make vst3
-      - name: Install pluginval
-        run: |
-          curl -sSfL -o /tmp/pluginval.zip \
-            "https://github.com/Tracktion/pluginval/releases/download/${PLUGINVAL_VERSION}/pluginval_Linux.zip"
-          unzip -q /tmp/pluginval.zip -d /usr/local/bin
+        run: make container RUN=vst3
       - name: pluginval
-        run: make pluginval
+        run: make container RUN=pluginval
       - name: Upload VST3 bundles
         uses: actions/upload-artifact@v7
         with:

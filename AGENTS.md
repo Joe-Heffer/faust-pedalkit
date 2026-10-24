@@ -67,9 +67,10 @@ When you add something reusable, put it here rather than copying it into an effe
 
 ## Build mechanics
 
-- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect. An unknown name stops `make` with the list of effects. `make help` lists the targets.
+- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`, `image`, `container`. All of them take `FX=<name>`, and the default is every effect. An unknown name stops `make` with the list of effects. `make help` lists the targets.
 - `make check` runs `pre-commit run --all-files`, as CI does. `make format` fixes Python lint and formatting with the ruff that `.pre-commit-config.yaml` pins, so no separate ruff install is needed; it fails only if ruff leaves something it cannot fix.
 - `make clean` removes `build/` and `tests/out/` but keeps the VST3 SDK clone in `build/vst3sdk`. `make distclean` removes that too. `docs` and `docs-serve` build and preview the MkDocs site (`mkdocs.yml`) into `build/site/`; pass `MKDOCS=<path>` if `mkdocs` is in a virtual environment.
+- **Toolchain image.** `Dockerfile` defines the build and test toolchain: Faust, lv2lint, Boost, numpy and matplotlib, plus cmake, git and pluginval for VST3. `make image` builds it and `make container RUN="<targets>"` runs `make` inside it with the repository mounted at `/src`. The `build-test` and `vst3` CI jobs use the same image, so a new dependency goes in the `Dockerfile`, not in `ci.yml`. Package versions come from the Arch Linux Archive date `ARCH_SNAPSHOT`, which you bump by hand to move to a newer Faust. Dependabot bumps the base image digest.
 - `tools/mkdocs_hooks.py` publishes `tests/out/<name>/*.svg` and `*.csv` on the site as `measurements/<name>/`, so run `make test` before `make docs`. `.github/workflows/docs.yml` does both and deploys to GitHub Pages from `main`.
 - `faust2lv2` and `faust2jaqt` build in the current directory, so each effect is staged in `build/<name>/`, with `src/lib/*.lib` copied next to the `.dsp`. The bundle ends up in `build/<name>.lv2`.
 - Plugin URI: `urn:pedalkit/<name>`.

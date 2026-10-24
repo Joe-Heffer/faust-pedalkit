@@ -19,6 +19,8 @@
 #   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
 #   make distclean    remove build/ and tests/out/ entirely
 #   make help         list these targets and the effects
+#   make image        build the toolchain image from the Dockerfile
+#   make container    run the RUN targets in that image (default RUN="lv2 lint test")
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
 
@@ -48,8 +50,23 @@ ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
 PRE_COMMIT ?= pre-commit
 
+# Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
+# `run` options go in CONTAINER_FLAGS.
+CONTAINER       ?= docker
+IMAGE           ?= pedalkit-build
+RUN             ?= lv2 lint test
+CONTAINER_FLAGS ?=
+# Run as the caller so build/ and tests/out/ stay theirs. Rootless Podman
+# maps the caller's UID with keep-id instead.
+ifneq ($(findstring podman,$(CONTAINER)),)
+CONTAINER_USER  := --userns=keep-id
+else
+CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
+endif
+
 .PHONY: all lv2 vst3 standalone lint pluginval test describe docs docs-serve check format \
-        install install-vst3 uninstall clean distclean help
+        install install-vst3 uninstall clean distclean help \
+        image container
 .SECONDARY:
 # A failed recipe deletes its half-written target, so the next run rebuilds it.
 .DELETE_ON_ERROR:
@@ -191,3 +208,10 @@ help:
 	@sed -n 's/^#   make /make /p' $(firstword $(MAKEFILE_LIST))
 	@echo
 	@echo "Effects: $(EFFECTS)"
+
+image:
+	$(CONTAINER) build -t $(IMAGE) .
+
+container: image
+	$(CONTAINER) run --rm $(CONTAINER_USER) $(CONTAINER_FLAGS) -v "$(CURDIR)":/src -w /src \
+	    $(IMAGE) make $(RUN) FX="$(FX)"
