@@ -28,6 +28,26 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 
 Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin also has a read-only *Latency* output for the host's delay compensation.
 
+## Presets
+
+The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+
+| Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
+|---|---|---|---|---|---|---|---|---|---|
+| Clean DI | 0 | 0 | 0 | 50 | 0 | 0 | 0 | | Clean path, flat EQ. The level reference. |
+| Warm Blend | +0.2 | 40 | 35 | 40 | +2 | 0 | −2 | | Some preamp under the clean signal |
+| Growl | −2.5 | 70 | 65 | 60 | +2 | +4 | 0 | Mid | Audible breakup with a 1 kHz lift |
+| Grind | −8.5 | 100 | 90 | 70 | +3 | +3 | +2 | | Preamp only. Mid fills the voicing's fixed dip near 450 Hz. |
+| Scooped Slap | −1 | 25 | 20 | 70 | +5 | −6 | +6 | | For slap and pop |
+| Low B Thump | +0.5 | 35 | 40 | 40 | +4 | −2 | −3 | Bass | 40 Hz shelf for five- and six-string basses |
+| Dark Dub | −1.5 | 45 | 25 | 20 | +6 | +2 | −9 | | Heavy lows, little treble |
+
+Levels are in dB and Blend, Drive and Presence in %. The presets live in [`src/basspreamp.presets.toml`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/basspreamp.presets.toml). Edit that file and run `make lv2 test FX=basspreamp`: the build checks that every preset sets every control within its range, and `test_presets.py` re-measures loudness and peak level.
+
+[![Long-term third-octave spectrum of a plucked bass line through each preset](../measurements/basspreamp/presets_spectrum.svg)](../measurements/basspreamp/presets_spectrum.svg "Open the full-size plot")
+
+Data: [`presets_spectrum.csv`](../measurements/basspreamp/presets_spectrum.csv) (`preset, band_hz, level_db`) and [`presets_levels.csv`](../measurements/basspreamp/presets_levels.csv) (`preset, loudness_rel_db, peak_dbfs, square_peak_dbfs`).
+
 ## Signal path
 
 ```text
@@ -62,6 +82,7 @@ These figures come from `make test` at 48 kHz. The plots below are regenerated e
 - **Peak level.** With every control at maximum and 0 dBFS square waves, noise, sweeps or impulses in, the worst sample is −0.10 dBFS.
 - **Flat when bypassed.** Blend 0 with a flat EQ is flat within ±0.16 dB from 30 Hz to 15 kHz.
 - **The low end holds up.** At Blend 50 %, the low E fundamental (41 Hz) rises by 5.2 dB from Drive 0 to 100 %, and never drops.
+- **Presets.** All seven are within 0.25 dB of "Clean DI" in K-weighted loudness on a −12 dBFS bass line. With a 0 dBFS 41 Hz square wave in, none peaks above −0.10 dBFS.
 - **Aliasing.** Against a 1x build of the same DSP at full Drive and Presence, 4x oversampling lowers the worst alias by 59 dB for a 3.7 kHz tone and by 68 dB for a 1.1 kHz tone. The worst alias at 1.1 kHz is −113 dBc.
 
 ### Frequency response
@@ -110,6 +131,7 @@ These are measured approximations that have not been listening-tested. Each item
 4. **Clean/preamp loudness.** `drvTrim` (0.32). Set it so that sweeping Blend at your usual Drive doesn't change the perceived volume.
 5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end.
 6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
+7. **Presets.** Every setting in `src/basspreamp.presets.toml` is chosen. Check that each preset sounds like its name, and that the loudness match holds with a real bass and your interface gain.
 
 ## Known limitations
 

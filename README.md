@@ -17,11 +17,13 @@ A small repository for building guitar and bass effects in [Faust](https://faust
 
 ```text
 src/<name>.dsp              one file per effect
+src/<name>.presets.toml     optional factory presets, built into the LV2 bundle
 src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, analogue filter sections, output safety limiter
 docs/<name>/circuit-notes.md  research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
+tools/make-presets.py       turns src/<name>.presets.toml into LV2 presets in the bundle
 tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
@@ -39,7 +41,7 @@ tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
 | Standalone JACK build (`faust2jaqt`) | `qt5-base`, `jack2` or `pipewire-jack` | `qtbase5-dev`, `libjack-jackd2-dev` |
 | Validation | `lv2lint` | `lv2lint` |
 | Quick host for testing | `jalv` | `jalv` |
-| Tests | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
+| Tests and presets (Python 3.11 or newer) | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
 | Optional audio tools | `sox` | `sox` |
 
 Development used Faust 2.88. Older distribution packages may be missing library functions used here, such as `fi.dcblockerat` or `fi.peak_eq_cq`. If the build fails with an "undefined symbol" error from Faust, install a newer Faust (see <https://github.com/grame-cncm/faust/releases>).
@@ -213,6 +215,22 @@ These are measured approximations, not listening-tested. Each item below names t
 
 Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin reports 64 samples of latency (two 4x-oversampled clipping stages).
 
+### BassPreamp: presets
+
+The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+
+| Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
+|---|---|---|---|---|---|---|---|---|---|
+| Clean DI | 0 | 0 | 0 | 50 | 0 | 0 | 0 | | Clean path, flat EQ. The level reference. |
+| Warm Blend | +0.2 | 40 | 35 | 40 | +2 | 0 | −2 | | Some preamp under the clean signal |
+| Growl | −2.5 | 70 | 65 | 60 | +2 | +4 | 0 | Mid | Audible breakup with a 1 kHz lift |
+| Grind | −8.5 | 100 | 90 | 70 | +3 | +3 | +2 | | Preamp only. Mid fills the voicing's fixed dip near 450 Hz. |
+| Scooped Slap | −1 | 25 | 20 | 70 | +5 | −6 | +6 | | For slap and pop |
+| Low B Thump | +0.5 | 35 | 40 | 40 | +4 | −2 | −3 | Bass | 40 Hz shelf for five- and six-string basses |
+| Dark Dub | −1.5 | 45 | 25 | 20 | +6 | +2 | −9 | | Heavy lows, little treble |
+
+Levels are in dB and Blend, Drive and Presence in %. The presets live in `src/basspreamp.presets.toml`. Edit that file and run `make lv2 test FX=basspreamp`: the build checks that every preset sets every control within its range, and `test_presets.py` re-measures loudness and peak level.
+
 **Signal path:** input DC blocker → split into clean and preamp paths. The preamp path, following a public schematic of the earlier hardware version, runs:
 
 1. a bass-weighted input network
@@ -239,6 +257,7 @@ From `make test FX=basspreamp` at 48 kHz. The plots are in `tests/out/basspreamp
   | 100 % | 18.8 % | 8.7 % | heavy, odd-order. H2 grows with Drive (−35 dBc at 41 Hz). |
 
 - **The low end holds up.** At Blend 50 %, the low E fundamental rises by 5.2 dB from Drive 0 to 100 %, and never drops.
+- **Presets.** All seven are within 0.25 dB of "Clean DI" in K-weighted loudness on a −12 dBFS bass line. With a 0 dBFS 41 Hz square wave in, none peaks above −0.10 dBFS.
 - **Aliasing.** Against a 1x build, 4x oversampling lowers the worst alias by 59 dB for a 3.7 kHz tone and by 68 dB for a 1.1 kHz tone at full Drive and Presence. The worst alias at 1.1 kHz is −113 dBc.
 
 ### BassPreamp: what to tune by ear
@@ -251,6 +270,7 @@ These are measured approximations, not listening-tested. Each item names the con
 4. **Clean/preamp loudness.** `drvTrim` (0.32). Set it so that sweeping Blend at your usual Drive doesn't change the perceived volume.
 5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end. This is a property of the hardware's blend circuit as traced.
 6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
+7. **Presets.** Every setting in `src/basspreamp.presets.toml` is chosen. Check that each preset sounds like its name, and that the loudness match holds with a real bass and your interface gain.
 
 ### BassPreamp: known limitations
 
