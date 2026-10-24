@@ -1,0 +1,31 @@
+name: Sound or modelling feedback
+description: Report how an effect sounds or measures, or question a circuit value.
+labels: [modelling]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The DSP is judged by measurement and then tuned by ear. Feedback on constants marked "chosen" or "inferred" in the circuit notes is especially useful.
+  - type: input
+    id: effect
+    attributes:
+      label: Effect
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: What do you hear or measure?
+      description: Control settings, input material and what is off (too bright, too fizzy, level jumps, aliasing, wrong response).
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference behaviour
+      description: What the real hardware does, with a public source (link, measurement, manual) if you have one.
+  - type: input
+    id: constant
+    attributes:
+      label: Constant or control involved
+      description: If known, the named constant in `src/<name>.dsp` or the control label.

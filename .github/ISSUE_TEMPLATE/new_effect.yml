@@ -1,0 +1,34 @@
+name: New effect request
+description: Suggest a pedal or effect to model.
+labels: [enhancement, new-effect]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is clean-room. Models are built only from public schematics, circuit analyses, measurements, reviews and manuals. Please do not link to or attach decompiled code, firmware or proprietary plugin binaries. Manufacturer names are fine for identifying the reference hardware.
+  - type: input
+    id: reference
+    attributes:
+      label: Reference hardware
+      description: Which circuit or pedal, and its type (overdrive, compressor, delay and so on).
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Public sources
+      description: Links to schematics, teardowns, circuit analyses, measurements or manuals.
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Controls and character
+      description: Documented controls, ranges, and what makes the circuit distinctive.
+  - type: checkboxes
+    id: clean-room
+    attributes:
+      label: Clean-room
+      options:
+        - label: I have not used decompiled or disassembled code, firmware or proprietary plugin binaries as a source.
+          required: true
