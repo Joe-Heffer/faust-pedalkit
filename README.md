@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 
-Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 plugins, with offline measurement tests.
+Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 and VST3 plugins, with offline measurement tests.
 
 **Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, circuit research and current measurement plots.
 
-A small repository for building guitar and bass effects in [Faust](https://faust.grame.fr/). Each effect is compiled to an LV2 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically.
+A small repository for building guitar and bass effects in [Faust](https://faust.grame.fr/). Each effect is compiled to an LV2 plugin and a VST3 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically.
 
 | Effect | Description | Notes |
 |---|---|---|
@@ -21,6 +21,8 @@ docs/<name>/circuit-notes.md  research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
+tools/vst3/                 VST3 architecture (Faust) and CMake project for the VST3 SDK
+tools/vst3-meta.py          writes each VST3 plugin's name, version, category and class ID
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
 tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
@@ -35,7 +37,8 @@ tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
 | C++ compiler | `gcc` (or `clang`) | `g++` |
 | LV2 headers | `lv2` | `lv2-dev` |
 | Standalone JACK build (`faust2jaqt`) | `qt5-base`, `jack2` or `pipewire-jack` | `qtbase5-dev`, `libjack-jackd2-dev` |
-| Validation | `lv2lint` | `lv2lint` |
+| VST3 build (fetches the VST3 SDK into `build/`) | `cmake`, `git` | `cmake`, `git` |
+| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3 | `lv2lint`; pluginval |
 | Quick host for testing | `jalv` | `jalv` |
 | Tests | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
 | Optional audio tools | `sox` | `sox` |
@@ -45,7 +48,8 @@ Development used Faust 2.88. Older distribution packages may be missing library 
 ### Arch
 
 ```sh
-sudo pacman -S --needed faust boost gcc lv2 lv2lint jalv sox python-numpy python-matplotlib qt5-base
+sudo pacman -S --needed faust boost gcc lv2 lv2lint jalv sox python-numpy python-matplotlib qt5-base \
+                        cmake git
 ```
 
 Faust is linked against the system LLVM. If `faust` fails with `libLLVM.so.NN: cannot open shared object file`, the system is partially upgraded. Run `sudo pacman -Syu` to fix it.
@@ -53,7 +57,7 @@ Faust is linked against the system LLVM. If `faust` fails with `libLLVM.so.NN: c
 ### Debian / Ubuntu
 
 ```sh
-sudo apt install faust libboost-dev g++ lv2-dev lv2lint jalv sox \
+sudo apt install faust libboost-dev g++ lv2-dev lv2lint jalv sox cmake git \
                  python3-numpy python3-matplotlib qtbase5-dev libjack-jackd2-dev
 ```
 
@@ -74,12 +78,17 @@ make describe             # build/<name>/<name>.dsp.json (controls) and block-di
 make docs                 # documentation site into build/site/ (after make test; see below)
 make standalone           # build/bassdrive/bassdrive (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
-make uninstall
+make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
+make pluginval            # pluginval at strictness 10 on every VST3 bundle
+make install-vst3         # copies VST3 bundles to ~/.vst3
+make uninstall            # removes both
 ```
 
 Add `FX=bassdrive` to any target to build one effect only.
 
 Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive`.
+
+The VST3 build uses Steinberg's [VST3 SDK](https://github.com/steinbergmedia/vst3sdk), which has been MIT-licensed since version 3.8. `make vst3` clones a pinned release into `build/vst3sdk` (only the submodules it needs), or uses an existing checkout given as `VST3_SDK=/path/to/vst3sdk`. The SDK's validator runs on each bundle as part of the build. For `make pluginval`, download pluginval and put it on `PATH`, or pass `PLUGINVAL=/path/to/pluginval`. The VST3 plugins have no custom GUI, so hosts show their generic parameter editor.
 
 Quick check from a terminal once it is installed:
 
@@ -109,7 +118,7 @@ pre-commit run --all-files
 | `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
+GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. A second job runs `make vst3 pluginval` and uploads the bundles as the `vst3` artifact. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
 
 ### Documentation site
 
@@ -123,7 +132,7 @@ make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000
 
 ## Loading in a host
 
-All three hosts below find plugins in `~/.lv2` once `make install` has run.
+All three hosts below find plugins in `~/.lv2` once `make install` has run. For the VST3 version, run `make install-vst3`, which copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux. REAPER, Bitwig, Ardour and Carla scan it, so "BassDrive" then appears in their VST3 lists.
 
 **Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" and add it.
 
@@ -191,10 +200,10 @@ These are measured approximations, not listening-tested. Each item below names t
 - **It isn't a full circuit simulation.** The drive stage is modelled as linear filters around a memoryless waveshaper (static nonlinearity). Effects that depend on the circuit's history are not captured: bias shifting under heavy playing, supply sag, and interaction between the clipper and the filters around it. Fast transients therefore compress a little more neatly than real hardware does.
 - **Several values are educated guesses.** These are the Gain pot taper and range, the stage-2 gain, the clipping asymmetry and the post-filter. Each one is marked as "chosen" in the circuit notes, and all are named constants near the top of `src/bassdrive.dsp`.
 - **The tone stack doesn't interact.** The EQ bands are independent digital filters, whereas a passive or active network would interact.
-- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host through an LV2 latency port, so hosts that support plugin delay compensation will line the track up.
+- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host (through an LV2 latency port, or the VST3 latency call), so hosts that support plugin delay compensation will line the track up.
 - **Mono only.**
 - **Some aliasing remains.** At extreme Gain with very high-pitched material, some aliasing remains despite the 4x oversampling. The safety limiter runs at the base rate and can alias if you drive it hard with Level.
 
 ## Licence
 
-The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.

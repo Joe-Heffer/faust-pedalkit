@@ -70,3 +70,38 @@ jobs:
           path: |
             build/*/*.dsp.json
             build/*/*-svg/
+
+  vst3:
+    name: VST3 build and pluginval
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    env:
+      PLUGINVAL_VERSION: v1.0.4
+    steps:
+      - name: Install toolchain
+        # git and cmake build the bundle against the VST3 SDK; alsa-lib,
+        # fontconfig and freetype2 are pluginval's runtime libraries.
+        run: |
+          pacman -Syu --noconfirm --needed \
+            faust cmake git python unzip alsa-lib fontconfig freetype2
+          faust --version
+      - uses: actions/checkout@v7
+      - name: Cache the VST3 SDK
+        uses: actions/cache@v6
+        with:
+          path: build/vst3sdk
+          key: vst3sdk-${{ hashFiles('Makefile') }}
+      - name: Build VST3 bundles (runs Steinberg's validator)
+        run: make vst3
+      - name: Install pluginval
+        run: |
+          curl -sSfL -o /tmp/pluginval.zip \
+            "https://github.com/Tracktion/pluginval/releases/download/${PLUGINVAL_VERSION}/pluginval_Linux.zip"
+          unzip -q /tmp/pluginval.zip -d /usr/local/bin
+      - name: pluginval
+        run: make pluginval
+      - name: Upload VST3 bundles
+        uses: actions/upload-artifact@v7
+        with:
+          name: vst3
+          path: build/*.vst3/

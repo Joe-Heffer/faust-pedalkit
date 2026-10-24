@@ -30,6 +30,7 @@ Runs on every push to `main` and every pull request:
 
 1. **Lint and format.** The pre-commit hooks above, except `faust-compile`, which the build job covers.
 2. **Build, lv2lint and tests.** In an Arch Linux container, `make lv2 lint test describe` for every effect. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact, and each effect's JSON description and block diagram as the `describe` artifact.
+3. **VST3 build and pluginval.** In the same container, `make vst3` fetches the pinned VST3 SDK (cached between runs), builds each bundle and runs Steinberg's validator on it. `make pluginval` then runs pluginval at strictness 10. The bundles are uploaded as the `vst3` artifact.
 
 ### Docs (`.github/workflows/docs.yml`)
 
