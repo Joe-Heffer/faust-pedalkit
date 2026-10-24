@@ -1,0 +1,84 @@
+//############################### pedalkit.lib ################################
+// Shared building blocks for the effects in this repository.
+//
+// Import it with:
+//   pk = library("pedalkit.lib");
+//
+// The Makefile copies src/lib/*.lib next to each .dsp before building and
+// passes -I src/lib to the offline renderer, so a plain library() call works
+// for every target.
+//##############################################################################
+
+ma = library("maths.lib");
+ba = library("basics.lib");
+
+//============================== Oversampling ==================================
+// 4x polyphase oversampling around a MEMORYLESS function f (a waveshaper).
+//
+// A single 129-tap Blackman-windowed sinc low-pass h[k], designed at the 4x
+// rate, serves as both the interpolator and the decimator. Each of the four
+// phases runs at the base rate, so no multirate support is needed:
+//
+//   interpolated phase p : w_p[n] = 4 * sum_j h[4j + p] * x[n - j]
+//   decimated output     : z[n]   = sum_q sum_j h[4j - q] * y_q[n - j]
+//
+// f is applied separately to each of the four phase streams, which is only
+// valid if f has no memory. Keep filters outside the oversampler.
+//
+// The end-to-end delay is os4Latency (32) base-rate samples. That is a whole
+// number, so a parallel dry path can be aligned exactly with @(pk.os4Latency).
+//
+// For A/B tests, oversample1(f) = f has the same interface without the
+// oversampling (and without the delay).
+//==============================================================================
+
+osL = 4;
+osN = 129;
+osT = 33;                         // taps per phase, ceil(osN / osL)
+osWc = 0.45 / osL;                // cut-off as a fraction of the 4x rate
+
+os4Latency = (osN - 1) / osL;     // 32 samples
+
+osSinc(t) = ba.if(t == 0, 1, sin(ma.PI * t) / (ma.PI * t + (t == 0)));
+osBlackman(k) = 0.42 - 0.5  * cos(2 * ma.PI * k / (osN - 1))
+                     + 0.08 * cos(4 * ma.PI * k / (osN - 1));
+osH(k) = ba.if((k >= 0) & (k < osN),
+               2 * osWc * osSinc(2 * osWc * (k - (osN - 1) / 2)) * osBlackman(k),
+               0);
+
+osUpPhase(p) = _ <: par(j, osT, @(j) : *(osL * osH(osL * j + p))) :> _;
+osDnPhase(q) = _ <: par(j, osT, @(j) : *(osH(osL * j - q))) :> _;
+
+oversample4(f) = _ <: par(p, osL, osUpPhase(p) : f) : par(q, osL, osDnPhase(q)) :> _;
+oversample1(f) = f;
+
+//============================== Waveshapers ===================================
+
+// Asymmetric soft clipper: tanh knees at +pos and -neg. Both halves have
+// slope 1 at zero, so the curve is smooth through the origin. Unequal knees
+// generate even-order harmonics and a DC offset (block it afterwards).
+asymTanh(pos, neg, x) = ba.if(x > 0, pos * ma.tanh(x / pos),
+                                     neg * ma.tanh(x / neg));
+
+// Symmetric soft saturation at +/- v.
+softSat(v, x) = v * ma.tanh(x / v);
+
+// Knee clipper with adjustable hardness: x / (1 + |x/a|^n)^(1/n). Slope 1 at
+// zero, limits at +/- a. Small n is soft (n = 2 is close to tanh); large n
+// approaches a hard clip. It stays almost linear until close to a.
+kneeClip(a, n, x) = x / pow(1 + pow(abs(x) / a, n), 1 / n);
+
+// Soft tanh clipping above zero (e.g. an LED) and a harder knee below zero
+// (e.g. a transistor stage running out of headroom). At low levels it is
+// almost symmetric; once the negative side reaches neg it clips sooner and
+// harder, so even harmonics rise with drive.
+asymSoftHard(pos, neg, n, x) = ba.if(x > 0, pos * ma.tanh(x / pos), kneeClip(neg, n, x));
+
+//============================== Output safety =================================
+
+// Transparent below 90 % of the ceiling lim, then a tanh knee that
+// approaches lim and never exceeds it. Use lim < 1 (e.g. 0.989, about
+// -0.1 dBFS) as the last stage of every effect so no sample can pass 0 dBFS.
+safety(lim, x) = ba.if(abs(x) <= t, x,
+                       ma.signum(x) * (t + (lim - t) * ma.tanh((abs(x) - t) / (lim - t))))
+with { t = 0.9 * lim; };
