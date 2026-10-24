@@ -1,6 +1,6 @@
 # Development
 
-This section is for anyone, human or coding agent, adding an effect or changing an existing one. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth.
+This section is for anyone, human or coding agent, adding an effect or changing an existing one. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth. To get a change merged, see [`CONTRIBUTING.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/CONTRIBUTING.md). To report a vulnerability, see [`SECURITY.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/SECURITY.md).
 
 - [Adding an effect](adding-an-effect.md): from research notes to DSP, tests and docs.
 - [Shared library](pedalkit-lib.md): the oversampler, clippers and safety limiter in `pedalkit.lib`.
