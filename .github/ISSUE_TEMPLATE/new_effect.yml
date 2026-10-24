@@ -1,34 +1,43 @@
-name: New effect request
-description: Suggest a pedal or effect to model.
-labels: [enhancement, new-effect, needs-sources]
+name: New effect idea
+description: Propose a new sound or kind of effect, or a circuit to learn from.
+labels: [enhancement, new-effect]
 body:
   - type: markdown
     attributes:
       value: |
-        This project is clean-room. Models are built only from public schematics, circuit analyses, measurements, reviews and manuals. Please do not link to or attach decompiled code, firmware or proprietary plugin binaries. Manufacturer names are fine for identifying the reference hardware.
-  - type: input
-    id: reference
+        This project is about effects that don't exist yet. Original ideas are the most welcome, and a rough one is enough to start a discussion. Modelling existing hardware is welcome too, as a way to learn how a sound is made and to collect building blocks. See [Designing new sounds](https://joe-heffer.github.io/faust-pedalkit/development/designing-new-sounds/).
+  - type: dropdown
+    id: kind
     attributes:
-      label: Reference hardware
-      description: Which circuit or pedal, and its type (overdrive, compressor, delay and so on).
+      label: Kind of effect
+      options:
+        - Original (a new idea, no single reference device)
+        - Circuit-inspired (start from a real circuit and take it somewhere new)
+        - Modelled (a faithful model of one piece of hardware)
     validations:
       required: true
   - type: textarea
-    id: sources
+    id: idea
     attributes:
-      label: Public sources
-      description: Links to schematics, teardowns, circuit analyses, measurements or manuals.
+      label: The idea
+      description: What should it sound like, and what would a player get from it that existing effects don't give them? Describe the character in words, and in measurable terms if you can (harmonics, response, dynamics, modulation).
     validations:
       required: true
   - type: textarea
     id: controls
     attributes:
-      label: Controls and character
-      description: Documented controls, ranges, and what makes the circuit distinctive.
+      label: Controls
+      description: The controls you imagine, and what each one should do to the sound.
+  - type: textarea
+    id: sources
+    attributes:
+      label: Inspirations and sources
+      description: Effects, papers, techniques or circuits the idea builds on, with links. For circuit-inspired or modelled effects, add public schematics, circuit analyses, measurements or manuals.
   - type: checkboxes
     id: clean-room
     attributes:
       label: Clean-room
+      description: Manufacturer names are fine in the issue for identifying hardware; the plugin itself will have a neutral name.
       options:
-        - label: I have not used decompiled or disassembled code, firmware or proprietary plugin binaries as a source.
+        - label: I have not used decompiled or disassembled code, firmware or proprietary plugin binaries as a source, and I'm not asking for a copy of a commercial product.
           required: true

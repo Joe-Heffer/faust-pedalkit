@@ -1,22 +1,24 @@
 # Contributing
 
-Thanks for helping. Whether you are a human or a coding agent, read [`AGENTS.md`](AGENTS.md) before you change anything. It is the authoritative checklist. This page summarises it and says how to get a change merged.
+Thanks for helping. This project is about making effects that don't exist yet; modelling classic hardware is a way to learn and to collect building blocks, not the end in itself. [Designing new sounds](docs/development/designing-new-sounds.md) explains the approach.
+
+Whether you are a human or a coding agent, read [`AGENTS.md`](AGENTS.md) before you change anything. It is the authoritative checklist. This page summarises it and says how to get a change merged.
 
 ## Hard rules
 
 The full wording is in [AGENTS.md § Hard rules](AGENTS.md#hard-rules). In short:
 
-1. **Clean-room only.** Work from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a reference to match against. A pull request that breaks this rule will be closed, however good the result sounds.
-2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. A manufacturer's product name may appear in the docs *only* to identify the reference hardware.
+1. **Clean-room only.** Anything taken from existing hardware or software comes from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a reference to match against. Original designs invent rather than imitate. A pull request that breaks this rule will be closed, however good the result sounds.
+2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. A manufacturer's product name may appear in the docs *only* to identify reference or inspiring hardware.
 3. **British English** in documentation, comments and UI text: colour, behaviour, modelling, analyse, centre.
-4. **Say when you're unsure.** Every circuit value is documented, reported, inferred or chosen, and the circuit notes say which, with a link for anything sourced.
+4. **Say when you're unsure, and why a value is what it is.** Every constant is documented, reported, inferred or chosen, and the design or circuit notes say which, with a link for anything sourced and the intent behind anything chosen.
 5. **Ask before anything destructive or system-wide**, such as `sudo` or package installs.
 6. **Judge sound by measurement**, and list what a human should check by ear.
 7. **Open formats and machine-readable licensing.** Every new file has an SPDX header or a `REUSE.toml` entry. Code is MIT, `docs/` is CC-BY-4.0, committed audio is FLAC, and schematics are KiCad `.kicad_sch` redrawn from the sources.
 
 ## Workflow
 
-1. Open an issue first, using the forms for bugs, modelling feedback or a new effect. For a new effect, the research comes before any DSP: see [Adding a new effect](AGENTS.md#adding-a-new-effect-name).
+1. Open an issue first, using the forms for bugs, sound feedback or a new effect. A new effect can be an original idea; sources are needed only for what it borrows from existing hardware. The design or circuit notes come before any DSP: see [Adding a new effect](AGENTS.md#adding-a-new-effect-name).
 2. Set up the tools (see the README's [Dependencies](README.md#dependencies)) and install the hooks once with `pre-commit install`.
 3. Make the change on a branch. Before you push, run:
 
@@ -30,7 +32,7 @@ The full wording is in [AGENTS.md § Hard rules](AGENTS.md#hard-rules). In short
 
 ## Contributions without code
 
-Measurements of real hardware, corrections to the circuit notes backed by sources, and listening reports are all welcome. Use the "Sound or modelling feedback" issue form. Please don't attach audio or schematics you don't have the rights to share.
+Effect ideas, listening reports, measurements of real hardware and corrections to the notes backed by sources are all welcome. Use the "New effect idea" or "Sound feedback" issue forms. Please don't attach audio or schematics you don't have the rights to share.
 
 ## Security
 

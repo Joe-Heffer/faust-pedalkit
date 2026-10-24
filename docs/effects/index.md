@@ -1,9 +1,9 @@
 # Effects
 
-| Effect | Type | Reference hardware | Latency | Pages |
+| Effect | Type | Kind | Latency | Pages |
 |---|---|---|---|---|
-| **BassDrive** | Bass overdrive | A classic compact two-band bass overdrive pedal | 32 samples | [controls and measurements](../bassdrive/index.md) · [circuit notes](../bassdrive/circuit-notes.md) |
-| **BassPreamp** | Bass preamp/DI | A classic tube-voiced bass preamp/DI pedal | 64 samples | [controls and measurements](../basspreamp/index.md) · [circuit notes](../basspreamp/circuit-notes.md) · [REAPER guide](../basspreamp/reaper.md) |
+| **BassDrive** | Bass overdrive | Modelled: a classic compact two-band bass overdrive pedal | 32 samples | [controls and measurements](../bassdrive/index.md) · [circuit notes](../bassdrive/circuit-notes.md) |
+| **BassPreamp** | Bass preamp/DI | Modelled: a classic tube-voiced bass preamp/DI pedal | 64 samples | [controls and measurements](../basspreamp/index.md) · [circuit notes](../basspreamp/circuit-notes.md) · [REAPER guide](../basspreamp/reaper.md) |
 
 Every effect page covers:
 
@@ -13,6 +13,8 @@ Every effect page covers:
 - **What to tune by ear:** the named constants a listener should adjust, because the models are verified by measurement, not by listening.
 - **Known limitations.**
 
-The circuit notes record the research behind each model: the reference pedal's documented controls, the block diagram, every stage with its component values and corner frequencies, the confidence level of each claim, the sources and the open questions.
+Each effect is *original*, *circuit-inspired* or *modelled* (see [Designing new sounds](../development/designing-new-sounds.md)). The two so far are models; original designs are where the project is heading.
+
+Design notes record the idea behind an original effect: the sound it is after, its prior art, its block diagram, the intent of each constant and the measurable targets its tests check. Circuit notes record the research behind each model: the reference pedal's documented controls, the block diagram, every stage with its component values and corner frequencies, the confidence level of each claim, the sources and the open questions.
 
 All effects are mono LV2 plugins with the URI `urn:pedalkit/<name>`. Every control is smoothed, so automation and live tweaking do not zipper. The output never exceeds −0.1 dBFS, because each effect ends in a soft safety limiter.

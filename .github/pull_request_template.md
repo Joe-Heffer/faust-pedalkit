@@ -6,9 +6,9 @@
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) and the hard rules in [AGENTS.md](../AGENTS.md#hard-rules). Tick each item or say why it doesn't apply.
 
-- [ ] Circuit notes (`docs/<name>/circuit-notes.md`) cover every new or changed circuit value, mark it documented, reported, inferred or chosen, and link the sources
-- [ ] Clean-room: worked only from public sources; no decompiled or proprietary code, binaries or firmware used, even as a reference
-- [ ] `make lv2 lint test FX=<name>` passes, and I have read the plots in `tests/out/<name>/`
+- [ ] Design notes (`docs/<name>/design-notes.md`, original or circuit-inspired effects) and/or circuit notes (`docs/<name>/circuit-notes.md`, modelled parts) cover every new or changed constant, mark it documented, reported, inferred or chosen, give the intent of chosen values, and link the sources
+- [ ] Clean-room: anything borrowed comes from public sources; no decompiled or proprietary code, binaries or firmware used, even as a reference
+- [ ] `make lv2 lint test FX=<name>` passes, the tests check the design notes' measurable targets (original effects), and I have read the plots in `tests/out/<name>/`
 - [ ] `pre-commit run --all-files` passes
 - [ ] README has a row in the effect table and a controls table (new effects)
 - [ ] No trademarks: plugin names, `declare name`, UI labels, URIs and file names are neutral
