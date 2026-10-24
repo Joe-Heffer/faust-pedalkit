@@ -1,4 +1,6 @@
-# faust-pedalkit
+# Faust Pedal Kit
+
+[![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 
 Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 plugins, with offline measurement tests.
 
