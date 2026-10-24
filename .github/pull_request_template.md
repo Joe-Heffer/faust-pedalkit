@@ -2,7 +2,7 @@
 
 <!-- What changed and why. -->
 
-# Checklist
+## Checklist
 
 - [ ] `make lv2 lint test FX=<name>` passes
 - [ ] `pre-commit run --all-files` passes
