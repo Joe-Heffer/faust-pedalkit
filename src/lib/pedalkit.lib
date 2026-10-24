@@ -74,6 +74,23 @@ kneeClip(a, n, x) = x / pow(1 + pow(abs(x) / a, n), 1 / n);
 // harder, so even harmonics rise with drive.
 asymSoftHard(pos, neg, n, x) = ba.if(x > 0, pos * ma.tanh(x / pos), kneeClip(neg, n, x));
 
+//============================ Analogue sections ===============================
+// First- and second-order analogue transfer functions with coefficients in
+// rad/s, as they come out of a circuit analysis, discretised with the
+// bilinear transform prewarped at w (rad/s):
+//
+//   tf2a: H(s) = (b2 s^2 + b1 s + b0) / (s^2 + a1 s + a0)
+//   tf1a: H(s) = (b1 s + b0) / (s + a0)
+//
+// fi.tf2s / fi.tf1s take the same polynomials but with s normalised to w;
+// these wrappers do that scaling. Pick w near the section's pole frequency.
+//==============================================================================
+
+fi = library("filters.lib");
+
+tf2a(b2, b1, b0, a1, a0, w) = fi.tf2s(b2, b1 / w, b0 / (w * w), a1 / w, a0 / (w * w), w);
+tf1a(b1, b0, a0, w) = fi.tf1s(b1, b0 / w, a0 / w, w);
+
 //============================== Output safety =================================
 
 // Transparent below 90 % of the ceiling lim, then a tanh knee that

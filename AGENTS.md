@@ -54,6 +54,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
 | `softSat(v)` | Symmetric tanh saturation at ±v |
 | `kneeClip(a, n)` | Clipper with adjustable hardness n, limiting at ±a |
 | `asymSoftHard(pos, neg, n)` | Soft tanh above zero, harder knee below; even harmonics grow with drive |
+| `tf2a(b2,b1,b0,a1,a0,w)` / `tf1a(b1,b0,a0,w)` | Analogue 2nd/1st-order section with coefficients in rad/s (as from a circuit analysis), bilinear-transformed with prewarp at `w`. `fi.tf2s` expects s normalised to `w`, so use these instead. |
 | `safety(lim)` | Transparent-below-90 % soft limiter that never exceeds `lim` |
 
 When you add something reusable, put it here rather than copying it into an effect, and document it in this table. Don't change existing signatures without updating every effect that uses them, and rerun `make test` across all effects.

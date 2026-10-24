@@ -7,16 +7,18 @@ A small repository for building guitar and bass effects in [Faust](https://faust
 | Effect | Description | Notes |
 |---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
+| **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 
 ## Layout
 
 ```
 src/<name>.dsp              one file per effect
-src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, output safety limiter
+src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, analogue filter sections, output safety limiter
 docs/<name>/circuit-notes.md  research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
+tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
 tests/out/<name>/           generated plots and WAV renders
@@ -63,17 +65,17 @@ cd faust-pedalkit
 `faust2lv2` prints "bad port property 'unit:…'" and "'tooltip:…'" messages during the build. These come from a quirk in Faust's LV2 template and are harmless: the units and tooltips are written to the plugin description correctly.
 
 ```sh
-make lv2                  # build/bassdrive.lv2
+make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes plots to tests/out/
-make standalone           # build/bassdrive/bassdrive (JACK, Qt GUI)
+make standalone           # build/<name>/<name> (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make uninstall
 ```
 
-Add `FX=bassdrive` to any target to build one effect only.
+Add `FX=bassdrive` or `FX=basspreamp` to any target to build one effect only.
 
-Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive`.
+Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive` and BassPreamp is `urn:pedalkit/basspreamp`.
 
 Quick check from a terminal once it is installed:
 
@@ -85,7 +87,7 @@ jalv urn:pedalkit/bassdrive          # console host; jalv.gtk3 or jalv.qt5 for a
 
 All three hosts below find plugins in `~/.lv2` once `make install` has run.
 
-**Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" and add it.
+**Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" (or "BassPreamp") and add it.
 
 **REAPER (Linux).**
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
@@ -153,6 +155,69 @@ These are measured approximations, not listening-tested. Each item below names t
 - **Mono only.**
 - **Some aliasing remains.** At extreme Gain with very high-pitched material, some aliasing remains despite the 4x oversampling. The safety limiter runs at the base rate and can alias if you drive it hard with Level.
 
+## BassPreamp controls
+
+| Control | Range | Default | What it does |
+|---|---|---|---|
+| Level | −40 to +12 dB | 0 dB | Output level. 0 dB is unity gain at Blend 0 with a flat EQ. |
+| Blend | 0 to 100 % | 50 % | 0 = clean only, 100 = preamp only. Below about 34 Hz the clean signal always passes, as on the hardware. |
+| Drive | 0 to 100 % | 50 % | Gain of the drive stage, 12.5 to 40 dB (log-uniform). Audible breakup starts around noon at −12 dBFS input. |
+| Presence | 0 to 100 % | 50 % | Boost-only upper-mid/treble gain ahead of the drive stage, so it also adds bite to the distortion |
+| Bass | −12 to +12 dB | 0 dB | Low shelf at 80 Hz (40 Hz with Bass Shift) |
+| Mid | −12 to +12 dB | 0 dB | Peaking band at 500 Hz (1 kHz with Mid Shift) |
+| Treble | −12 to +12 dB | 0 dB | High shelf at 2.8 kHz |
+| Bass Shift | off/on | off | Moves Bass from 80 Hz to 40 Hz, for 5- and 6-string basses |
+| Mid Shift | off/on | off | Moves Mid from 500 Hz to 1 kHz |
+
+Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin reports 64 samples of latency (two 4x-oversampled clipping stages).
+
+**Signal path:** input DC blocker → split into clean and preamp paths. The preamp path, following a public schematic of the earlier hardware version, runs:
+
+1. a bass-weighted input network
+2. the Presence gain stage, with 4x-oversampled op-amp rail clipping
+3. the Drive gain stage, also with 4x-oversampled rail clipping
+4. the fixed "speaker" voicing: two Sallen-Key low-passes, one with a shelf leg, and a bridged-T notch at 424 Hz
+
+The two paths meet at Blend, which models the hardware's capacitor-coupled pot exactly. Then come Bass, Mid, Treble, Level and the safety limiter (at most −0.1 dBFS). The design reasoning is in [the circuit notes](docs/basspreamp/circuit-notes.md).
+
+### BassPreamp: measured behaviour
+
+From `make test FX=basspreamp` at 48 kHz. The plots are in `tests/out/basspreamp/`.
+
+- **Silence in gives silence out.** The output stays below −120 dBFS at all 96 combinations of extreme settings, including both switch positions.
+- **Peak level.** With every control at maximum and 0 dBFS square waves, noise, sweeps or impulses in, the worst sample is −0.10 dBFS.
+- **EQ.** Blend 0 with a flat EQ is flat within ±0.16 dB from 30 Hz to 15 kHz. The Mid peak sits within 1 % of 500 Hz and 1 kHz at exactly ±12.0 dB. Bass reaches +9.3 dB at 80 Hz and +11.8 dB at 27 Hz, or +8.8 dB at 40 Hz with Bass Shift. Treble reaches +9.1 dB at 2.8 kHz and +11.9 dB at 12 kHz.
+- **Preamp voicing.** Small-signal, the preamp path has a bass hump around 100 Hz, a dip around 450–500 Hz and a second hump near 1 kHz. It rolls off steeply above about 3 kHz and is 57 dB below its peak at 12 kHz. Presence adds up to 21.5 dB in the 1–3 kHz range and never cuts.
+- **Harmonics** (single sines at −12 dBFS, preamp path only):
+
+  | Drive | 41 Hz THD | 110 Hz THD | Character |
+  |---|---|---|---|
+  | 0 % | < 0.01 % | < 0.01 % | clean |
+  | 50 % | 0.4 % | 1.9 % | light, odd-order |
+  | 100 % | 18.8 % | 8.7 % | heavy, odd-order. H2 grows with Drive (−35 dBc at 41 Hz). |
+
+- **The low end holds up.** At Blend 50 %, the low E fundamental rises by 5.2 dB from Drive 0 to 100 %, and never drops.
+- **Aliasing.** Against a 1x build, 4x oversampling lowers the worst alias by 59 dB for a 3.7 kHz tone and by 68 dB for a 1.1 kHz tone at full Drive and Presence. The worst alias at 1.1 kHz is −113 dBc.
+
+### BassPreamp: what to tune by ear
+
+These are measured approximations, not listening-tested. Each item names the control or the `src/basspreamp.dsp` constant to change.
+
+1. **Input level first.** Like BassDrive, 0 dBFS is treated as 1 V at the input. If Drive 50 % sounds too clean or too dirty, check your interface gain before changing constants.
+2. **Clipping character.** `railN` (5) sets how hard the op-amp rail clipping is. Lower values are softer and more "tube-like". `vos` (2 mV) sets the asymmetry, and so how much H2 appears as Drive rises.
+3. **Drive and Presence taper.** The `pow(...)` laws in `RgPres` and `driveG` set how the controls spread. The real pots are linear, and the hardware bunches the action near the end.
+4. **Clean/preamp loudness.** `drvTrim` (0.32). Set it so that sweeping Blend at your usual Drive doesn't change the perceived volume.
+5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end. This is a property of the hardware's blend circuit as traced.
+6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
+
+### BassPreamp: known limitations
+
+- **It is based on the earlier version's schematic.** No V2 schematic is public. The drive section and speaker voicing follow a DIY trace of the V1, and the V2 EQ follows its published specification. See the circuit notes' open questions.
+- **It isn't a full circuit simulation.** Each op-amp stage is a linear filter followed by a memoryless rail clip, so effects such as the feedback capacitors acting while clipped, slew limiting and recovery from overload are not captured.
+- **The mixer stage's clipping is left out.** On the hardware, the ×2.2 mixer can clip at high Blend and Drive.
+- **The output switches are not modelled:** the −20 dB pad, the +10 dB boost, phantom power and the ground lift.
+- **Mono only.** 64 samples of latency (1.3 ms at 48 kHz), reported to the host.
+
 ## Licence
 
-MIT; see [LICENSE](LICENSE). BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+MIT; see [LICENSE](LICENSE). BassDrive and BassPreamp are independent models built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
