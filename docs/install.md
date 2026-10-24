@@ -1,6 +1,6 @@
 # Install and build
 
-The effects build on Linux into LV2 and VST3 plugin bundles, plus an optional standalone JACK application per effect.
+The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional standalone JACK application per effect.
 
 ## Dependencies
 
@@ -12,7 +12,8 @@ The effects build on Linux into LV2 and VST3 plugin bundles, plus an optional st
 | LV2 headers | `lv2` | `lv2-dev` |
 | Standalone JACK build (`faust2jaqt`) | `qt5-base`, `jack2` or `pipewire-jack` | `qtbase5-dev`, `libjack-jackd2-dev` |
 | VST3 build (fetches the VST3 SDK into `build/`) | `cmake`, `git` | `cmake`, `git` |
-| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3 | `lv2lint`; pluginval |
+| CLAP build (fetches the CLAP headers into `build/`) | `git` | `git` |
+| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3; [clap-validator](https://github.com/free-audio/clap-validator/releases) for CLAP | `lv2lint`; pluginval; clap-validator |
 | Quick host for testing | `jalv` | `jalv` |
 | Tests | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
 | Optional audio tools | `sox` | `sox` |
@@ -54,7 +55,10 @@ make install              # copy the bundles into ~/.lv2
 make vst3                 # build/<name>.vst3 (fetches the VST3 SDK on first use)
 make pluginval            # pluginval at strictness 10 on every VST3 bundle
 make install-vst3         # copy the VST3 bundles into ~/.vst3
-make uninstall            # remove both again
+make clap                 # build/<name>.clap (fetches the CLAP headers on first use)
+make clap-validate        # clap-validator on every CLAP plugin
+make install-clap         # copy the CLAP plugins into ~/.clap
+make uninstall            # remove all three again
 make clean                # remove build/ and tests/out/
 ```
 
@@ -64,12 +68,16 @@ Every target builds all effects by default. Add `FX=<name>` to build one, for ex
 
 The VST3 build uses Steinberg's [VST3 SDK](https://github.com/steinbergmedia/vst3sdk), which has been MIT-licensed since version 3.8. `make vst3` clones a pinned release into `build/vst3sdk` (only the submodules it needs), or uses an existing checkout given as `VST3_SDK=/path/to/vst3sdk`. The SDK's validator runs on each bundle as part of the build. For `make pluginval`, download pluginval and put it on `PATH`, or pass `PLUGINVAL=/path/to/pluginval`. The VST3 plugins have no custom GUI, so hosts show their generic parameter editor.
 
+## CLAP
+
+The CLAP build needs only the MIT-licensed [CLAP headers](https://github.com/free-audio/clap). `make clap` clones a pinned release into `build/clap`, or uses an existing checkout given as `CLAP_SDK=/path/to/clap`. For `make clap-validate`, download [clap-validator](https://github.com/free-audio/clap-validator/releases) and put it on `PATH`, or pass `CLAP_VALIDATOR=/path/to/clap-validator`. The CLAP plugins have no custom GUI either.
+
 !!! note "Harmless build messages"
     `faust2lv2` prints "bad port property 'unit:…'" and "'tooltip:…'" messages. They come from a quirk in Faust's LV2 template. The units and tooltips still reach the plugin description, because `tools/fix-ttl.py` rewrites the metadata after the build.
 
 ## Plugin URIs
 
-Each plugin's URI is `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive`. To try one from a terminal once it is installed:
+Each plugin's URI is `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive`. The CLAP plugin ID is `pedalkit.<name>`, here `pedalkit.bassdrive`. To try one from a terminal once it is installed:
 
 ```sh
 jalv urn:pedalkit/bassdrive     # console host; jalv.gtk3 or jalv.qt5 give a GUI where packaged
@@ -90,6 +98,8 @@ tools/fix-ttl.py                adds LV2 metadata faust2lv2 cannot write (licenc
 tools/mkdocs_hooks.py           publishes test plots and data on this site
 tools/vst3/                     VST3 architecture (Faust) and CMake project for the VST3 SDK
 tools/vst3-meta.py              writes each VST3 plugin's name, version, category and class ID
+tools/clap/faust-clap.cpp       CLAP architecture (Faust), written against the CLAP headers
+tools/clap-meta.py              writes each CLAP plugin's ID, name, version and features
 build/                          generated: bundles, renderers, this site
 tests/out/<name>/               generated: plots (SVG), data (CSV) and renders (WAV)
 ```

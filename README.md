@@ -36,6 +36,8 @@ tools/make-presets.py       turns src/<name>.presets.toml into LV2 presets in th
 tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
 tools/vst3/                 VST3 architecture (Faust) and CMake project for the VST3 SDK
 tools/vst3-meta.py          writes each VST3 plugin's name, version, category and class ID
+tools/clap/faust-clap.cpp   CLAP architecture (Faust), written against the CLAP headers
+tools/clap-meta.py          writes each CLAP plugin's ID, name, version and features
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
 tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
@@ -51,7 +53,8 @@ tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
 | LV2 headers | `lv2` | `lv2-dev` |
 | Standalone JACK build (`faust2jaqt`) | `qt5-base`, `jack2` or `pipewire-jack` | `qtbase5-dev`, `libjack-jackd2-dev` |
 | VST3 build (fetches the VST3 SDK into `build/`) | `cmake`, `git` | `cmake`, `git` |
-| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3 | `lv2lint`; pluginval |
+| CLAP build (fetches the CLAP headers into `build/`) | `git` | `git` |
+| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3; [clap-validator](https://github.com/free-audio/clap-validator/releases) for CLAP | `lv2lint`; pluginval; clap-validator |
 | Quick host for testing | `jalv` | `jalv` |
 | Tests and presets (Python 3.11 or newer) | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
 | Optional audio tools | `sox` | `sox` |
@@ -109,7 +112,10 @@ make install              # copies bundles to ~/.lv2
 make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
 make pluginval            # pluginval at strictness 10 on every VST3 bundle
 make install-vst3         # copies VST3 bundles to ~/.vst3
-make uninstall            # removes both
+make clap                 # build/bassdrive.clap (fetches the CLAP headers on first use)
+make clap-validate        # clap-validator on every CLAP plugin
+make install-clap         # copies CLAP plugins to ~/.clap
+make uninstall            # removes all three
 make check                # every pre-commit hook on every file, as CI runs them
 make format               # fix Python lint and formatting with ruff
 make clean                # removes build/ and tests/out/ (keeps the VST3 SDK; make distclean removes it)
@@ -118,9 +124,11 @@ make help                 # lists every target and effect
 
 Add `FX=bassdrive` or `FX=basspreamp` to any target to build one effect only.
 
-Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive` and BassPreamp is `urn:pedalkit/basspreamp`.
+Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive` and BassPreamp is `urn:pedalkit/basspreamp`. The matching CLAP plugin ID is `pedalkit.<name>`, here `pedalkit.bassdrive`.
 
 The VST3 build uses Steinberg's [VST3 SDK](https://github.com/steinbergmedia/vst3sdk), which has been MIT-licensed since version 3.8. `make vst3` clones a pinned release into `build/vst3sdk` (only the submodules it needs), or uses an existing checkout given as `VST3_SDK=/path/to/vst3sdk`. The SDK's validator runs on each bundle as part of the build. For `make pluginval`, download pluginval and put it on `PATH`, or pass `PLUGINVAL=/path/to/pluginval`. The VST3 plugins have no custom GUI, so hosts show their generic parameter editor.
+
+The CLAP build needs only the MIT-licensed [CLAP headers](https://github.com/free-audio/clap). `make clap` clones a pinned release into `build/clap`, or uses an existing checkout given as `CLAP_SDK=/path/to/clap`. For `make clap-validate`, download [clap-validator](https://github.com/free-audio/clap-validator/releases) and put it on `PATH`, or pass `CLAP_VALIDATOR=/path/to/clap-validator`. Like the VST3 plugins, the CLAP plugins have no custom GUI.
 
 Quick check from a terminal once it is installed:
 
@@ -151,7 +159,7 @@ make check                # same as: pre-commit run --all-files
 | `no-trademarks` | no manufacturer or product name (list in `tools/trademarks.txt`) in file names, `src/` or `tests/` |
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. A second job runs `make vst3 pluginval` and uploads the bundles as the `vst3` artifact. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
+GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. A second job runs `make vst3 pluginval` and uploads the bundles as the `vst3` artifact, and a third runs `make clap clap-validate` and uploads the plugins as the `clap` artifact. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
 
 ### Documentation site
 
@@ -165,7 +173,7 @@ make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000
 
 ## Loading in a host
 
-All three hosts below find plugins in `~/.lv2` once `make install` has run. For the VST3 version, run `make install-vst3`, which copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux. REAPER, Bitwig, Ardour and Carla scan it, so "BassDrive" and "BassPreamp" then appear in their VST3 lists.
+All three hosts below find plugins in `~/.lv2` once `make install` has run. For the VST3 version, run `make install-vst3`, which copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux. REAPER, Bitwig, Ardour and Carla scan it, so "BassDrive" and "BassPreamp" then appear in their VST3 lists. For CLAP, run `make install-clap`, which copies the plugins to `~/.clap`, the per-user CLAP folder on Linux that REAPER, Bitwig and Carla scan.
 
 **Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" (or "BassPreamp") and add it.
 
@@ -233,7 +241,7 @@ These are measured approximations, not listening-tested. Each item below names t
 - **It isn't a full circuit simulation.** The drive stage is modelled as linear filters around a memoryless waveshaper (static nonlinearity). Effects that depend on the circuit's history are not captured: bias shifting under heavy playing, supply sag, and interaction between the clipper and the filters around it. Fast transients therefore compress a little more neatly than real hardware does.
 - **Several values are educated guesses.** These are the Gain pot taper and range, the stage-2 gain, the clipping asymmetry and the post-filter. Each one is marked as "chosen" in the circuit notes, and all are named constants near the top of `src/bassdrive.dsp`.
 - **The tone stack doesn't interact.** The EQ bands are independent digital filters, whereas a passive or active network would interact.
-- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host (through an LV2 latency port, or the VST3 latency call), so hosts that support plugin delay compensation will line the track up.
+- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host (through an LV2 latency port, the VST3 latency call or the CLAP latency extension), so hosts that support plugin delay compensation will line the track up.
 - **Mono only.**
 - **Some aliasing remains.** At extreme Gain with very high-pitched material, some aliasing remains despite the 4x oversampling. The safety limiter runs at the base rate and can alias if you drive it hard with Level.
 
