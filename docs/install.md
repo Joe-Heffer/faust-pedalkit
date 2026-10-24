@@ -13,7 +13,7 @@ cd pedalkit-*-linux-x86_64
 ./install.sh
 ```
 
-`install.sh` copies the plugins into `~/.lv2`, `~/.vst3` and `~/.clap`, the per-user folders that REAPER, Bitwig, Ardour and Carla scan. It needs no root and touches only the bundles in the tarball, replacing any older copies of them. Rescan plugins in your DAW afterwards (see [Loading in a host](hosts.md)).
+`install.sh` copies the plugins into `~/.lv2`, `~/.vst3` and `~/.clap`, the per-user folders that REAPER, Bitwig, Ardour and Carla scan. It needs no root and touches only the bundles in the tarball, replacing any older copies of them. Rescan plugins in your DAW afterwards (see [Loading in a host](usage/hosts.md)).
 
 | Command | Effect |
 |---|---|
