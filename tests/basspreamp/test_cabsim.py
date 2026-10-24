@@ -99,5 +99,5 @@ check(dev < -100, f"Blend 0: Cab Bypass changes the output by at most {dev:.0f} 
 
 save_plot(fig, "cabsim")
 write_csv("cabsim", ("input_dbfs", "cab_bypass", "freq_hz", "gain_db"), rows)
-write_csv("cabsim_loudness", ("drive", "bypassed_minus_voiced_db"), zip(drives, diffs))
+write_csv("cabsim_loudness", ("drive", "bypassed_minus_voiced_db"), zip(drives, diffs, strict=True))
 finish()
