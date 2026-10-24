@@ -17,7 +17,7 @@ is required.
 
 import numpy as np
 
-P = np.polynomial.polynomial          # coefficient order: ascending powers of s
+P = np.polynomial.polynomial  # coefficient order: ascending powers of s
 
 
 def Y(kind, v):
@@ -32,7 +32,7 @@ def det(m):
         return m[0][0]
     out = np.array([0.0])
     for j in range(n):
-        minor = [row[:j] + row[j + 1:] for row in m[1:]]
+        minor = [row[:j] + row[j + 1 :] for row in m[1:]]
         term = P.polymul(m[0][j], det(minor))
         out = P.polyadd(out, term if j % 2 == 0 else -term)
     return out
@@ -54,7 +54,7 @@ def solve(elements, unknowns, out, alias=None):
     for kind, v, a, c in elements:
         y = Y(kind, v)
         for here, there in ((a, c), (c, a)):
-            if here not in idx:                     # source, ground or follower output
+            if here not in idx:  # source, ground or follower output
                 continue
             i = idx[here]
             A[i][i] = P.polyadd(A[i][i], y)
@@ -64,7 +64,7 @@ def solve(elements, unknowns, out, alias=None):
             elif there != "0":
                 A[i][idx[there]] = P.polysub(A[i][idx[there]], y)
     k = idx[alias.get(out, out)]
-    num_m = [row[:k] + [b[r]] + row[k + 1:] for r, row in enumerate(A)]
+    num_m = [row[:k] + [b[r]] + row[k + 1 :] for r, row in enumerate(A)]
     return P.polytrim(det(num_m), 1e-30), P.polytrim(det(A), 1e-30)
 
 
@@ -105,59 +105,109 @@ def faust(name, secs):
     lines = [f"{name} = "]
     terms = []
     for nn, d in secs:
-        w = np.sqrt(abs(d[0])) if len(d) == 3 else abs(d[0])   # prewarp at the pole frequency
+        w = np.sqrt(abs(d[0])) if len(d) == 3 else abs(d[0])  # prewarp at the pole frequency
         w = min(w, 2 * np.pi * 15000)
         if len(d) == 3:
             b = np.zeros(3)
-            b[:len(nn)] = nn
-            terms.append(f"pk.tf2a({b[2]:.10g}, {b[1]:.10g}, {b[0]:.10g}, "
-                         f"{d[1]:.10g}, {d[0]:.10g}, {w:.10g})")
+            b[: len(nn)] = nn
+            terms.append(
+                f"pk.tf2a({b[2]:.10g}, {b[1]:.10g}, {b[0]:.10g}, "
+                f"{d[1]:.10g}, {d[0]:.10g}, {w:.10g})"
+            )
         else:
             b = np.zeros(2)
-            b[:len(nn)] = nn
+            b[: len(nn)] = nn
             terms.append(f"pk.tf1a({b[1]:.10g}, {b[0]:.10g}, {d[0]:.10g}, {w:.10g})")
     return lines[0] + "\n    : ".join(terms) + ";"
 
 
 def report(name, num, den, freqs=(20, 41, 80, 110, 200, 420, 1000, 2000, 3300, 5000, 10000)):
     print(f"--- {name}")
-    print("  poles (Hz):", ", ".join(f"{abs(p) / 2 / np.pi:.1f}"
-                                     + (f" (Q {abs(p) / (-2 * p.real):.2f})" if abs(p.imag) > 1e-6 else "")
-                                     for p in P.polyroots(den) if abs(p.imag) >= 0 and p.imag >= -1e-6))
+    print(
+        "  poles (Hz):",
+        ", ".join(
+            f"{abs(p) / 2 / np.pi:.1f}"
+            + (f" (Q {abs(p) / (-2 * p.real):.2f})" if abs(p.imag) > 1e-6 else "")
+            for p in P.polyroots(den)
+            if abs(p.imag) >= 0 and p.imag >= -1e-6
+        ),
+    )
     zs = P.polyroots(num) if len(num) > 1 else []
-    print("  zeros (Hz):", ", ".join(f"{abs(z) / 2 / np.pi:.1f}" for z in zs if z.imag >= -1e-6) or "none")
+    print(
+        "  zeros (Hz):",
+        ", ".join(f"{abs(z) / 2 / np.pi:.1f}" for z in zs if z.imag >= -1e-6) or "none",
+    )
     h = response(num, den, freqs)
-    print("  |H| dB:", "  ".join(f"{f}:{20 * np.log10(abs(v)):+.1f}" for f, v in zip(freqs, h)))
+    print(
+        "  |H| dB:",
+        "  ".join(f"{f}:{20 * np.log10(abs(v)):+.1f}" for f, v in zip(freqs, h, strict=True)),
+    )
     print(faust(name, sections(num, den)))
     print()
 
 
 # Pre-drive network: R3 bridged by C2-C4-C3 to VB via R4/R5, then C5 into
 # IC2_C's + input with R6 to VB. Driven by the input buffer (IC1_D).
-pre = solve([("R", 100e3, "in", "B"), ("C", 22e-9, "in", "BL"), ("C", 22e-9, "B", "BR"),
-             ("C", 22e-9, "BL", "BR"), ("R", 2.2e3, "BL", "0"), ("R", 22e3, "BR", "0"),
-             ("C", 22e-9, "B", "D"), ("R", 100e3, "D", "0")],
-            ["B", "BL", "BR", "D"], "D")
+pre = solve(
+    [
+        ("R", 100e3, "in", "B"),
+        ("C", 22e-9, "in", "BL"),
+        ("C", 22e-9, "B", "BR"),
+        ("C", 22e-9, "BL", "BR"),
+        ("R", 2.2e3, "BL", "0"),
+        ("R", 22e3, "BR", "0"),
+        ("C", 22e-9, "B", "D"),
+        ("R", 100e3, "D", "0"),
+    ],
+    ["B", "BL", "BR", "D"],
+    "D",
+)
 report("preNet", *pre)
 
 # Post-clip divider and first Sallen-Key low-pass (IC2_A follower), with the
 # R14 + C10 shelf leg at the middle node.
-sk1 = solve([("R", 10e3, "in", "P"), ("R", 22e3, "P", "0"), ("R", 22e3, "P", "Q"),
-             ("R", 10e3, "Q", "T"), ("C", 47e-9, "T", "0"), ("C", 10e-9, "Q", "O"),
-             ("R", 22e3, "Q", "S"), ("C", 470e-12, "S", "0")],
-            ["P", "Q", "T", "S"], "O", alias={"O": "S"})
+sk1 = solve(
+    [
+        ("R", 10e3, "in", "P"),
+        ("R", 22e3, "P", "0"),
+        ("R", 22e3, "P", "Q"),
+        ("R", 10e3, "Q", "T"),
+        ("C", 47e-9, "T", "0"),
+        ("C", 10e-9, "Q", "O"),
+        ("R", 22e3, "Q", "S"),
+        ("C", 470e-12, "S", "0"),
+    ],
+    ["P", "Q", "T", "S"],
+    "O",
+    alias={"O": "S"},
+)
 report("postSK1", *sk1)
 
 # Second Sallen-Key low-pass (IC2_B follower).
-sk2 = solve([("R", 33e3, "in", "M"), ("C", 2.2e-9, "M", "O"), ("R", 33e3, "M", "N"),
-             ("C", 1.2e-9, "N", "0")],
-            ["M", "N"], "O", alias={"O": "N"})
+sk2 = solve(
+    [
+        ("R", 33e3, "in", "M"),
+        ("C", 2.2e-9, "M", "O"),
+        ("R", 33e3, "M", "N"),
+        ("C", 1.2e-9, "N", "0"),
+    ],
+    ["M", "N"],
+    "O",
+    alias={"O": "N"},
+)
 report("postSK2", *sk2)
 
 # Bridged-T notch into IC1_A (follower).
-bt = solve([("R", 22e3, "in", "W"), ("C", 22e-9, "in", "J"), ("C", 47e-9, "W", "J"),
-            ("R", 6.2e3, "J", "0")],
-           ["W", "J"], "W")
+bt = solve(
+    [
+        ("R", 22e3, "in", "W"),
+        ("C", 22e-9, "in", "J"),
+        ("C", 47e-9, "W", "J"),
+        ("R", 6.2e3, "J", "0"),
+    ],
+    ["W", "J"],
+    "W",
+)
 report("postNotch", *bt)
 
 # Whole post-clip chain, for the notes.
@@ -165,10 +215,16 @@ num = P.polymul(P.polymul(sk1[0], sk2[0]), bt[0])
 den = P.polymul(P.polymul(sk1[1], sk2[1]), bt[1])
 f = np.geomspace(20, 20000, 2000)
 h = 20 * np.log10(abs(response(num, den, f)))
-print("--- post chain: peak {:+.1f} dB at {:.0f} Hz, -3 dB re 100 Hz at {:.0f} Hz, "
-      "min {:+.1f} dB at {:.0f} Hz".format(h.max(), f[h.argmax()],
-                                         f[np.argmax((f > 1000) & (h < h[np.searchsorted(f, 100)] - 3))],
-                                         h[f < 2000].min(), f[f < 2000][h[f < 2000].argmin()]))
+lo = f < 2000
+f_3db = f[np.argmax((f > 1000) & (h < h[np.searchsorted(f, 100)] - 3))]
+print(
+    f"--- post chain: peak {h.max():+.1f} dB at {f[h.argmax()]:.0f} Hz, "
+    f"-3 dB re 100 Hz at {f_3db:.0f} Hz, "
+    f"min {h[lo].min():+.1f} dB at {f[lo][h[lo].argmin()]:.0f} Hz"
+)
 hp = 20 * np.log10(abs(response(*pre, f)))
-print("--- pre net: max {:+.1f} dB at {:.0f} Hz, min {:+.1f} dB at {:.0f} Hz".format(
-    hp.max(), f[hp.argmax()], hp[f > 50].min(), f[f > 50][hp[f > 50].argmin()]))
+hi = f > 50
+print(
+    f"--- pre net: max {hp.max():+.1f} dB at {f[hp.argmax()]:.0f} Hz, "
+    f"min {hp[hi].min():+.1f} dB at {f[hi][hp[hi].argmin()]:.0f} Hz"
+)

@@ -6,8 +6,7 @@ level against the instantaneous sweep frequency for several Drive settings.
 
 import numpy as np
 
-from fxtest import (OUT, SR, check, db, finish, harmonics, log_sweep, plt,
-                    render, sine, write_wav)
+from fxtest import OUT, SR, check, db, finish, harmonics, log_sweep, plt, render, sine, write_wav
 
 print("test_sweep")
 DUR = 8.0
@@ -31,8 +30,8 @@ for col, g in enumerate(drives):
     ax = axes[1, 0]
     w = int(0.05 * SR)
     n = len(y) // w
-    rms = np.sqrt(np.mean(y[:n * w].reshape(n, w) ** 2, axis=1))
-    fmid = finst[w // 2::w][:n]
+    rms = np.sqrt(np.mean(y[: n * w].reshape(n, w) ** 2, axis=1))
+    fmid = finst[w // 2 :: w][:n]
     ax.semilogx(fmid, db(rms) + 3.01, label=f"Drive {g}%")
 
 ax = axes[1, 0]

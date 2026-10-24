@@ -19,13 +19,13 @@ The most important caveat: the only public schematic I found [2] is a DIY trace 
 
 | Control | Function | Confidence |
 |---|---|---|
-| LEVEL | Output volume | Documented [1][3] |
+| LEVEL | Output volume | Documented [1], [3] |
 | BLEND | Mix of the clean signal and the preamp ("tube") signal. Fully up is the preamp only. | Documented [1], reported [3] |
 | DRIVE | Amount of overdrive | Documented [1] |
 | PRESENCE | Upper harmonics and definition. Boost only. | Documented [1], reported [3] |
-| BASS | ±12 dB, with a switch selecting 40 Hz or 80 Hz | Documented [1][3] |
-| MID | ±12 dB, with a switch selecting 500 Hz or 1000 Hz | Documented [1][3] |
-| TREBLE | ±12 dB. No frequency is published. | Documented [1][3] |
+| BASS | ±12 dB, with a switch selecting 40 Hz or 80 Hz | Documented [1], [3] |
+| MID | ±12 dB, with a switch selecting 500 Hz or 1000 Hz | Documented [1], [3] |
+| TREBLE | ±12 dB. No frequency is published. | Documented [1], [3] |
 
 - **Reported [3]:** the EQ keeps working with Blend fully down. **Inferred:** the EQ sits after the blend, as in the V1 schematic [2].
 - **Not modelled:** the −20 dB pad on the XLR output, the +10 dB boost on the 1/4" output, phantom power and the ground lift. These are output-stage switches with no effect on the tone.
@@ -34,7 +34,7 @@ The most important caveat: the only public schematic I found [2] is a DIY trace 
 
 The DIY board [2] is described by its author as "based on" the earlier version. Its schematic has four TL07x op-amps on a 9 V supply with a bias rail VB of about 4.7 V. The published test voltages show VB at 4.68–4.80 V on a 9.32 V supply.
 
-```
+```text
 in -> C1 22n / R2 1M -> buffer (IC1_D) -+--------------------------------------- clean --+
                                          |                                                 |
                                          +-> pre-drive network (R3, C2-C5, R4-R6)          |
@@ -65,7 +65,7 @@ So the clipping stages are fed a bass-heavy signal, which is why the drive stays
 IC2_C is a non-inverting stage:
 
 - feedback: R7 (330 kΩ) in parallel with C6 (220 pF)
-- ground leg: C7 (10 nF) in series with R8 (3.3 kΩ) and the PRES pot (100 kΩ linear, wired as a rheostat)
+- ground leg: C7 (10 nF) in series with R8 (3.3 kΩ) and the PRESENCE pot (100 kΩ linear, wired as a rheostat)
 
 Its gain is
 

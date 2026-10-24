@@ -18,11 +18,22 @@ worst = -np.inf
 for name, x in signals.items():
     for blend in (0, 50, 100):
         for shift in (0, 1):
-            y = render(x, Level=12, Drive=100, Presence=100, Blend=blend,
-                       Bass=12, Mid=12, Treble=12, **{"Bass Shift": shift, "Mid Shift": shift})
+            y = render(
+                x,
+                Level=12,
+                Drive=100,
+                Presence=100,
+                Blend=blend,
+                Bass=12,
+                Mid=12,
+                Treble=12,
+                **{"Bass Shift": shift, "Mid Shift": shift},
+            )
             peak = np.max(np.abs(y))
             worst = max(worst, db(peak))
-            check(peak <= 1.0 and np.all(np.isfinite(y)),
-                  f"{name}, Blend {blend}, shifts {shift}: peak {db(peak):+.2f} dBFS")
+            check(
+                peak <= 1.0 and np.all(np.isfinite(y)),
+                f"{name}, Blend {blend}, shifts {shift}: peak {db(peak):+.2f} dBFS",
+            )
 print(f"  worst-case peak {worst:+.3f} dBFS")
 finish()

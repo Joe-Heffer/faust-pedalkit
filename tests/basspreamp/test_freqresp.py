@@ -57,14 +57,19 @@ panel(ax, "Presence (Drive 0%, Blend 100%, -70 dBFS)", (-40, 20))
 # comes from the phase interaction with the clean lows that pass below 34 Hz.
 diff = curves[100] - curves[0]
 band = (f > 150) & (f < 8000)
-check(np.all(diff[band] > -1.5),
-      f"Presence only boosts: 100 % vs 0 % >= {np.min(diff[band]):+.1f} dB from 150 Hz to 8 kHz")
+check(
+    np.all(diff[band] > -1.5),
+    f"Presence only boosts: 100 % vs 0 % >= {np.min(diff[band]):+.1f} dB from 150 Hz to 8 kHz",
+)
 # Measured below 3 kHz: higher up, the preamp path at Presence 0 is down at
 # the level of the clean signal that leaks through C16 and the Blend pot, and
 # the two partly cancel.
 band = (f > 1000) & (f < 3000)
-check(np.max(diff[band]) > 15,
-      f"Presence range in 1-3 kHz: {np.max(diff[band]):.1f} dB (> 15 dB; analysis gives 21.7 dB at 3 kHz)")
+check(
+    np.max(diff[band]) > 15,
+    f"Presence range in 1-3 kHz: {np.max(diff[band]):.1f} dB "
+    "(> 15 dB; analysis gives 21.7 dB at 3 kHz)",
+)
 
 # Fixed speaker voicing: the preamp path rolls off steeply above ~5 kHz.
 f, H = resp(-70, Drive=50, Blend=100)
@@ -86,16 +91,20 @@ for shift, fx in ((0, 80), (1, 40)):
         if g == 12:
             # 3rd-order shelf: about 3 dB short of full boost at fx.
             mid, low, above = at(f, H, fx), at(f, H, fx / 3), at(f, H, 4 * fx)
-            check(7 < mid < 10.5 and low > 10 and above < 2,
-                  f"Bass +12, shift {shift}: {mid:+.1f} dB at {fx} Hz, {low:+.1f} dB at "
-                  f"{fx / 3:.0f} Hz, {above:+.1f} dB at {4 * fx} Hz")
+            check(
+                7 < mid < 10.5 and low > 10 and above < 2,
+                f"Bass +12, shift {shift}: {mid:+.1f} dB at {fx} Hz, {low:+.1f} dB at "
+                f"{fx / 3:.0f} Hz, {above:+.1f} dB at {4 * fx} Hz",
+            )
 for g in (-12, 12):
     f, H = resp(-20, Blend=0, Treble=g)
     ax.semilogx(f[1:], db(H[1:]), "--", label=f"Treble {g:+d}")
     if g == 12:
-        check(7 < at(f, H, 2800) < 10.5 and at(f, H, 12000) > 11 and at(f, H, 700) < 2,
-              f"Treble +12: {at(f, H, 700):+.1f} dB at 700 Hz, {at(f, H, 2800):+.1f} dB at 2.8 kHz, "
-              f"{at(f, H, 12000):+.1f} dB at 12 kHz")
+        check(
+            7 < at(f, H, 2800) < 10.5 and at(f, H, 12000) > 11 and at(f, H, 700) < 2,
+            f"Treble +12: {at(f, H, 700):+.1f} dB at 700 Hz, {at(f, H, 2800):+.1f} dB at 2.8 kHz, "
+            f"{at(f, H, 12000):+.1f} dB at 12 kHz",
+        )
 panel(ax, "Bass and Treble (Blend 0%)", (-15, 15))
 
 # Mid band, both Mid Shift positions.
@@ -107,8 +116,10 @@ for shift, fx in ((0, 500), (1, 1000)):
         band = (f > 100) & (f < 5000)
         k = np.argmax(np.sign(g) * db(H[band]))
         fpk, gpk = f[band][k], db(H[band])[k]
-        check(abs(np.log2(fpk / fx)) < 0.15 and abs(abs(gpk) - 12) < 0.7,
-              f"Mid {g:+d}, shift {shift}: extreme {gpk:+.1f} dB at {fpk:.0f} Hz (want {fx} Hz)")
+        check(
+            abs(np.log2(fpk / fx)) < 0.15 and abs(abs(gpk) - 12) < 0.7,
+            f"Mid {g:+d}, shift {shift}: extreme {gpk:+.1f} dB at {fpk:.0f} Hz (want {fx} Hz)",
+        )
 panel(ax, "Mid (Blend 0%)", (-15, 15))
 
 # Blend at full Drive: the C16 coupling keeps the clean lows below ~34 Hz.
