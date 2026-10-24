@@ -1,6 +1,6 @@
 name: New effect request
 description: Suggest a pedal or effect to model.
-labels: [enhancement, new-effect]
+labels: [enhancement, new-effect, needs-sources]
 body:
   - type: markdown
     attributes:

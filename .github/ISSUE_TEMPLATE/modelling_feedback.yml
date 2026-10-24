@@ -1,6 +1,6 @@
 name: Sound or modelling feedback
 description: Report how an effect sounds or measures, or question a circuit value.
-labels: [modelling]
+labels: [modelling, needs-listening]
 body:
   - type: markdown
     attributes:
