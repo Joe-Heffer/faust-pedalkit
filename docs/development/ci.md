@@ -15,6 +15,8 @@ pre-commit run --all-files
 | `ruff-check`, `ruff-format` | Python lint and formatting (configured in `pyproject.toml`) |
 | `shellcheck` | Shell scripts |
 | `markdownlint-cli2` | Markdown, including this site (configured in `.markdownlint-cli2.yaml`) |
+| `actionlint` | GitHub Actions workflows: syntax, `${{ }}` expressions, job dependencies and action inputs |
+| `workflow-permissions` | Each workflow sets a top-level `permissions:` with no write scope, nothing uses `write-all`, and every `uses:` names a version tag or commit SHA rather than a branch (`tools/check-workflows.py`) |
 | `codespell (typos)` | Common misspellings everywhere |
 | `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
 | `faust-compile` | Every `src/*.dsp` compiles (needs `faust` installed) |
@@ -28,6 +30,8 @@ pre-commit run --all-files
 `tools/trademarks.txt` holds one name per line; lines starting with `#` are comments. When you model a new piece of hardware, add its manufacturer and product names there in the same commit as the circuit notes. Matching ignores case, spaces, hyphens, underscores and CamelCase, and only matches whole words, so `Sans Amp` also catches `SansAmp`, `sans_amp` and `SANSAMP`, and `Boss` catches `BossDrive` but not `emboss`. Leave out names that are ordinary words (such as `Orange` or `Rat`), which would flag normal prose; list the full product name instead. Check the result with `pre-commit run no-trademarks --all-files`.
 
 ## GitHub Actions
+
+Every workflow starts from a read-only token (`permissions: contents: read`, or `{}`), and a job that needs to write declares just those scopes itself. At present that is only Dependabot auto-merge (`contents` and `pull-requests`) and the Pages deployment (`pages` and `id-token`). Checkouts set `persist-credentials: false`, because no job pushes. Actions are referenced by version tag and kept current by Dependabot.
 
 ### CI (`.github/workflows/ci.yml`)
 

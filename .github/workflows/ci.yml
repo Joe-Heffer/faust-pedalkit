@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
@@ -37,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       # The toolchain image (Dockerfile) is the same one contributors use with
       # `make container`. Later steps reuse its layer cache.
       - name: Build toolchain image
@@ -69,6 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Build toolchain image
         run: make image
       - name: Cache the VST3 SDK
@@ -99,6 +105,8 @@ jobs:
           pacman -Syu --noconfirm --needed faust git python unzip
           faust --version
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Build CLAP plugins
         run: make clap
       - name: Install clap-validator

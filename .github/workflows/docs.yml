@@ -37,6 +37,8 @@ jobs:
             faust python python-numpy python-matplotlib
           faust --version
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Offline tests (plots and CSV data for the effect pages)
         run: make test
       - name: Install MkDocs
