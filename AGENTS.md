@@ -9,7 +9,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin and a VST
 ## Hard rules
 
 1. **Clean-room only.** Work from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a "reference" to match against.
-2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. In the docs, a manufacturer's product name may appear *only* to identify the reference hardware, never as branding.
+2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. In the docs, a manufacturer's product name may appear *only* to identify the reference hardware, never as branding. The `no-trademarks` pre-commit hook checks file names, `src/` and `tests/` against `tools/trademarks.txt`.
 3. **British English** in all documentation, comments and UI text: colour, behaviour, modelling, analyse, centre.
 4. **Say when you're unsure.** Every circuit value in the DSP is documented, reported, inferred or chosen. The circuit notes must say which, with a link for anything sourced. Never guess silently.
 5. **Ask the user before anything destructive or system-wide.** That includes `sudo`, package installs, deleting outside `build/` and `tests/out/`, and overwriting their `~/.lv2` or `~/.vst3` contents other than this repo's own bundles.
@@ -27,6 +27,8 @@ A collection of Faust effects, each built as a native Linux LV2 plugin and a VST
    - open questions
 
    Use `docs/bassdrive/circuit-notes.md` as the template. `REUSE.toml` already licenses everything under `docs/` as CC-BY-4.0.
+
+   Add the reference hardware's manufacturer and product names to `tools/trademarks.txt` if they aren't there yet, so the `no-trademarks` hook keeps them out of the plugin.
 2. **DSP.** Write `src/<name>.dsp`:
    - `declare name/description/author/license/version/lv2class`. The LV2 and VST3 plugins take their name from `declare name`, and the VST3 subcategory comes from `lv2class`. `license` is an SPDX identifier (e.g. `MIT`), `version` is `major.minor.micro`, and `lv2class` is an LV2 plugin class without its prefix (e.g. `DistortionPlugin`, `DelayPlugin`, `FilterPlugin`). `tools/fix-ttl.py` turns these into the LV2 metadata `lv2lint` requires. An optional `declare homepage "https://…"` adds the maintainer's homepage.
    - If the effect adds latency (e.g. via `pk.oversample4`), report it: attach `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` fed with the delay, as `src/bassdrive.dsp` does.

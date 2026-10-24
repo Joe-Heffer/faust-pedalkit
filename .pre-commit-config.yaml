@@ -66,6 +66,13 @@ repos:
         language: fail
         entry: generated files belong in build/ or tests/out/ and must not be committed
         files: ^(build|tests/out)/
+      # Hard rule 2: no manufacturer or product names in file names, or in
+      # src/ and tests/ (declare lines, UI labels, URIs). docs/ may name the
+      # reference hardware. Deny-list: tools/trademarks.txt.
+      - id: no-trademarks
+        name: no trademarks in names and UI text
+        language: python
+        entry: tools/check-trademarks.py
       - id: faust-compile
         name: faust compiles every effect
         language: system

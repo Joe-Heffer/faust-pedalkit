@@ -20,7 +20,12 @@ pre-commit run --all-files
 | `faust-compile` | Every `src/*.dsp` compiles (needs `faust` installed) |
 | `reuse` | Every file has a machine-readable licence (an SPDX header or an entry in `REUSE.toml`) |
 | `no-generated-files` | Nothing from `build/` or `tests/out/` is committed |
+| `no-trademarks` | No manufacturer or product name from `tools/trademarks.txt` in any file name, or in `src/` and `tests/` (`declare` lines, UI labels, URIs). `docs/` is not scanned |
 | Whitespace, YAML/TOML, shebangs, large files | General hygiene |
+
+### Extending the trademark deny-list
+
+`tools/trademarks.txt` holds one name per line; lines starting with `#` are comments. When you model a new piece of hardware, add its manufacturer and product names there in the same commit as the circuit notes. Matching ignores case, spaces, hyphens, underscores and CamelCase, and only matches whole words, so `Sans Amp` also catches `SansAmp`, `sans_amp` and `SANSAMP`, and `Boss` catches `BossDrive` but not `emboss`. Leave out names that are ordinary words (such as `Orange` or `Rat`), which would flag normal prose; list the full product name instead. Check the result with `pre-commit run no-trademarks --all-files`.
 
 ## GitHub Actions
 

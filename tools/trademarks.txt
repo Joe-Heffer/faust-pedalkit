@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Manufacturer and product names that must not appear in plugin names,
+# `declare` lines, UI labels, URIs or file names (AGENTS.md, hard rule 2).
+# Read by tools/check-trademarks.py, which the `no-trademarks` pre-commit hook
+# runs.
+#
+# One name per line. Matching ignores case, spacing, hyphens, underscores and
+# CamelCase, so "Sans Amp" also catches "SansAmp", "sans_amp" and "SANSAMP".
+# A name only matches as a whole word: "Boss" catches "BossDrive" but not
+# "emboss". Leave out names that are ordinary words (e.g. "Orange", "Rat",
+# "Zoom"), or the check will flag normal prose; list the product instead.
+# Lines starting with # are comments.
+
+# Reference hardware for the effects in this repo.
+Boss
+Roland
+ODB-3
+Bass OD
+Tech 21
+SansAmp
+Bass Driver DI
+
+# Other bass and pedal makers and products likely to be modelled.
+Aguilar
+Ampeg
+Darkglass
+Microtubes
+Dunlop
+MXR
+EBS
+Eden
+Electro-Harmonix
+EHX
+Big Muff
+Fender
+Gallien-Krueger
+Hartke
+Ibanez
+Tube Screamer
+Markbass
+Marshall
+Mesa Boogie
+Pro Co
+Strymon
+Walrus Audio
+Line 6
+TC Electronic
