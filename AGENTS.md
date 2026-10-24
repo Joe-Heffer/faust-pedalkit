@@ -71,6 +71,17 @@ When you add something reusable, put it here rather than copying it into an effe
 - `make describe` writes a format-neutral description of each effect: `faust -json` gives `build/<name>/<name>.dsp.json` (every control's label, unit, range and default), and `faust -svg` gives the block diagram in `build/<name>/<name>-svg/`. CI uploads both as the `describe` artifact.
 - Generated files only ever go in `build/` and `tests/out/`. Never commit them.
 
+## Issue labels
+
+The issue forms in `.github/ISSUE_TEMPLATE/` apply labels automatically. Triage with these:
+
+- **Type:** `bug`, `enhancement`, `new-effect`, `modelling`, `documentation`, `question`.
+- **Area:** `area: dsp`, `area: library`, `area: tests`, `area: build`, `area: ci`, `area: circuit-notes`.
+- **Effect:** `effect: <name>`, one per effect. Create it when you add the effect.
+- **Repo rules:** `licensing`, `clean-room`, `needs-sources` (unsourced or low-confidence circuit value), `needs-listening` (needs a human ear), `aliasing` (oversampling or latency).
+- **Triage:** `needs-info`, `duplicate`, `wontfix`, `help wanted`, `good first issue`.
+- **Bots:** `dependencies` and `github_actions` come from Dependabot.
+
 ## Environment notes
 
 - Arch-based machine (Omarchy). Faust links against the system LLVM. A `libLLVM.so.NN` error means a partial upgrade, and the fix is `sudo pacman -Syu`, which needs the user's approval.
