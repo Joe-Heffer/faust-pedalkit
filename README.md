@@ -82,6 +82,10 @@ make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first 
 make pluginval            # pluginval at strictness 10 on every VST3 bundle
 make install-vst3         # copies VST3 bundles to ~/.vst3
 make uninstall            # removes both
+make check                # every pre-commit hook on every file, as CI runs them
+make format               # fix Python lint and formatting with ruff
+make clean                # removes build/ and tests/out/ (keeps the VST3 SDK; make distclean removes it)
+make help                 # lists every target and effect
 ```
 
 Add `FX=bassdrive` to any target to build one effect only.
@@ -103,7 +107,7 @@ jalv urn:pedalkit/bassdrive          # console host; jalv.gtk3 or jalv.qt5 for a
 ```sh
 pipx install pre-commit   # or: pacman -S python-pre-commit
 pre-commit install        # once per clone
-pre-commit run --all-files
+make check                # same as: pre-commit run --all-files
 ```
 
 | Hook | Checks |

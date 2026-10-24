@@ -42,7 +42,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin and a VST
    - Each script ends with `finish()`, which exits non-zero on any failed `check`.
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
    - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
-4. **Build and check:** `make lv2 lint test FX=<name>`, `make vst3 pluginval FX=<name>`, then `pre-commit run --all-files`. Fix every `lv2lint`, VST3 validator, pluginval and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
+4. **Build and check:** `make lv2 lint test FX=<name>`, `make vst3 pluginval FX=<name>`, then `make check` (`pre-commit run --all-files`). Fix every `lv2lint`, VST3 validator, pluginval and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
 5. **Docs.** Add a row to the README's effect table and a controls table for the effect. On the documentation site (`docs/`, published to GitHub Pages):
    - add `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations
    - add a row to the effect tables in `docs/index.md` and `docs/effects/index.md`
@@ -65,7 +65,9 @@ When you add something reusable, put it here rather than copying it into an effe
 
 ## Build mechanics
 
-- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect. `docs` and `docs-serve` build and preview the MkDocs site (`mkdocs.yml`) into `build/site/`; pass `MKDOCS=<path>` if `mkdocs` is in a virtual environment.
+- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect. An unknown name stops `make` with the list of effects. `make help` lists the targets.
+- `make check` runs `pre-commit run --all-files`, as CI does. `make format` fixes Python lint and formatting with the ruff that `.pre-commit-config.yaml` pins, so no separate ruff install is needed; it fails only if ruff leaves something it cannot fix.
+- `make clean` removes `build/` and `tests/out/` but keeps the VST3 SDK clone in `build/vst3sdk`. `make distclean` removes that too. `docs` and `docs-serve` build and preview the MkDocs site (`mkdocs.yml`) into `build/site/`; pass `MKDOCS=<path>` if `mkdocs` is in a virtual environment.
 - `tools/mkdocs_hooks.py` publishes `tests/out/<name>/*.svg` and `*.csv` on the site as `measurements/<name>/`, so run `make test` before `make docs`. `.github/workflows/docs.yml` does both and deploys to GitHub Pages from `main`.
 - `faust2lv2` and `faust2jaqt` build in the current directory, so each effect is staged in `build/<name>/`, with `src/lib/*.lib` copied next to the `.dsp`. The bundle ends up in `build/<name>.lv2`.
 - Plugin URI: `urn:pedalkit/<name>`.

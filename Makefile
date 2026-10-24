@@ -11,15 +11,23 @@
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make docs         build the documentation site into build/site (run `make test` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
+#   make check        run every pre-commit hook on every file (as CI does)
+#   make format       fix Python lint and formatting with ruff
 #   make install      copy the LV2 bundles into ~/.lv2
 #   make install-vst3 copy the VST3 bundles into ~/.vst3
 #   make uninstall    remove both from ~/.lv2 and ~/.vst3
-#   make clean        remove build/ and tests/out/
+#   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
+#   make distclean    remove build/ and tests/out/ entirely
+#   make help         list these targets and the effects
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
 
 EFFECTS    := $(basename $(notdir $(wildcard src/*.dsp)))
 FX         ?= $(EFFECTS)
+UNKNOWN_FX := $(filter-out $(EFFECTS),$(FX))
+ifneq ($(UNKNOWN_FX),)
+$(error Unknown effect(s): $(UNKNOWN_FX). Choose from: $(EFFECTS))
+endif
 LIBS       := $(wildcard src/lib/*.lib)
 BUILD      := build
 URI_PREFIX := urn:pedalkit
@@ -38,10 +46,13 @@ CXXFLAGS   ?= -O2 -std=c++17
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
+PRE_COMMIT ?= pre-commit
 
-.PHONY: all lv2 vst3 standalone lint pluginval test describe docs docs-serve install install-vst3 \
-        uninstall clean
+.PHONY: all lv2 vst3 standalone lint pluginval test describe docs docs-serve check format \
+        install install-vst3 uninstall clean distclean help
 .SECONDARY:
+# A failed recipe deletes its half-written target, so the next run rebuilds it.
+.DELETE_ON_ERROR:
 
 all: lv2
 
@@ -77,6 +88,17 @@ docs:
 
 docs-serve:
 	$(MKDOCS) serve
+
+check:
+	$(PRE_COMMIT) run --all-files
+
+# Uses the ruff pinned in .pre-commit-config.yaml, so the result matches CI.
+# pre-commit exits non-zero whenever a hook changes a file, so only the last
+# run decides the status: it fails if ruff left anything it could not fix.
+format:
+	@$(PRE_COMMIT) run ruff-check --all-files || true
+	@$(PRE_COMMIT) run ruff-format --all-files || true
+	$(PRE_COMMIT) run ruff-check --all-files
 
 install: lv2
 	mkdir -p $(LV2DIR)
@@ -151,5 +173,15 @@ $(BUILD)/%/render_1x: src/%.dsp $(LIBS) $(ARCH)
 	faust -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
 	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
 
+# The VST3 SDK clone is slow to fetch and rarely changes, so `clean` keeps it.
 clean:
+	rm -rf tests/out
+	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk -exec rm -rf {} +
+
+distclean:
 	rm -rf $(BUILD) tests/out
+
+help:
+	@sed -n 's/^#   make /make /p' $(firstword $(MAKEFILE_LIST))
+	@echo
+	@echo "Effects: $(EFFECTS)"
