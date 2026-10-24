@@ -86,12 +86,22 @@ asymSoftHard(pos, neg, n, x) = ba.if(x > 0, pos * ma.tanh(x / pos), kneeClip(neg
 //
 // fi.tf2s / fi.tf1s take the same polynomials but with s normalised to w;
 // these wrappers do that scaling. Pick w near the section's pole frequency.
+//
+// The prewarp frequency is clamped to tfMaxW, 90 % of Nyquist. At or above
+// Nyquist, tan(w / 2SR) in fi.tf2s / fi.tf1s goes infinite or negative and
+// the section turns unstable (NaN at 8 kHz in a host). The coefficients are
+// normalised to the clamped value, so the analogue H(s) is unchanged; only the
+// frequency matched exactly moves, to one the sample rate can represent.
 //==============================================================================
 
 fi = library("filters.lib");
 
-tf2a(b2, b1, b0, a1, a0, w) = fi.tf2s(b2, b1 / w, b0 / (w * w), a1 / w, a0 / (w * w), w);
-tf1a(b1, b0, a0, w) = fi.tf1s(b1, b0 / w, a0 / w, w);
+tfMaxW = 0.9 * ma.PI * ma.SR;
+
+tf2a(b2, b1, b0, a1, a0, w) = fi.tf2s(b2, b1 / ws, b0 / (ws * ws), a1 / ws, a0 / (ws * ws), ws)
+with { ws = min(w, tfMaxW); };
+tf1a(b1, b0, a0, w) = fi.tf1s(b1, b0 / ws, a0 / ws, ws)
+with { ws = min(w, tfMaxW); };
 
 //============================== Output safety =================================
 

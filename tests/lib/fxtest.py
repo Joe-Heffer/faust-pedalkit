@@ -36,9 +36,9 @@ os.makedirs(OUT, exist_ok=True)
 _failures = []
 
 
-def render(x, binary=RENDER, **params):
-    """Process signal x through the effect, overriding sliders by label."""
-    args = [binary, str(SR)] + [f"{k}={v}" for k, v in params.items()]
+def render(x, binary=RENDER, sr=SR, **params):
+    """Process signal x at sample rate sr, overriding sliders by label."""
+    args = [binary, str(sr)] + [f"{k}={v}" for k, v in params.items()]
     res = subprocess.run(
         args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
     )
