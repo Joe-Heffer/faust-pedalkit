@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+
+# Builds the documentation site (mkdocs.yml) and publishes it to GitHub Pages.
+# The effect pages embed the current test plots, so the tests run first.
+# Pull requests build the site to catch broken links; only main deploys.
+# Needs Settings → Pages → Source set to "GitHub Actions".
+
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel a deployment part-way through.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    env:
+      # See ci.yml: faust2lv2 and the renderers need the real include path.
+      FAUSTINC: /usr/include/faust
+    steps:
+      - name: Install toolchain
+        run: |
+          pacman -Syu --noconfirm --needed \
+            faust python python-numpy python-matplotlib
+          faust --version
+      - uses: actions/checkout@v7
+      - name: Offline tests (plots and CSV data for the effect pages)
+        run: make test
+      - name: Install MkDocs
+        run: |
+          python -m venv /opt/docs
+          /opt/docs/bin/pip install -r tools/docs-requirements.txt
+      - name: Build site
+        run: make docs MKDOCS=/opt/docs/bin/mkdocs
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
