@@ -111,6 +111,7 @@ These are measured approximations that have not been listening-tested. Each item
 - **Maximum Gain is more odd-order than the reference.** The reference measurement describes that setting as "sawtooth-like", which suggests more even-order content than the model produces.
 - **The tone stack doesn't interact.** The EQ bands are independent digital filters, whereas a passive or active network would interact.
 - **Mono only.**
+- **Low sample rates shift the top end.** Below about 27 kHz the 12 kHz treble cap, and below about 11 kHz the 5 kHz post-filter, are held at 0.45 × the sample rate to stay stable, so the response above them differs from the 48 kHz plots. `test_samplerates.py` checks that the output stays finite and within 6 dB at 110 Hz from 8 kHz to 192 kHz.
 - **Some aliasing remains.** At extreme Gain with very high-pitched material, some aliasing remains despite the 4x oversampling. The safety limiter runs at the base rate and can alias if you drive it hard with Level.
 
 BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer.

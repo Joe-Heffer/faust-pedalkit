@@ -65,14 +65,16 @@ ledPos   = 1.7;       // positive clipping level, red LED (reported range)
 ledNeg   = 0.8;       // negative clipping level of the biased stage (chosen)
 negKnee  = 6;         // hardness of the negative knee (chosen)
 
-postLP   = 5000;      // driven-path post-filter corner (chosen)
+postLP   = min(5000, 0.45 * ma.SR);   // driven-path post-filter corner (chosen),
+                                     // kept below Nyquist at low sample rates
 drvTrim  = 0.28;      // driven within ~1.5 dB of clean at Gain 0-50 % (measured)
 
 bassF    = 110;   bassQ  = 0.9;   // reported centre of the Low band
 scoopF   = 350;   scoopQ = 0.7;   // reported mid scoop
 scoopDB  = -6;                    // reported depth; tune to taste
 trebF    = 2500;                  // shelf corner (chosen)
-topLP    = 12000;                 // caps the treble boost (chosen)
+topLP    = min(12000, 0.45 * ma.SR);  // caps the treble boost (chosen), kept
+                                     // below Nyquist at low sample rates
 
 outCeil  = 0.989;     // safety-limiter ceiling, about -0.1 dBFS
 

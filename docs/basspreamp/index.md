@@ -158,5 +158,6 @@ These are measured approximations that have not been listening-tested. Each item
 - **The mixer stage's clipping is left out.** On the hardware, the ×2.2 mixer can clip at high Blend and Drive.
 - **The output switches are not modelled:** the −20 dB pad, the +10 dB boost, phantom power and the ground lift.
 - **Mono only.**
+- **Low sample rates shift the top end.** Analogue sections whose prewarp frequency would be above 90 % of Nyquist are prewarped at 90 % of Nyquist instead (see [`tf2a` / `tf1a`](../development/pedalkit-lib.md#analogue-sections)), so below about 13 kHz the treble response differs from the 48 kHz plots. `test_samplerates.py` checks that the output stays finite and within 6 dB at 110 Hz from 8 kHz to 192 kHz.
 
 BassPreamp is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer.

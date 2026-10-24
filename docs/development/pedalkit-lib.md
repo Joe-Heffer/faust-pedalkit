@@ -17,6 +17,7 @@ The Makefile copies `src/lib/*.lib` next to each `.dsp` before building and pass
 | `softSat(v)` | Symmetric tanh saturation at ±v |
 | `kneeClip(a, n)` | Clipper with adjustable hardness n, limiting at ±a |
 | `asymSoftHard(pos, neg, n)` | Soft tanh above zero, a harder knee below; even harmonics grow with drive |
+| `tf2a(b2, b1, b0, a1, a0, w)` / `tf1a(b1, b0, a0, w)` | Analogue 2nd/1st-order section with coefficients in rad/s, bilinear-transformed with prewarp at `w` (held below Nyquist) |
 | `safety(lim)` | Soft limiter, transparent below 90 % of `lim`, that never exceeds `lim` |
 
 When you write something reusable, put it here rather than copying it into an effect, and add it to this table and to the one in `AGENTS.md`. Don't change an existing signature without updating every effect that uses it, then rerun `make test` across all effects.
@@ -80,6 +81,28 @@ asymSoftHard(pos, neg, n, x) = ba.if(x > 0, pos * ma.tanh(x / pos), kneeClip(neg
 ```
 
 Soft tanh clipping above zero (an LED, say) and a harder knee below zero (a transistor stage running out of headroom). At low levels it is almost symmetric. Once the negative side reaches `neg` it clips sooner and harder, so even harmonics rise with drive. BassDrive uses it with `pos` = 1.7, `neg` = 0.8 and `n` = 6.
+
+## Analogue sections
+
+### `tf2a(b2, b1, b0, a1, a0, w)` / `tf1a(b1, b0, a0, w)`
+
+```faust
+tfMaxW = 0.9 * ma.PI * ma.SR;
+
+tf2a(b2, b1, b0, a1, a0, w) = fi.tf2s(b2, b1 / ws, b0 / (ws * ws), a1 / ws, a0 / (ws * ws), ws)
+with { ws = min(w, tfMaxW); };
+tf1a(b1, b0, a0, w) = fi.tf1s(b1, b0 / ws, a0 / ws, ws)
+with { ws = min(w, tfMaxW); };
+```
+
+First- and second-order analogue sections, with the coefficients in rad/s as they come out of a circuit analysis:
+
+- `tf2a`: H(s) = (b2 s² + b1 s + b0) / (s² + a1 s + a0)
+- `tf1a`: H(s) = (b1 s + b0) / (s + a0)
+
+They are discretised with the bilinear transform, prewarped so that the digital response matches the analogue one exactly at `w` (rad/s). Pick `w` near the section's pole frequency. `fi.tf2s` and `fi.tf1s` expect s normalised to `w`, and these wrappers do that scaling.
+
+The prewarp frequency is held at or below `tfMaxW`, 90 % of Nyquist. The bilinear constant is 1 / tan(w / 2·SR), which goes infinite at Nyquist and negative above it, and a negative constant gives an unstable filter. BassPreamp's first post-drive Sallen-Key section (`postSK1`) prewarps at 36 172 rad/s (5.76 kHz), above Nyquist at 8 kHz and 11.025 kHz, and produced NaN there before the clamp. The coefficients are normalised by the clamped value, so H(s) is unchanged and only the frequency matched exactly moves. At 44.1 kHz and above, no section in the repository is clamped.
 
 ## Output safety
 
