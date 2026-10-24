@@ -1,0 +1,104 @@
+name: Release
+
+# Builds the release tarball (LV2, VST3 and CLAP plugins plus install.sh),
+# checks it, and on a v* tag creates a draft GitHub release for a person to
+# review and publish. See docs/development/releasing.md.
+
+on:
+  push:
+    tags: ["v*"]
+  # A dry run: build and check the tarball and keep it as a workflow artifact.
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - Dockerfile.release
+      - tools/release/**
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build release tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the tag matches CITATION.cff
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(sed -n 's/^version: *//p' CITATION.cff)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in CITATION.cff"
+            exit 1
+          fi
+      - name: Cache the VST3 SDK
+        uses: actions/cache@v6
+        with:
+          path: build/vst3sdk
+          key: vst3sdk-${{ hashFiles('Makefile') }}
+      # Debian 12 with Faust built from source, so the plugins load on older
+      # distributions than the Arch toolchain image's would.
+      - name: Build release toolchain image
+        run: make image DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release
+      - name: Build plugins and tarball (runs Steinberg's validator)
+        run: make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release RUN="lv2 vst3 clap dist"
+      - name: Upload tarball
+        uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: |
+            build/dist/*.tar.gz
+            build/dist/SHA256SUMS
+          if-no-files-found: error
+
+  validate:
+    name: Check the shipped plugins
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: release
+          path: dist
+      - name: Verify checksum and unpack
+        run: |
+          cd dist
+          sha256sum -c SHA256SUMS
+          mkdir unpacked
+          tar -xzf ./*.tar.gz -C unpacked
+          ls -R unpacked
+      - name: Check the plugins link on Ubuntu 22.04
+        run: docker run --rm -v "$PWD":/src -w /src ubuntu:22.04 tools/release/check-portable.sh dist/unpacked
+      - name: Build toolchain image
+        run: make image
+      - name: Install, validate and uninstall
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/src -w /src pedalkit-build \
+            sh -c 'tools/release/validate.sh dist/unpacked/pedalkit-*'
+
+  publish:
+    name: Create draft release
+    needs: validate
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: release
+          path: dist
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
+            --title "pedalkit ${TAG#v}" --generate-notes

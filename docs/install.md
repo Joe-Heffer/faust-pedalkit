@@ -1,6 +1,28 @@
 # Install and build
 
-The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional standalone JACK application per effect.
+The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional standalone JACK application per effect. Most people only need a release. Build from source to change an effect or to run the tests.
+
+## Install a release
+
+Each [GitHub release](https://github.com/Joe-Heffer/faust-pedalkit/releases) has a tarball, `pedalkit-<version>-linux-x86_64.tar.gz`, holding every effect in all three formats, and a `SHA256SUMS` file to check it against.
+
+```sh
+sha256sum -c SHA256SUMS                 # in the folder you downloaded both files to
+tar -xzf pedalkit-*-linux-x86_64.tar.gz
+cd pedalkit-*-linux-x86_64
+./install.sh
+```
+
+`install.sh` copies the plugins into `~/.lv2`, `~/.vst3` and `~/.clap`, the per-user folders that REAPER, Bitwig, Ardour and Carla scan. It needs no root and touches only the bundles in the tarball, replacing any older copies of them. Rescan plugins in your DAW afterwards (see [Loading in a host](usage/hosts.md)).
+
+| Command | Effect |
+|---|---|
+| `./install.sh` | install every format |
+| `./install.sh --lv2 --clap` | install only the formats named (`--lv2`, `--vst3`, `--clap`) |
+| `./install.sh --uninstall` | remove the plugins again; combine with format flags to remove only some |
+| `LV2DIR=… VST3DIR=… CLAPDIR=… ./install.sh` | install into other folders |
+
+The release plugins need x86_64 Linux with glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later, or any current rolling distribution. They are built on Debian 12, and CI checks that they load on Ubuntu 22.04. On anything else, build from source as below.
 
 ## Dependencies
 

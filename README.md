@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 
-A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2 and VST3 plugins and checked by offline measurement tests.
+A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2, VST3 and CLAP plugins and checked by offline measurement tests.
 
 **Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, design and circuit research, and current measurement plots.
 
-[Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2 plugin and a VST3 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
+[Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2, a VST3 and a CLAP plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
 
 Studying classic hardware is part of the method rather than the goal. Clean-room models of well-known pedals show how they get their character, calibrate the measurement tools against something known, and supply tested building blocks (clippers, analogue filter sections, voicings) for original designs to reuse, bend and recombine. Each effect is one of:
 
@@ -20,6 +20,18 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 |---|---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
+
+## Install
+
+Download the tarball from the [latest release](https://github.com/Joe-Heffer/faust-pedalkit/releases/latest), unpack it and run its installer:
+
+```sh
+tar -xzf pedalkit-*-linux-x86_64.tar.gz
+cd pedalkit-*-linux-x86_64
+./install.sh          # copies the LV2, VST3 and CLAP plugins into ~/.lv2, ~/.vst3 and ~/.clap
+```
+
+Then rescan plugins in your DAW. `./install.sh --help` lists the options, including `--uninstall`. The release plugins need x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). See [Install and build](https://joe-heffer.github.io/faust-pedalkit/install/) for details, or read on to build from source.
 
 ## Layout
 
@@ -338,4 +350,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the hard rules (clea
 
 ## Licence
 
-The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (design notes, circuit research and the site) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". The effects are independent designs and models built from public information. They are not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (design notes, circuit research and the site) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. The CLAP plugins are built against the MIT-licensed CLAP headers, and clap-validator (a test tool) is MIT as well. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". The effects are independent designs and models built from public information. They are not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
