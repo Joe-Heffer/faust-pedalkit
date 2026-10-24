@@ -37,6 +37,13 @@ repos:
     hooks:
       - id: markdownlint-cli2
 
+  # GitHub Actions workflows: syntax, expressions, job graph and action inputs.
+  # The golang hook builds actionlint itself, so no local Go is needed.
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.3
     hooks:
@@ -73,6 +80,14 @@ repos:
         name: no trademarks in names and UI text
         language: python
         entry: tools/check-trademarks.py
+      # Workflows grant no write scope at the top level, never `write-all`,
+      # and pin every action to a version tag or SHA (tools/check-workflows.py).
+      - id: workflow-permissions
+        name: workflow permissions and action refs
+        language: python
+        additional_dependencies: [pyyaml]
+        entry: tools/check-workflows.py
+        files: ^\.github/workflows/.*\.ya?ml$
       - id: faust-compile
         name: faust compiles every effect
         language: system

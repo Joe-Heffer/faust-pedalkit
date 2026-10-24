@@ -10,14 +10,16 @@ name: Dependabot auto-merge
 
 on: pull_request
 
-permissions:
-  contents: write
-  pull-requests: write
+# Nothing by default; the one job gets only the scopes `gh pr merge` needs.
+permissions: {}
 
 jobs:
   automerge:
     name: Enable auto-merge
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       - run: gh pr merge --auto --squash "$PR_URL"

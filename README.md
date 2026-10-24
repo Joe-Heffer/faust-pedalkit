@@ -151,6 +151,8 @@ make check                # same as: pre-commit run --all-files
 | `ruff-check`, `ruff-format` | Python lint and formatting (config in `pyproject.toml`) |
 | `shellcheck` | shell scripts |
 | `markdownlint-cli2` | Markdown (config in `.markdownlint-cli2.yaml`) |
+| `actionlint` | GitHub Actions workflows |
+| `workflow-permissions` | workflows grant no write scope at the top level and pin each action to a version tag (`tools/check-workflows.py`) |
 | `codespell (typos)` | common misspellings everywhere |
 | `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
 | `faust-compile` | every `src/*.dsp` compiles (needs `faust`) |
