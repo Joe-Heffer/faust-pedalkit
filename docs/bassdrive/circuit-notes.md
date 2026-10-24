@@ -105,7 +105,7 @@ At maximum Gain, both sides clip hard and the odd harmonics take over again. The
 
 ## 6. Post-filtering
 
-**Chosen:** a 2nd-order low-pass at 5 kHz on the driven path, then a 5 Hz DC blocker to remove the offset created by the asymmetric clipper. The real post-filter is not documented. 5 kHz keeps the fizz above the treble band in check while leaving the High control (below) something to act on.
+**Chosen:** a 2nd-order low-pass at 5 kHz on the driven path, then a 5 Hz DC blocker to remove the offset created by the asymmetric clipper. The real post-filter is not documented. 5 kHz keeps the fizz above the treble band in check while leaving the High control (below) something to act on. Below 11.1 kHz sample rate the corner is held at 0.45 × the sample rate, because a corner at or above Nyquist makes the digital filter unstable.
 
 ## 7. The EQ and the fixed mid scoop
 
@@ -122,7 +122,7 @@ A reviewer also notes that the High control does most of the useful work [3].
 **Chosen:**
 
 - **Bass:** a peaking filter at 110 Hz, Q 0.9, ±12 dB.
-- **Treble:** a high shelf at 2.5 kHz, ±15 dB, followed by a fixed 1st-order low-pass at 12 kHz so that a full boost peaks broadly in the upper treble rather than rising without limit.
+- **Treble:** a high shelf at 2.5 kHz, ±15 dB, followed by a fixed 1st-order low-pass at 12 kHz so that a full boost peaks broadly in the upper treble rather than rising without limit. Below 26.7 kHz sample rate it is likewise held at 0.45 × the sample rate.
 - **Mid scoop:** a fixed peaking cut of −6 dB at 350 Hz, Q 0.7, always in circuit. The measurement shows it at every EQ setting, and the C10 report [4] ties it to the circuit rather than the EQ. In my model, some of the scoop also comes naturally from the phase difference between the clean and pre-emphasised driven paths when they are blended. The fixed cut is a pragmatic stand-in. It is a constant in the source, `scoopDB`, and can be tuned.
 
 **Deliberate difference:** on the real pedal, noon on High is already about +10 dB. For a plugin, a calibrated "0 dB is flat" scale is more useful. If you want the original's voicing, set Treble to about +10 dB.

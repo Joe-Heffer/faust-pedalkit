@@ -3,7 +3,7 @@
 | Effect | Type | Kind | Latency | Pages |
 |---|---|---|---|---|
 | **BassDrive** | Bass overdrive | Modelled: a classic compact two-band bass overdrive pedal | 32 samples | [controls and measurements](../bassdrive/index.md) · [circuit notes](../bassdrive/circuit-notes.md) |
-| **BassPreamp** | Bass preamp/DI | Modelled: a classic tube-voiced bass preamp/DI pedal | 64 samples | [controls and measurements](../basspreamp/index.md) · [circuit notes](../basspreamp/circuit-notes.md) · [REAPER guide](../basspreamp/reaper.md) |
+| **BassPreamp** | Bass preamp/DI | Modelled: a classic tube-voiced bass preamp/DI pedal | 64 samples | [controls and measurements](../basspreamp/index.md) · [circuit notes](../basspreamp/circuit-notes.md) |
 
 Every effect page covers:
 

@@ -10,7 +10,7 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Channels | Mono in, mono out |
 | Latency | 64 samples (1.3 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md) |
-| Host guide | [Using BassPreamp in REAPER](reaper.md) |
+| Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
 
 ## Controls
 
@@ -27,6 +27,24 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Mid Shift | off/on | off | Moves Mid from 500 Hz to 1 kHz |
 
 Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin also has a read-only *Latency* output for the host's delay compensation.
+
+## Starting settings
+
+Set your interface gain so that your loudest notes peak around −12 dBFS before the plugin (see [Input level](../usage/hosts.md#input-level)), then start here:
+
+| Control | Start at | Notes |
+|---|---|---|
+| Level | 0 dB | Unity gain at Blend 0 with a flat EQ |
+| Blend | 50 % | 0 is clean only, 100 is preamp only |
+| Drive | 50 % | Light, odd-order breakup. Raise it for grit |
+| Presence | 50 % | Adds bite ahead of the clipping, so it also affects the distortion |
+| Bass, Mid, Treble | 0 dB | Flat |
+| Bass Shift | off | Turn on for a 40 Hz shelf, for 5- and 6-string basses |
+| Mid Shift | off | Turn on to move the mid band from 500 Hz to 1 kHz |
+
+- For a clean low end with some grit on top, keep Blend around 30–50 % and raise Drive.
+- If the top end goes hollow around 2.5 kHz at mid Blend and high Drive, the clean and driven paths are cancelling. This is a property of the modelled blend circuit. Move Blend or reduce Drive.
+- The output never exceeds −0.1 dBFS, because of the built-in safety limiter. If it sounds squashed, lower Level.
 
 ## Presets
 
@@ -140,5 +158,6 @@ These are measured approximations that have not been listening-tested. Each item
 - **The mixer stage's clipping is left out.** On the hardware, the ×2.2 mixer can clip at high Blend and Drive.
 - **The output switches are not modelled:** the −20 dB pad, the +10 dB boost, phantom power and the ground lift.
 - **Mono only.**
+- **Low sample rates shift the top end.** Analogue sections whose prewarp frequency would be above 90 % of Nyquist are prewarped at 90 % of Nyquist instead (see [`tf2a` / `tf1a`](../development/pedalkit-lib.md#analogue-sections)), so below about 13 kHz the treble response differs from the 48 kHz plots. `test_samplerates.py` checks that the output stays finite and within 6 dB at 110 Hz from 8 kHz to 192 kHz.
 
 BassPreamp is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer.

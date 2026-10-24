@@ -14,7 +14,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 | Effect | What it is | Pages |
 |---|---|---|
 | **BassDrive** | Bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal | [controls and measurements](bassdrive/index.md) · [circuit notes](bassdrive/circuit-notes.md) |
-| **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) · [REAPER guide](basspreamp/reaper.md) |
+| **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) |
 
 ## Quick start
 
@@ -28,7 +28,7 @@ make lv2 install
 jalv urn:pedalkit/bassdrive
 ```
 
-The plugins install into `~/.lv2`, where Ardour, REAPER, Carla and other LV2 hosts find them. See [Loading in a host](hosts.md).
+The plugins install into `~/.lv2`, where Ardour, REAPER, Carla and other LV2 hosts find them. See [Loading in a host](usage/hosts.md) and the [REAPER guide](usage/reaper.md).
 
 ## How the effects are made
 

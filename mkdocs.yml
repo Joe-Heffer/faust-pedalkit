@@ -87,7 +87,9 @@ nav:
   - Home: index.md
   - Getting started:
       - Install and build: install.md
-      - Loading in a host: hosts.md
+  - Usage:
+      - Loading in a host: usage/hosts.md
+      - Using the effects in REAPER: usage/reaper.md
   - Effects:
       - effects/index.md
       - BassDrive:
@@ -96,7 +98,6 @@ nav:
       - BassPreamp:
           - basspreamp/index.md
           - Circuit notes: basspreamp/circuit-notes.md
-          - Using it in REAPER: basspreamp/reaper.md
   - Development:
       - development/index.md
       - Designing new sounds: development/designing-new-sounds.md

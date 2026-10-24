@@ -14,6 +14,8 @@ On the track's mixer strip, right-click the processor box, choose *New Plugin �
 
 ## REAPER (Linux)
 
+The [REAPER guide](reaper.md) covers this in more detail, including input level, latency and presets.
+
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
 2. Open the track's FX window, choose *Add*, and find the effect under *LV2*.
 3. The effects are mono. On a stereo track, REAPER feeds a mono plugin channel 1, so record onto a mono track or set the plugin's pin connector.

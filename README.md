@@ -19,7 +19,7 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 | Effect | Kind | Description | Notes |
 |---|---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
-| **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md), [REAPER guide](docs/basspreamp/reaper.md) |
+| **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 
 ## Install
 
@@ -189,7 +189,7 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run. For 
 
 **Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" (or "BassPreamp") and add it.
 
-**REAPER (Linux).**
+**REAPER (Linux).** The [REAPER guide](docs/usage/reaper.md) covers input level, latency and presets in more detail.
 
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
 2. Open the track's FX window, choose *Add*, and find "BassDrive" or "BassPreamp" under *LV2*.
