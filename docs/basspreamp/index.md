@@ -25,8 +25,9 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Treble | −12 to +12 dB | 0 dB | High shelf at 2.8 kHz |
 | Bass Shift | off/on | off | Moves Bass from 80 Hz to 40 Hz, for 5- and 6-string basses |
 | Mid Shift | off/on | off | Moves Mid from 500 Hz to 1 kHz |
+| Cab Bypass | off/on | off | Removes the fixed speaker voicing from the preamp path, for a real cabinet or an impulse response. Not on the hardware. |
 
-Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin also has a read-only *Latency* output for the host's delay compensation.
+Every control is smoothed, including the switches: the shifts glide the band frequency rather than jumping, and Cab Bypass crossfades. The plugin also has a read-only *Latency* output for the host's delay compensation.
 
 ## Starting settings
 
@@ -41,6 +42,7 @@ Set your interface gain so that your loudest notes peak around −12 dBFS before
 | Bass, Mid, Treble | 0 dB | Flat |
 | Bass Shift | off | Turn on for a 40 Hz shelf, for 5- and 6-string basses |
 | Mid Shift | off | Turn on to move the mid band from 500 Hz to 1 kHz |
+| Cab Bypass | off | Turn on when the preamp feeds a bass cabinet or an impulse response |
 
 - For a clean low end with some grit on top, keep Blend around 30–50 % and raise Drive.
 - If the top end goes hollow around 2.5 kHz at mid Blend and high Drive, the clean and driven paths are cancelling. This is a property of the modelled blend circuit. Move Blend or reduce Drive.
@@ -74,7 +76,7 @@ in → DC blocker (5 Hz)
    └─ preamp:  bass-weighted input network
                → Presence stage → 4x oversampled rail clip
                → Drive stage    → 4x oversampled rail clip
-               → speaker voicing: divider + Sallen-Key low-pass with shelf leg
+               → speaker voicing (or −11 dB with Cab Bypass): divider + Sallen-Key low-pass with shelf leg
                  → Sallen-Key low-pass (2.97 kHz) → bridged-T notch (424 Hz)
                → trim
 → Blend (clean + Blend × high-pass(preamp − clean) at 34 Hz)
@@ -84,7 +86,7 @@ in → DC blocker (5 Hz)
 
 - **The preamp path** follows a public DIY trace of the earlier hardware version. Each op-amp stage is its traced filter followed by a memoryless clip at the op-amp's rails (about ±3.1 V).
 - **Presence** is a non-inverting stage whose ground leg sets a boost of up to about 30 dB around 3–5 kHz. It sits before the drive stage, so it changes what gets clipped as well as the tone.
-- **The speaker voicing** is the fixed filtering after the clipper: a low shelf of about −10 dB from 90 to 340 Hz, two low-passes and a notch of about −11 dB at 424 Hz. It is always on, as on the hardware.
+- **The speaker voicing** is the fixed filtering after the clipper: a low shelf of about −10 dB from 90 to 340 Hz, two low-passes and a notch of about −11 dB at 424 Hz. It is always on in the hardware. Cab Bypass replaces it with a fixed −11 dB trim (see [Cab Bypass](#cab-bypass)).
 - **Blend** models the hardware's capacitor-coupled pot: the preamp signal reaches the pot through a 47 nF capacitor, so the clean low end below about 34 Hz always passes, and the clipper's DC offset is removed.
 - **The EQ** follows the current version's published specification (±12 dB, switchable frequencies). The filter shapes are chosen.
 
@@ -114,6 +116,18 @@ Data: [`freqresp.csv`](../measurements/basspreamp/freqresp.csv) (columns `panel,
 - **Bass and Treble (top right).** Bass reaches +9.3 dB at 80 Hz and +11.8 dB at 27 Hz, or +8.8 dB at 40 Hz with Bass Shift. Treble reaches +9.1 dB at 2.8 kHz and +11.9 dB at 12 kHz.
 - **Mid (bottom middle).** The peak sits within 1 % of 500 Hz and 1 kHz at exactly ±12.0 dB.
 - **Blend at full Drive (bottom right).** At Blend 50 % the clean and preamp paths cancel near 2.5 kHz. This is a property of the hardware's blend circuit as traced, and is worth listening for (see [What to tune by ear](#what-to-tune-by-ear)). Above about 5 kHz only the clean signal is left, scaled by the Blend setting.
+
+### Cab Bypass
+
+[![Preamp-path response with the speaker voicing on and bypassed, and the loudness difference against Drive](../measurements/basspreamp/cabsim.svg)](../measurements/basspreamp/cabsim.svg "Open the full-size plot")
+
+Data: [`cabsim.csv`](../measurements/basspreamp/cabsim.csv) (`input_dbfs, cab_bypass, freq_hz, gain_db`) and [`cabsim_loudness.csv`](../measurements/basspreamp/cabsim_loudness.csv) (`drive, bypassed_minus_voiced_db`).
+
+Cab Bypass is not on the hardware. It removes the speaker voicing from the preamp path, for use with a real bass cabinet or a cabinet impulse response, and puts a fixed −11 dB trim (`bypTrim`, chosen) in its place. The clean path is unaffected.
+
+- **Response.** Bypassed, the preamp path is a broad hump peaking near 500 Hz. At 12 kHz it is 37 dB below its peak instead of 57 dB. It is still far from full-range, because the input network and the drive stage's feedback capacitor also roll off the top.
+- **Low end.** The voicing's bass hump around 100 Hz goes, and the bypassed path partly cancels the clean lows that pass through the Blend capacitor, giving a dip of about −10 dB near 45 Hz at Blend 100 %.
+- **Loudness.** On a −12 dBFS plucked bass line at Blend 100 %, bypassed is within 0.5 dB of voiced at Drive 50 % and within 1.7 dB from Drive 0 to 100 % (K-weighted).
 
 ### Harmonics and aliasing
 
@@ -150,6 +164,7 @@ These are measured approximations that have not been listening-tested. Each item
 5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end.
 6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
 7. **Presets.** Every setting in `src/basspreamp.presets.toml` is chosen. Check that each preset sounds like its name, and that the loudness match holds with a real bass and your interface gain.
+8. **Cab Bypass level.** `bypTrim` (0.28, −11 dB) is matched by K-weighted loudness. Toggle Cab Bypass at your usual settings and adjust it so the level doesn't jump. Also listen for thin lows near 45 Hz at high Blend with the bypass on.
 
 ## Known limitations
 

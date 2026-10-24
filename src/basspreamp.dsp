@@ -18,11 +18,14 @@
 //                       -> Drive stage (gain)       -> 4x OS rail clip     |
 //                       -> divider + Sallen-Key low-pass with shelf leg     |
 //                       -> Sallen-Key low-pass -> bridged-T notch -> trim --+
+//                          (the speaker voicing; Cab Bypass skips it)
 //   -> Bass (shelf, 80/40 Hz) -> Mid (peak, 500 Hz/1 kHz) -> Treble (shelf)
 //   -> Level -> safety limiter -> out
 //
-// The "speaker voicing" is the fixed post-clip filtering of the driven path,
-// so it is always on, as on the hardware. The clean path stays full-range.
+// The "speaker voicing" is the fixed post-clip filtering of the driven path.
+// It is always on in the hardware; Cab Bypass (not on the hardware) removes
+// it, for use with a real cabinet or an impulse response. The clean path stays
+// full-range either way.
 //
 // Levels: 1.0 full scale is treated as 1 V peak at the circuit input.
 
@@ -30,7 +33,7 @@ declare name        "BassPreamp";
 declare description "Tube-voiced bass preamp/DI with blend, presence and three-band EQ";
 declare author      "Joe Heffer";
 declare license     "MIT";              // SPDX identifier (see tools/fix-ttl.py)
-declare version     "0.1.0";
+declare version     "0.2.0";
 declare lv2class    "AmplifierPlugin";
 declare homepage    "https://github.com/Joe-Heffer/faust-pedalkit";
 
@@ -57,6 +60,9 @@ treble   = hslider("[6]Treble [unit:dB] [tooltip:High shelf]",
                    0, -12, 12, 0.1) : si.smoo;
 bassSh   = checkbox("[7]Bass Shift [tooltip:Off = 80 Hz, on = 40 Hz]") : si.smoo;
 midSh    = checkbox("[8]Mid Shift [tooltip:Off = 500 Hz, on = 1 kHz]") : si.smoo;
+// Appended last so the VST3 and CLAP parameter IDs of existing projects stay
+// valid. A checkbox defaults to off, so the default keeps the voicing on.
+cabByp   = checkbox("[9]Cab Bypass [tooltip:Off = speaker voicing on the preamp path, as on the hardware; on = preamp path unfiltered, for a cabinet or impulse response]") : si.smoo;
 
 //============================================================================
 // Circuit constants (see circuit-notes.md, sections 3 to 8).
@@ -92,6 +98,8 @@ vos      = 0.002;     // input offset voltage of the drive op-amp (chosen; TL07x
 
 fcBlend  = 1 / (2 * ma.PI * 47e-9 * 100e3);   // C16 into the 100 k Blend pot, ~34 Hz (reported values)
 drvTrim  = 0.32;      // driven = clean level at Drive/Presence 50 % (chosen, measured)
+bypTrim  = 0.28;      // -11 dB in place of the voicing with Cab Bypass on: loudness-matched to the
+                      // voiced path at Drive/Presence 50 % (chosen, measured; 5-11 dB elsewhere)
 
 // V2 EQ (documented: +/-12 dB, 40/80 Hz and 500/1000 Hz). Shapes are chosen.
 bassF    = 80 * pow(0.5, bassSh);     // smoothed switch glides 80 -> 40 Hz
@@ -147,10 +155,15 @@ driveStage = pk.tf1a(1, driveG / (R9 * C8), 1 / (R9 * C8), 2 * ma.PI * 2000);
 // before the clip, which skews the clipping more as Drive rises.
 rail = pk.kneeClip(railV, railN);
 
+// The speaker voicing, or with Cab Bypass a plain trim in its place. The
+// smoothed switch crossfades between the two, so toggling doesn't click.
+voicing = _ <: (postSK1 : postSK2 : postNotch), *(bypTrim)
+        : si.interpolate(cabByp);
+
 driven = preNet
        : presStage : pk.oversample4(rail)
        : driveStage : +(vos * driveG) : pk.oversample4(rail)
-       : postSK1 : postSK2 : postNotch
+       : voicing
        : *(drvTrim);
 
 //============================================================================
