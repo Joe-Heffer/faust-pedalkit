@@ -52,6 +52,12 @@ repos:
         args: [--builtin=, --dictionary=tools/en-gb.codespell]
         files: \.(md|dsp|lib)$
 
+  # Every file has a machine-readable licence (SPDX header or REUSE.toml).
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+      - id: reuse
+
   - repo: local
     hooks:
       # Hard rule: generated files live only in build/ and tests/out/.

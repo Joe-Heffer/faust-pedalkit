@@ -1,9 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 # Faust effects: every src/<name>.dsp is one effect.
 #
 #   make lv2          build LV2 bundles into build/<name>.lv2
 #   make standalone   build JACK applications (Qt GUI) into build/<name>/
 #   make lint         run lv2lint on each bundle
 #   make test         build the offline renderers and run tests/<name>/
+#   make describe     write each effect's JSON description and SVG block diagram
 #   make install      copy the bundles into ~/.lv2
 #   make uninstall    remove them from ~/.lv2
 #   make clean        remove build/ and tests/out/
@@ -22,7 +25,7 @@ CXXFLAGS   ?= -O2 -std=c++17
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 
-.PHONY: all lv2 standalone lint test install uninstall clean
+.PHONY: all lv2 standalone lint test describe install uninstall clean
 .SECONDARY:
 
 all: lv2
@@ -39,6 +42,8 @@ lint: lv2
 
 test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x)
 	@status=0; for f in $(FX); do bash tests/run.sh $$f || status=1; done; exit $$status
+
+describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
 
 install: lv2
 	mkdir -p $(LV2DIR)
@@ -62,6 +67,13 @@ $(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $*.dsp || faust2jack $*.dsp)
+	touch $@
+
+# Format-neutral description of each effect: every control's label, unit,
+# range and default (build/<name>/<name>.dsp.json), plus the block diagram
+# (SVG, in build/<name>/<name>-svg/).
+$(BUILD)/%/describe.stamp: $(BUILD)/%/stage.stamp
+	cd $(BUILD)/$* && faust -json -svg $*.dsp -o /dev/null
 	touch $@
 
 # Offline renderer for the tests, plus a 1x variant (oversample4 swapped for

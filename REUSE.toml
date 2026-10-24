@@ -1,0 +1,25 @@
+# Licensing for files that carry no SPDX header of their own
+# (https://reuse.software/spec-3.3/). Code files carry headers instead.
+# Check with `reuse lint` (also run by pre-commit).
+version = 1
+
+# Circuit research, plots and other documentation.
+[[annotations]]
+path = "docs/**"
+SPDX-FileCopyrightText = "2026 Joe Heffer"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Project Markdown and configuration.
+[[annotations]]
+path = [
+  "*.md",
+  "CITATION.cff",
+  ".gitignore",
+  ".markdownlint-cli2.yaml",
+  ".pre-commit-config.yaml",
+  ".github/**",
+  "pyproject.toml",
+  "tools/en-gb.codespell",
+]
+SPDX-FileCopyrightText = "2026 Joe Heffer"
+SPDX-License-Identifier = "MIT"

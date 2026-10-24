@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Joe Heffer
+// SPDX-License-Identifier: MIT
 // BassDrive: a bass overdrive with a clean/driven blend and a two-band EQ.
 //
 // Modelled on a well-known compact two-band bass overdrive pedal, using only
