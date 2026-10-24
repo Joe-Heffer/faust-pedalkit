@@ -9,6 +9,8 @@
 #   make pluginval    run pluginval on each VST3 bundle
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
+#   make docs         build the documentation site into build/site (run `make test` first)
+#   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make install      copy the LV2 bundles into ~/.lv2
 #   make install-vst3 copy the VST3 bundles into ~/.vst3
 #   make uninstall    remove both from ~/.lv2 and ~/.vst3
@@ -35,8 +37,10 @@ CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
+MKDOCS     ?= mkdocs
 
-.PHONY: all lv2 vst3 standalone lint pluginval test describe install install-vst3 uninstall clean
+.PHONY: all lv2 vst3 standalone lint pluginval test describe docs docs-serve install install-vst3 \
+        uninstall clean
 .SECONDARY:
 
 all: lv2
@@ -65,6 +69,14 @@ test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x)
 	@status=0; for f in $(FX); do bash tests/run.sh $$f || status=1; done; exit $$status
 
 describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
+
+# The site embeds the plots and CSV data from tests/out/, so run `make test`
+# first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
+docs:
+	$(MKDOCS) build --strict
+
+docs-serve:
+	$(MKDOCS) serve
 
 install: lv2
 	mkdir -p $(LV2DIR)

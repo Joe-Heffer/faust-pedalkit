@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Tools for building the documentation site (mkdocs.yml).
+# Install into a virtual environment: pip install -r tools/docs-requirements.txt
+mkdocs==1.6.1
+mkdocs-material==9.8.0

@@ -43,7 +43,11 @@ A collection of Faust effects, each built as a native Linux LV2 plugin and a VST
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
    - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
 4. **Build and check:** `make lv2 lint test FX=<name>`, `make vst3 pluginval FX=<name>`, then `pre-commit run --all-files`. Fix every `lv2lint`, VST3 validator, pluginval and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
-5. **Docs.** Add a row to the README's effect table and a controls table for the effect.
+5. **Docs.** Add a row to the README's effect table and a controls table for the effect. On the documentation site (`docs/`, published to GitHub Pages):
+   - add `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations
+   - add a row to the effect tables in `docs/index.md` and `docs/effects/index.md`
+   - add the page and the circuit notes to `nav` in `mkdocs.yml`, under *Effects*
+   - run `make test docs` (tools: `pip install -r tools/docs-requirements.txt`). It builds with `--strict`, so fix every warning.
 
 ## Shared library (`src/lib/pedalkit.lib`)
 
@@ -57,11 +61,12 @@ A collection of Faust effects, each built as a native Linux LV2 plugin and a VST
 | `asymSoftHard(pos, neg, n)` | Soft tanh above zero, harder knee below; even harmonics grow with drive |
 | `safety(lim)` | Transparent-below-90 % soft limiter that never exceeds `lim` |
 
-When you add something reusable, put it here rather than copying it into an effect, and document it in this table. Don't change existing signatures without updating every effect that uses them, and rerun `make test` across all effects.
+When you add something reusable, put it here rather than copying it into an effect, and document it in this table and in `docs/development/pedalkit-lib.md`. Don't change existing signatures without updating every effect that uses them, and rerun `make test` across all effects.
 
 ## Build mechanics
 
-- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect.
+- `make` targets: `lv2`, `vst3`, `standalone`, `lint`, `pluginval`, `test`, `describe`, `install`, `install-vst3`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect. `docs` and `docs-serve` build and preview the MkDocs site (`mkdocs.yml`) into `build/site/`; pass `MKDOCS=<path>` if `mkdocs` is in a virtual environment.
+- `tools/mkdocs_hooks.py` publishes `tests/out/<name>/*.svg` and `*.csv` on the site as `measurements/<name>/`, so run `make test` before `make docs`. `.github/workflows/docs.yml` does both and deploys to GitHub Pages from `main`.
 - `faust2lv2` and `faust2jaqt` build in the current directory, so each effect is staged in `build/<name>/`, with `src/lib/*.lib` copied next to the `.dsp`. The bundle ends up in `build/<name>.lv2`.
 - Plugin URI: `urn:pedalkit/<name>`.
 - After `faust2lv2`, the Makefile runs `tools/fix-ttl.py` on the bundle's TTL. `faust2lv2` writes the licence as a string, and has no way to express `lv2:minorVersion`/`microVersion` or a plugin class. Without the script, `lv2lint` fails.
@@ -77,6 +82,17 @@ When you add something reusable, put it here rather than copying it into an effe
 - **VST3 parameter IDs and saved state** follow the order of the controls (the `[n]` prefixes). Append new controls at the end rather than renumbering, or existing projects will load the wrong values.
 - `make describe` writes a format-neutral description of each effect: `faust -json` gives `build/<name>/<name>.dsp.json` (every control's label, unit, range and default), and `faust -svg` gives the block diagram in `build/<name>/<name>-svg/`. CI uploads both as the `describe` artifact.
 - Generated files only ever go in `build/` and `tests/out/`. Never commit them.
+
+## Issue labels
+
+The issue forms in `.github/ISSUE_TEMPLATE/` apply labels automatically. Triage with these:
+
+- **Type:** `bug`, `enhancement`, `new-effect`, `modelling`, `documentation`, `question`.
+- **Area:** `area: dsp`, `area: library`, `area: tests`, `area: build`, `area: ci`, `area: circuit-notes`.
+- **Effect:** `effect: <name>`, one per effect. Create it when you add the effect.
+- **Repo rules:** `licensing`, `clean-room`, `needs-sources` (unsourced or low-confidence circuit value), `needs-listening` (needs a human ear), `aliasing` (oversampling or latency).
+- **Triage:** `needs-info`, `duplicate`, `wontfix`, `help wanted`, `good first issue`.
+- **Bots:** `dependencies` and `github_actions` come from Dependabot.
 
 ## Environment notes
 
