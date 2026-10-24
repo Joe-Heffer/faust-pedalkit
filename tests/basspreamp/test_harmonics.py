@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Harmonic content at several Drive settings, and the aliasing benefit of 4x
 oversampling compared with a 1x build of the same DSP."""
 

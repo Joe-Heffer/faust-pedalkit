@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Frequency response of the preamp path at several Drive and Presence
 settings, and of the three-band EQ with both shift positions.
 

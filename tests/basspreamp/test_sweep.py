@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Low E string sweep (41 Hz to 2 kHz), plus a low-end retention check.
 
 The plots show the output spectrum over time (spectrogram) and the output

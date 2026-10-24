@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Derive the fixed passive/op-amp networks of BassPreamp as analogue
 second-order sections, ready to paste into src/basspreamp.dsp.
 
