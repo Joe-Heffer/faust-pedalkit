@@ -15,6 +15,8 @@ Write `docs/<name>/circuit-notes.md` before any DSP. Use [the BassDrive notes](.
 
 `REUSE.toml` already licenses everything under `docs/` as CC BY 4.0.
 
+Add the reference hardware's manufacturer and product names to `tools/trademarks.txt` if they aren't listed yet. The `no-trademarks` pre-commit hook then fails if one of them reaches a file name, a `declare` line or a UI label (see [Linting and CI](ci.md#extending-the-trademark-deny-list)).
+
 ## 2. Write the DSP
 
 Create `src/<name>.dsp`. Start with an SPDX header and a comment showing the signal flow, then declare the metadata:

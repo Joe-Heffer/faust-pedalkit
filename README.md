@@ -139,6 +139,7 @@ make check                # same as: pre-commit run --all-files
 | `faust-compile` | every `src/*.dsp` compiles (needs `faust`) |
 | `reuse` | every file has a machine-readable licence (SPDX header or `REUSE.toml`) |
 | `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
+| `no-trademarks` | no manufacturer or product name (list in `tools/trademarks.txt`) in file names, `src/` or `tests/` |
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
 GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. A second job runs `make vst3 pluginval` and uploads the bundles as the `vst3` artifact. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
