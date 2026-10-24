@@ -27,12 +27,12 @@ To try the workflow without releasing, run it from the Actions tab (*Run workflo
 | Job | What it checks |
 |---|---|
 | **build** | Builds `Dockerfile.release` (Debian 12, Faust built from source) and runs `make lv2 vst3 clap dist` in it. Steinberg's validator runs on each VST3 bundle as part of the build. |
-| **validate** | In stock Ubuntu 22.04, `tools/release/check-portable.sh` checks that every plugin binary links: no missing libraries or glibc symbol versions, and no libstdc++ dependency. In the Arch toolchain image, `lv2lint`, pluginval (strictness 10) and clap-validator run on the plugins *as shipped*, and `install.sh` installs into and uninstalls from temporary folders. |
+| **validate** | In stock Ubuntu 22.04, `tools/release/check-portable.sh` checks that every plugin binary links: no missing libraries and no missing glibc or libstdc++ symbol versions. It prints the newest versions each binary needs (currently `GLIBC_2.35` and `GLIBCXX_3.4.29`). In the Arch toolchain image, `lv2lint`, pluginval (strictness 10) and clap-validator run on the plugins *as shipped*, and `install.sh` installs into and uninstalls from temporary folders. |
 | **publish** | On a tag only: creates the draft release with the tarball and `SHA256SUMS`. |
 
 ## Why a separate image
 
-The everyday toolchain image (`Dockerfile`) is Arch, which ships a newer glibc than most distributions, so plugins built there may not load on Ubuntu or Debian. `Dockerfile.release` uses Debian 12, the oldest base whose own packages cover the build: Python 3.11 for `tomllib` (`tools/make-presets.py`) and CMake 3.25 (the VST3 SDK's minimum). It builds Faust from the release tarball at `FAUST_VERSION`, pinned by checksum. It sets `LDFLAGS="-static-libstdc++ -static-libgcc"`, which the Makefile passes to every plugin link line.
+The everyday toolchain image (`Dockerfile`) is Arch, which ships a newer glibc than most distributions, so plugins built there may not load on Ubuntu or Debian. `Dockerfile.release` uses Debian 12, the oldest base whose own packages cover the build: Python 3.11 for `tomllib` (`tools/make-presets.py`) and CMake 3.25 (the VST3 SDK's minimum). It builds Faust from the release tarball at `FAUST_VERSION`, pinned by checksum. It sets `LDFLAGS="-static-libgcc"`, which the Makefile passes to every plugin link line. libstdc++ stays dynamic on purpose: Debian 12's static libstdc++ calls `arc4random`, which only exists from glibc 2.36, whereas Ubuntu 22.04 already ships the same GCC 12 libstdc++.
 
 Keep `FAUST_VERSION` in step with the Faust that `ARCH_SNAPSHOT` installs in `Dockerfile`, so the released plugins come from the same compiler that CI tests.
 

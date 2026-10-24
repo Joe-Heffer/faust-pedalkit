@@ -4,8 +4,8 @@
 # Release toolchain: builds the LV2, VST3 and CLAP plugins that go into a
 # GitHub release (`make dist`). The everyday image (Dockerfile) is Arch, whose
 # glibc is newer than most distributions ship, so plugins built there may not
-# load elsewhere. This image is Debian 12 (glibc 2.36), links libstdc++ and
-# libgcc statically, and builds the same Faust version as the Arch image from
+# load elsewhere. This image is Debian 12 (glibc 2.36), links libgcc
+# statically, and builds the same Faust version as the Arch image from
 # source. .github/workflows/release.yml then checks that the plugins load on
 # Ubuntu 22.04 (glibc 2.35).
 #
@@ -45,10 +45,12 @@ RUN curl -sSfL -o /tmp/faust.tar.gz \
  && rm -rf /tmp/faust /tmp/faust.tar.gz \
  && faust --version
 
-# LDFLAGS reaches every plugin link line through the Makefile. The container
+# LDFLAGS reaches every plugin link line through the Makefile. libstdc++ stays
+# dynamic: Debian 12's static copy calls arc4random, which needs glibc 2.36,
+# whereas Ubuntu 22.04 already ships the same libstdc++ (GCC 12). The container
 # runs as the caller's UID, which has no home directory, so HOME points at
 # /tmp for git's caches.
-ENV LDFLAGS="-static-libstdc++ -static-libgcc" \
+ENV LDFLAGS="-static-libgcc" \
     FAUSTINC=/usr/local/include/faust \
     HOME=/tmp
 

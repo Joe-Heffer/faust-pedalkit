@@ -58,7 +58,7 @@ CLAP_VALIDATOR ?= clap-validator
 CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
 # Extra flags for linking the plugins. Dockerfile.release sets
-# -static-libstdc++ -static-libgcc so release builds load on older systems.
+# -static-libgcc for release builds.
 LDFLAGS    ?=
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp

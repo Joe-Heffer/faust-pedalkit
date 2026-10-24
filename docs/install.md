@@ -22,7 +22,7 @@ cd pedalkit-*-linux-x86_64
 | `./install.sh --uninstall` | remove the plugins again; combine with format flags to remove only some |
 | `LV2DIR=… VST3DIR=… CLAPDIR=… ./install.sh` | install into other folders |
 
-The release plugins need x86_64 Linux with glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later, or any current rolling distribution. They are built on Debian 12 with libstdc++ linked statically, and CI checks that they load on Ubuntu 22.04. On anything else, build from source as below.
+The release plugins need x86_64 Linux with glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later, or any current rolling distribution. They are built on Debian 12, and CI checks that they load on Ubuntu 22.04. On anything else, build from source as below.
 
 ## Dependencies
 
