@@ -1,0 +1,16 @@
+# Tool configuration only; this repo is not a Python package.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, pyupgrade, bugbear, numpy-specific rules.
+select = ["E", "W", "F", "I", "UP", "B", "NPY"]
+
+[tool.ruff.lint.isort]
+# Test scripts import the shared helpers from tests/lib/ via PYTHONPATH.
+known-first-party = ["fxtest"]
+
+[tool.codespell]
+skip = "./build,./tests/out,./.git,./.claude"

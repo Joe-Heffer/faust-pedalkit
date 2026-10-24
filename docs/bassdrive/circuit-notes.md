@@ -37,7 +37,7 @@ Retailer copy says the pedal can also be used as a plain two-band EQ [3]. **Infe
 
 **Inferred block diagram:**
 
-```
+```text
 in → buffer ─┬─────────────── clean ──────────────┐
              │                                     ├─ BALANCE ─ EQ (low/high) ─ LEVEL ─ out
              └─ stage 1 (gain, pre-emphasis) ─ stage 2 (LED clip) ─ post filter ┘
@@ -88,6 +88,7 @@ I tried an exponential map first (−6 dB to +40 dB). It hardly changed the dist
    - **Negative side:** a harder knee, x / (1 + |x/0.8|⁶)^(1/6), limiting at −0.8 V. This stands in for the biased transistor stage running out of headroom on one side. Its level and hardness are choices.
 
 **Why this shape:** I tried three kinds of asymmetry, and only this one reproduced the reported trend (light and odd at minimum Gain, even-leaning by noon).
+
 - Plain tanh with unequal knees gave odd-dominant harmonics at every Gain.
 - A DC bias into the clipper made the even harmonics dominate even at minimum Gain, which contradicts [6].
 - The hard negative knee does nothing at low level, then clips one side first as the drive rises.
