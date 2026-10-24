@@ -11,6 +11,7 @@
 #   make clap-validate  run clap-validator on each CLAP plugin
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
+#   make dist         pack the LV2, VST3 and CLAP plugins into a release tarball in build/dist/
 #   make docs         build the documentation site into build/site (run `make test` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
@@ -22,7 +23,7 @@
 #   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
 #   make distclean    remove build/ and tests/out/ entirely
 #   make help         list these targets and the effects
-#   make image        build the toolchain image from the Dockerfile
+#   make image        build the toolchain image from the Dockerfile (or DOCKERFILE)
 #   make container    run the RUN targets in that image (default RUN="lv2 lint test")
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
@@ -56,14 +57,23 @@ CLAP_VALIDATOR ?= clap-validator
 
 CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
+# Extra flags for linking the plugins. Dockerfile.release sets
+# -static-libstdc++ -static-libgcc so release builds load on older systems.
+LDFLAGS    ?=
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
 PRE_COMMIT ?= pre-commit
 
+# Release tarball (make dist). The version is the project's, from CITATION.cff.
+VERSION    ?= $(shell sed -n 's/^version: *//p' CITATION.cff)
+DIST       := $(BUILD)/dist
+DISTNAME   := pedalkit-$(VERSION)-linux-$(shell uname -m)
+
 # Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
 # `run` options go in CONTAINER_FLAGS.
 CONTAINER       ?= docker
+DOCKERFILE      ?= Dockerfile
 IMAGE           ?= pedalkit-build
 RUN             ?= lv2 lint test
 CONTAINER_FLAGS ?=
@@ -75,7 +85,7 @@ else
 CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
 endif
 
-.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe docs docs-serve check format \
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist docs docs-serve check format \
         install install-vst3 install-clap uninstall clean distclean help \
         image container
 .SECONDARY:
@@ -148,6 +158,23 @@ install-clap: clap
 	mkdir -p $(CLAPDIR)
 	for f in $(FX); do cp $(BUILD)/$$f.clap $(CLAPDIR)/; done
 
+# Release tarball: the plugins in one folder per format, plus install.sh,
+# which copies them into ~/.lv2, ~/.vst3 and ~/.clap. Build it with
+# Dockerfile.release so the plugins load on older distributions (see
+# docs/development/releasing.md).
+dist: lv2 vst3 clap
+	rm -rf $(DIST)
+	mkdir -p $(DIST)/$(DISTNAME)/lv2 $(DIST)/$(DISTNAME)/vst3 $(DIST)/$(DISTNAME)/clap
+	for f in $(FX); do \
+	    cp -r $(BUILD)/$$f.lv2 $(DIST)/$(DISTNAME)/lv2/ && \
+	    cp -r $(BUILD)/$$f.vst3 $(DIST)/$(DISTNAME)/vst3/ && \
+	    cp $(BUILD)/$$f.clap $(DIST)/$(DISTNAME)/clap/ || exit 1; \
+	done
+	cp tools/release/install.sh tools/release/README.txt LICENSE CHANGELOG.md $(DIST)/$(DISTNAME)/
+	tar -C $(DIST) --sort=name --owner=0 --group=0 --numeric-owner \
+	    -czf $(DIST)/$(DISTNAME).tar.gz $(DISTNAME)
+	cd $(DIST) && sha256sum $(DISTNAME).tar.gz > SHA256SUMS
+
 uninstall:
 	for f in $(FX); do rm -rf $(LV2DIR)/$$f.lv2 $(VST3DIR)/$$f.vst3 $(CLAPDIR)/$$f.clap; done
 
@@ -162,7 +189,7 @@ $(BUILD)/%/stage.stamp: src/%.dsp $(LIBS)
 # to the bundle as LV2 presets by tools/make-presets.py.
 .SECONDEXPANSION:
 $(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py tools/make-presets.py $$(wildcard src/$$*.presets.toml)
-	cd $(BUILD)/$* && faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
+	cd $(BUILD)/$* && $(if $(LDFLAGS),CXXFLAGS="$(LDFLAGS)") faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
 	rm -rf $(BUILD)/$*.lv2
 	mv $(BUILD)/$*/$*.lv2 $(BUILD)/
 	python3 tools/fix-ttl.py src/$*.dsp $(BUILD)/$*.lv2/$*.ttl
@@ -189,7 +216,8 @@ $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt 
 	cmake -S tools/vst3 -B $(@D)/vst3/build -DCMAKE_BUILD_TYPE=Release \
 	    -DFX_NAME=$* -DFX_VERSION=$$(sed -n 's/^ *declare *version *"\([^"]*\)".*/\1/p' $<) \
 	    -DFX_GEN_DIR=$(abspath $(@D)/vst3) -DFAUST_INC=$(FAUST_INC) \
-	    -DVST3_SDK_DIR=$(abspath $(VST3_SDK))
+	    -DVST3_SDK_DIR=$(abspath $(VST3_SDK)) \
+	    -DCMAKE_SHARED_LINKER_FLAGS="$(LDFLAGS)" -DCMAKE_MODULE_LINKER_FLAGS="$(LDFLAGS)"
 	cmake --build $(@D)/vst3/build --config Release --parallel
 	rm -rf $(BUILD)/$*.vst3
 	cp -r $(@D)/vst3/build/VST3/Release/$*.vst3 $(BUILD)/
@@ -211,7 +239,7 @@ $(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta
 	python3 tools/clap-meta.py $< $* $(BUILD)/$*/clap/plugin_meta.h
 	$(CXX) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
 	    -I$(BUILD)/$*/clap -I$(FAUST_INC) -I$(CLAP_SDK)/include \
-	    $(BUILD)/$*/clap/$*.cpp -o $@
+	    $(BUILD)/$*/clap/$*.cpp $(LDFLAGS) -o $@
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $*.dsp || faust2jack $*.dsp)
@@ -251,7 +279,7 @@ help:
 	@echo "Effects: $(EFFECTS)"
 
 image:
-	$(CONTAINER) build -t $(IMAGE) .
+	$(CONTAINER) build -f $(DOCKERFILE) -t $(IMAGE) .
 
 container: image
 	$(CONTAINER) run --rm $(CONTAINER_USER) $(CONTAINER_FLAGS) -v "$(CURDIR)":/src -w /src \

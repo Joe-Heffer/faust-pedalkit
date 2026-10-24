@@ -6,6 +6,7 @@ This section is for anyone, human or coding agent, adding an effect or changing 
 - [Shared library](pedalkit-lib.md): the oversampler, clippers and safety limiter in `pedalkit.lib`.
 - [Tests and measurements](testing.md): the render harness, the Python helpers and what every effect must check.
 - [Linting and CI](ci.md): pre-commit hooks, GitHub Actions and how this site is published.
+- [Releasing](releasing.md): cutting a release and how the release workflow builds portable plugins.
 
 ## Ground rules
 

@@ -103,4 +103,5 @@ nav:
       - Shared library: development/pedalkit-lib.md
       - Tests and measurements: development/testing.md
       - Linting and CI: development/ci.md
+      - Releasing: development/releasing.md
   - About: about.md

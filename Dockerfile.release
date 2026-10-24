@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+#
+# Release toolchain: builds the LV2, VST3 and CLAP plugins that go into a
+# GitHub release (`make dist`). The everyday image (Dockerfile) is Arch, whose
+# glibc is newer than most distributions ship, so plugins built there may not
+# load elsewhere. This image is Debian 12 (glibc 2.36), links libstdc++ and
+# libgcc statically, and builds the same Faust version as the Arch image from
+# source. .github/workflows/release.yml then checks that the plugins load on
+# Ubuntu 22.04 (glibc 2.35).
+#
+#   make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release \
+#        RUN="lv2 vst3 clap dist"
+#
+# Debian 12 is the oldest base that has everything the build needs from its
+# own packages: Python 3.11 (tools/make-presets.py uses tomllib) and CMake
+# 3.25 (the VST3 SDK's minimum).
+#
+# Keep FAUST_VERSION in step with the Faust that ARCH_SNAPSHOT in Dockerfile
+# installs, so release builds match what CI tests. Dependabot bumps the base
+# image digest.
+
+FROM debian:12@sha256:854dd8ab51d62866dbd8f5431d15ce77b12983a2a4a1e1fe43a2395dc7ef9f61
+
+ARG FAUST_VERSION=2.88.0
+ARG FAUST_SHA256=e4e175cf236924b5b7d4784cbb8c50cc01e211159e169655dd9e6d8f92b871d9
+
+# libboost-dev and lv2-dev are what faust2lv2 compiles against; git and cmake
+# build the VST3 bundles.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        ca-certificates curl g++ make cmake git python3 \
+        libboost-dev lv2-dev pkg-config \
+ && rm -rf /var/lib/apt/lists/*
+
+# The default `make` builds only the compiler, with its C and C++ backends and
+# no LLVM. The release tarball already contains the libraries submodule.
+RUN curl -sSfL -o /tmp/faust.tar.gz \
+        "https://github.com/grame-cncm/faust/releases/download/${FAUST_VERSION}/faust-${FAUST_VERSION}.tar.gz" \
+ && echo "${FAUST_SHA256}  /tmp/faust.tar.gz" | sha256sum -c - \
+ && mkdir /tmp/faust && tar -xzf /tmp/faust.tar.gz -C /tmp/faust --strip-components=1 \
+ && make -C /tmp/faust/build cmake BACKENDS=regular.cmake TARGETS=regular.cmake \
+ && make -C /tmp/faust/build -j"$(nproc)" \
+ && make -C /tmp/faust install PREFIX=/usr/local \
+ && rm -rf /tmp/faust /tmp/faust.tar.gz \
+ && faust --version
+
+# LDFLAGS reaches every plugin link line through the Makefile. The container
+# runs as the caller's UID, which has no home directory, so HOME points at
+# /tmp for git's caches.
+ENV LDFLAGS="-static-libstdc++ -static-libgcc" \
+    FAUSTINC=/usr/local/include/faust \
+    HOME=/tmp
+
+WORKDIR /src

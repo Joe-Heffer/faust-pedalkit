@@ -13,6 +13,18 @@ A small repository for building guitar and bass effects in [Faust](https://faust
 | **BassDrive** (`src/bassdrive.dsp`) | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md), [REAPER guide](docs/basspreamp/reaper.md) |
 
+## Install
+
+Download the tarball from the [latest release](https://github.com/Joe-Heffer/faust-pedalkit/releases/latest), unpack it and run its installer:
+
+```sh
+tar -xzf pedalkit-*-linux-x86_64.tar.gz
+cd pedalkit-*-linux-x86_64
+./install.sh          # copies the LV2, VST3 and CLAP plugins into ~/.lv2, ~/.vst3 and ~/.clap
+```
+
+Then rescan plugins in your DAW. `./install.sh --help` lists the options, including `--uninstall`. The release plugins need x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). See [Install and build](https://joe-heffer.github.io/faust-pedalkit/install/) for details, or read on to build from source.
+
 ## Layout
 
 ```text
