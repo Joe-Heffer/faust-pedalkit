@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 # Compile every src/*.dsp to /dev/null so syntax and type errors are caught
 # before commit. Used by the faust-compile pre-commit hook.
 set -u

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """No output sample may exceed 0 dBFS, even with every control at maximum."""
 
 import numpy as np
