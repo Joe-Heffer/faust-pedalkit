@@ -247,6 +247,12 @@ These are measured approximations, not listening-tested. Each item names the con
 - **The output switches are not modelled:** the −20 dB pad, the +10 dB boost, phantom power and the ground lift.
 - **Mono only.** 64 samples of latency (1.3 ms at 48 kHz), reported to the host.
 
+### BassPreamp: listening scenarios
+
+`make test FX=basspreamp` also renders ten realistic settings (clean, warm, grit, heavy, a hot input, low B, slap, extreme EQ and the Blend cancellation case) to `tests/out/basspreamp/scenarios/`. Each has the dry input, the output, an RMS-matched output and an `_ab.wav` that alternates dry and matched, so loudness does not bias the comparison. Measurements (peak, crest factor, spectral centroid, band spectra) are in `scenarios_metrics.csv` and `scenarios_spectra.csv`.
+
+The default source is a synthesised plucked bass. To audition a real clean DI recording instead, save it as `tests/data/bass-di.flac` (or `.wav`), or set `BASS_DI=/path/to/file`. It needs `ffmpeg`, and the output then goes to `scenarios-<file name>/`. Only commit a recording whose licence allows it, and record the source in `docs/`.
+
 ## Licence
 
 The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive and BassPreamp are independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
