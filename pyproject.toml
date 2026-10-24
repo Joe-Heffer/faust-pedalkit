@@ -13,4 +13,4 @@ select = ["E", "W", "F", "I", "UP", "B", "NPY"]
 known-first-party = ["fxtest"]
 
 [tool.codespell]
-skip = "./build,./tests/out,./.git,./.claude"
+skip = "./build,./tests/out,./.git,./.claude,./.venv"

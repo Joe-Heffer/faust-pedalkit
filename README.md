@@ -4,6 +4,8 @@
 
 Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 plugins, with offline measurement tests.
 
+**Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, circuit research and current measurement plots.
+
 A small repository for building guitar and bass effects in [Faust](https://faust.grame.fr/). Each effect is compiled to an LV2 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically.
 
 | Effect | Description | Notes |
@@ -71,6 +73,7 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
+make docs                 # documentation site into build/site/ (after make test; see below)
 make standalone           # build/bassdrive/bassdrive (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make uninstall
@@ -109,6 +112,16 @@ pre-commit run --all-files
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
 GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
+
+### Documentation site
+
+The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, and embeds the plots and CSV data from `make test`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
+
+```sh
+python -m venv .venv && .venv/bin/pip install -r tools/docs-requirements.txt
+make test docs MKDOCS=.venv/bin/mkdocs        # build/site/
+make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000/
+```
 
 ## Loading in a host
 
