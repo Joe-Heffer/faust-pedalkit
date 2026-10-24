@@ -13,8 +13,8 @@
 
 site_name: Faust Pedal Kit
 site_description: >-
-  Clean-room models of classic guitar and bass pedals, written in Faust and
-  built as native Linux LV2 plugins, with offline measurement tests.
+  A workshop for designing new guitar and bass effects in Faust, built as
+  native Linux LV2 and VST3 plugins and checked by offline measurement tests.
 site_author: Joe Heffer
 site_url: https://joe-heffer.github.io/faust-pedalkit/
 repo_url: https://github.com/Joe-Heffer/faust-pedalkit
@@ -99,6 +99,7 @@ nav:
           - Using it in REAPER: basspreamp/reaper.md
   - Development:
       - development/index.md
+      - Designing new sounds: development/designing-new-sounds.md
       - Adding an effect: development/adding-an-effect.md
       - Shared library: development/pedalkit-lib.md
       - Tests and measurements: development/testing.md

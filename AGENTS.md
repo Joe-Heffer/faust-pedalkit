@@ -4,36 +4,50 @@ This file is for coding agents (and humans) adding or changing effects here. Rea
 
 ## What this repo is
 
-A collection of Faust effects, each built as a native Linux LV2, VST3 and CLAP plugin, with offline numerical tests. One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically. Shared DSP lives in `src/lib/pedalkit.lib` (import it as `pk = library("pedalkit.lib");`).
+A workshop for designing new guitar and bass effects in Faust, each built as a native Linux LV2, VST3 and CLAP plugin, with offline numerical tests. One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically. Shared DSP lives in `src/lib/pedalkit.lib` (import it as `pk = library("pedalkit.lib");`).
+
+The aim is new sounds and new kinds of effect, not copies of existing products. Modelling classic hardware is still useful, but as a means: to learn how a circuit gets its character, to calibrate the measurement tools, and to collect building blocks that original designs can reuse, bend and recombine. An effect here is one of:
+
+- **Original:** a sonic idea with no single reference device. Its reasoning lives in `docs/<name>/design-notes.md`.
+- **Circuit-inspired:** starts from a real circuit and deliberately departs from it (extra controls, impossible component values, stages a pedal could not have). It has design notes, plus circuit notes for the part it borrows.
+- **Modelled:** a measured, sourced model of one piece of hardware, documented in `docs/<name>/circuit-notes.md`. BassDrive and BassPreamp are the existing examples.
+
+Prefer the first two when you have the choice. When you build a model, say what it makes possible that the hardware does not, and move what is reusable into `pedalkit.lib`.
 
 ## Hard rules
 
-1. **Clean-room only.** Work from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a "reference" to match against.
-2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. In the docs, a manufacturer's product name may appear *only* to identify the reference hardware, never as branding. The `no-trademarks` pre-commit hook checks file names, `src/` and `tests/` against `tools/trademarks.txt`.
+1. **Clean-room only.** Anything taken from existing hardware or software comes from public schematics, circuit analyses, measurements, reviews and manuals. Never decompile, disassemble or copy a proprietary plugin, binary or firmware, and don't use one as a "reference" to match against. This applies to original designs too: invent, don't imitate a commercial plugin.
+2. **No trademarks.** Plugin names, `declare name`, UI labels, URIs and file names must be neutral. In the docs, a manufacturer's product name may appear *only* to identify reference or inspiring hardware, never as branding. The `no-trademarks` pre-commit hook checks file names, `src/` and `tests/` against `tools/trademarks.txt`.
 3. **British English** in all documentation, comments and UI text: colour, behaviour, modelling, analyse, centre.
-4. **Say when you're unsure.** Every circuit value in the DSP is documented, reported, inferred or chosen. The circuit notes must say which, with a link for anything sourced. Never guess silently.
+4. **Say when you're unsure, and say why a value is what it is.** Every constant in the DSP is documented, reported, inferred or chosen. The design or circuit notes must say which, with a link for anything sourced and the intent behind anything chosen. In an original design most values are chosen, and that's fine as long as the notes say what each one is for. Never guess silently.
 5. **Ask the user before anything destructive or system-wide.** That includes `sudo`, package installs, deleting outside `build/` and `tests/out/`, and overwriting their `~/.lv2`, `~/.vst3` or `~/.clap` contents other than this repo's own bundles.
 6. **You can't listen.** Judge sound by measurement (harmonics, frequency response, aliasing, levels), describe it in those terms, and list the parameters a human should tune by ear.
 7. **Open formats and machine-readable licensing.** Every new file has an SPDX header (`SPDX-FileCopyrightText` and `SPDX-License-Identifier`), or an entry in `REUSE.toml` if it can't take comments. Code is `MIT` and `docs/` is `CC-BY-4.0`. The `reuse` pre-commit hook enforces this. Any audio that gets committed is FLAC. Schematics are KiCad `.kicad_sch`, redrawn from the sources rather than copied as images, because a third party's drawing has its own copyright.
 
 ## Adding a new effect `<name>`
 
-1. **Research first.** Write `docs/<name>/circuit-notes.md`:
-   - documented controls and specs
-   - the block diagram
-   - each stage with component values and the corner frequencies derived from them
-   - the confidence level for each claim
-   - a numbered source list with links
-   - open questions
+1. **Notes first.** Write the reasoning down before any DSP. `REUSE.toml` already licenses everything under `docs/` as CC-BY-4.0.
+   - **Original or circuit-inspired effects:** write `docs/<name>/design-notes.md`, following the outline in `docs/development/designing-new-sounds.md`:
+     - the sonic idea: what it should sound like and what a player gets that existing effects don't give them
+     - the block diagram, and which blocks are new and which are reused (from `pedalkit.lib` or another effect)
+     - each block's constants, with the confidence level and intent of each
+     - the measurable targets that will show the idea works (a harmonic profile, a response shape, a modulation depth)
+     - prior art and inspirations, with links, as a numbered source list
+     - open questions, especially the ones only listening can answer
+   - **Modelled effects, or the borrowed part of a circuit-inspired one:** write `docs/<name>/circuit-notes.md`, using `docs/bassdrive/circuit-notes.md` as the template:
+     - documented controls and specs
+     - the block diagram
+     - each stage with component values and the corner frequencies derived from them
+     - the confidence level for each claim
+     - a numbered source list with links
+     - open questions
 
-   Use `docs/bassdrive/circuit-notes.md` as the template. `REUSE.toml` already licenses everything under `docs/` as CC-BY-4.0.
-
-   Add the reference hardware's manufacturer and product names to `tools/trademarks.txt` if they aren't there yet, so the `no-trademarks` hook keeps them out of the plugin.
+   If any hardware is referenced, add its manufacturer and product names to `tools/trademarks.txt` if they aren't there yet, so the `no-trademarks` hook keeps them out of the plugin.
 2. **DSP.** Write `src/<name>.dsp`:
    - `declare name/description/author/license/version/lv2class`. The LV2, VST3 and CLAP plugins take their name from `declare name`, and the VST3 subcategory and CLAP feature come from `lv2class`. `license` is an SPDX identifier (e.g. `MIT`), `version` is `major.minor.micro`, and `lv2class` is an LV2 plugin class without its prefix (e.g. `DistortionPlugin`, `DelayPlugin`, `FilterPlugin`). `tools/fix-ttl.py` turns these into the LV2 metadata `lv2lint` requires. An optional `declare homepage "https://…"` adds the maintainer's homepage.
    - If the effect adds latency (e.g. via `pk.oversample4`), report it: attach `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` fed with the delay, as `src/bassdrive.dsp` does.
    - Sliders: `hslider("[n]Label [unit:dB] [tooltip:...]", default, min, max, step) : si.smoo`. Every control gets a unit, a sensible range and default, and smoothing. The `[n]` prefix fixes the order. Test scripts address sliders by their label, e.g. `Gain=80`.
-   - Put the circuit constants at the top as named values, each with a comment saying where it came from.
+   - Put the constants (circuit values and design choices alike) at the top as named values, each with a comment saying where it came from or what it is for.
    - Put every nonlinearity inside `pk.oversample4(f)`. `f` **must be memoryless** (a pure waveshaper), because it is applied to four parallel phase streams. Filters belong outside it.
    - Any dry or parallel path that meets an oversampled path must be delayed by `@(pk.os4Latency)`, or the blend will comb-filter.
    - Use `fi.dcblockerat(5)` (5 Hz), not `fi.dcblocker` (about 35 Hz), on anything meant for bass.
@@ -43,12 +57,13 @@ A collection of Faust effects, each built as a native Linux LV2, VST3 and CLAP p
    - Each script does `from fxtest import ...` (`tests/lib/fxtest.py` provides `render`, `sine`, `log_sweep`, `transfer`, `harmonics`, `write_wav`, `save_plot`, `write_csv`, `check`, `finish`, `loudness`, `presets`, `plt`, `SR`, `OUT`).
    - Each script ends with `finish()`, which exits non-zero on any failed `check`.
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
+   - For an original or circuit-inspired effect, also test the measurable targets from the design notes, so the idea itself is checked, not just its safety.
    - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
 4. **Build and check:** `make lv2 lint test FX=<name>`, `make vst3 pluginval FX=<name>`, `make clap clap-validate FX=<name>`, then `make check` (`pre-commit run --all-files`). Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
 5. **Docs.** Add a row to the README's effect table and a controls table for the effect. On the documentation site (`docs/`, published to GitHub Pages):
-   - add `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations
+   - add `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations. For an original effect, open with the idea and the sound it is after rather than a reference device.
    - add a row to the effect tables in `docs/index.md` and `docs/effects/index.md`
-   - add the page and the circuit notes to `nav` in `mkdocs.yml`, under *Effects*
+   - add the page and the design and/or circuit notes to `nav` in `mkdocs.yml`, under *Effects*
    - run `make test docs` (tools: `pip install -r tools/docs-requirements.txt`). It builds with `--strict`, so fix every warning.
 6. **Presets (optional).** Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. Treat the settings as chosen values and say so in the file. Add a `tests/<name>/test_presets.py` that renders each preset, checks its peak and loudness-matches it with `loudness()`, and list the presets in the README and on the effect's docs page.
 

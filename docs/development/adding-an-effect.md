@@ -1,10 +1,14 @@
 # Adding an effect
 
-One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically, so there is no list to update. The steps below take an effect from research to a published page. Use BassDrive as the worked example throughout.
+One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically, so there is no list to update. The steps below take an effect from an idea to a published page. BassDrive, a modelled effect, is the worked example for the mechanics. For where ideas come from and how to write them up, see [Designing new sounds](designing-new-sounds.md) first.
 
-## 1. Research the circuit
+## 1. Write the notes
 
-Write `docs/<name>/circuit-notes.md` before any DSP. Use [the BassDrive notes](../bassdrive/circuit-notes.md) as the template. The notes must cover:
+Write the reasoning down before any DSP. `REUSE.toml` already licenses everything under `docs/` as CC BY 4.0.
+
+**Original or circuit-inspired effects** get `docs/<name>/design-notes.md`: the sonic idea, prior art and inspirations, the block diagram, every constant with its confidence level and intent, the measurable targets the tests will check, and the open questions. [Designing new sounds](designing-new-sounds.md#writing-design-notes) has the outline.
+
+**Modelled effects**, and the borrowed part of a circuit-inspired one, get `docs/<name>/circuit-notes.md`. Use [the BassDrive notes](../bassdrive/circuit-notes.md) as the template. The notes must cover:
 
 - the documented controls and specifications
 - the block diagram
@@ -13,9 +17,7 @@ Write `docs/<name>/circuit-notes.md` before any DSP. Use [the BassDrive notes](.
 - a numbered source list with links
 - the open questions
 
-`REUSE.toml` already licenses everything under `docs/` as CC BY 4.0.
-
-Add the reference hardware's manufacturer and product names to `tools/trademarks.txt` if they aren't listed yet. The `no-trademarks` pre-commit hook then fails if one of them reaches a file name, a `declare` line or a UI label (see [Linting and CI](ci.md#extending-the-trademark-deny-list)).
+If any hardware is referenced, add its manufacturer and product names to `tools/trademarks.txt` if they aren't listed yet. The `no-trademarks` pre-commit hook then fails if one of them reaches a file name, a `declare` line or a UI label (see [Linting and CI](ci.md#extending-the-trademark-deny-list)).
 
 ## 2. Write the DSP
 
@@ -44,9 +46,9 @@ Every control has a unit, a sensible range and default, a tooltip and smoothing.
 gain = hslider("[2]Gain [unit:%] [tooltip:Amount of drive]", 50, 0, 100, 0.1) / 100 : si.smoo;
 ```
 
-### Circuit constants
+### Constants
 
-Put the circuit constants at the top as named values, each with a comment saying where it came from:
+Put the constants, circuit values and design choices alike, at the top as named values, each with a comment saying where it came from or what it is for:
 
 ```faust
 R31     = 3.3e3;   // pre-emphasis shunt resistor (reported)
@@ -78,6 +80,7 @@ Add `tests/<name>/test_*.py`. Each script imports from `fxtest` and ends with `f
 - frequency response at several settings
 - harmonic content
 - an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples
+- for an original or circuit-inspired effect, the measurable targets from the design notes
 
 Save every plot as SVG and the numbers behind it as CSV. See [Tests and measurements](testing.md) for the helpers.
 
@@ -93,8 +96,8 @@ Fix every `lv2lint` and pre-commit failure, and read the plots before reporting 
 ## 5. Document it
 
 - Add a row to the effect table in `README.md`, on the [home page](../index.md) and on the [effects page](../effects/index.md).
-- Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations.
-- Add both pages to `nav` in `mkdocs.yml`, under *Effects*.
+- Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
+- Add the effect page and its notes to `nav` in `mkdocs.yml`, under *Effects*.
 - Build the site with `make test docs` and check that it has no warnings.
 
 ## 6. Report back
