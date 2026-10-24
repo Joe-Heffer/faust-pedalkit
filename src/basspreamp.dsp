@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Joe Heffer
+// SPDX-License-Identifier: MIT
 // BassPreamp: a tube-voiced bass preamp and DI with clean blend, Presence and
 // three-band EQ with switchable Bass and Mid frequencies.
 //

@@ -2,25 +2,31 @@
 
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 
-Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 plugins, with offline measurement tests.
+Clean-room models of classic guitar and bass pedals, written in Faust and built as native Linux LV2 and VST3 plugins, with offline measurement tests.
 
-A small repository for building guitar and bass effects in [Faust](https://faust.grame.fr/). Each effect is compiled to an LV2 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically.
+**Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, circuit research and current measurement plots.
+
+A small repository for building guitar and bass effects in [Faust](https://faust.grame.fr/). Each effect is compiled to an LV2 plugin and a VST3 plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically.
 
 | Effect | Description | Notes |
 |---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
-| **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
+| **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md), [REAPER guide](docs/basspreamp/reaper.md) |
 
 ## Layout
 
 ```text
 src/<name>.dsp              one file per effect
+src/<name>.presets.toml     optional factory presets, built into the LV2 bundle
 src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, analogue filter sections, output safety limiter
 docs/<name>/circuit-notes.md  research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
+tools/make-presets.py       turns src/<name>.presets.toml into LV2 presets in the bundle
 tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
+tools/vst3/                 VST3 architecture (Faust) and CMake project for the VST3 SDK
+tools/vst3-meta.py          writes each VST3 plugin's name, version, category and class ID
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
 tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
@@ -35,9 +41,10 @@ tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
 | C++ compiler | `gcc` (or `clang`) | `g++` |
 | LV2 headers | `lv2` | `lv2-dev` |
 | Standalone JACK build (`faust2jaqt`) | `qt5-base`, `jack2` or `pipewire-jack` | `qtbase5-dev`, `libjack-jackd2-dev` |
-| Validation | `lv2lint` | `lv2lint` |
+| VST3 build (fetches the VST3 SDK into `build/`) | `cmake`, `git` | `cmake`, `git` |
+| Validation | `lv2lint`; [pluginval](https://github.com/Tracktion/pluginval/releases) for VST3 | `lv2lint`; pluginval |
 | Quick host for testing | `jalv` | `jalv` |
-| Tests | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
+| Tests and presets (Python 3.11 or newer) | `python-numpy`, `python-matplotlib` | `python3-numpy`, `python3-matplotlib` |
 | Optional audio tools | `sox` | `sox` |
 
 Development used Faust 2.88. Older distribution packages may be missing library functions used here, such as `fi.dcblockerat` or `fi.peak_eq_cq`. If the build fails with an "undefined symbol" error from Faust, install a newer Faust (see <https://github.com/grame-cncm/faust/releases>).
@@ -45,7 +52,8 @@ Development used Faust 2.88. Older distribution packages may be missing library 
 ### Arch
 
 ```sh
-sudo pacman -S --needed faust boost gcc lv2 lv2lint jalv sox python-numpy python-matplotlib qt5-base
+sudo pacman -S --needed faust boost gcc lv2 lv2lint jalv sox python-numpy python-matplotlib qt5-base \
+                        cmake git
 ```
 
 Faust is linked against the system LLVM. If `faust` fails with `libLLVM.so.NN: cannot open shared object file`, the system is partially upgraded. Run `sudo pacman -Syu` to fix it.
@@ -53,7 +61,7 @@ Faust is linked against the system LLVM. If `faust` fails with `libLLVM.so.NN: c
 ### Debian / Ubuntu
 
 ```sh
-sudo apt install faust libboost-dev g++ lv2-dev lv2lint jalv sox \
+sudo apt install faust libboost-dev g++ lv2-dev lv2lint jalv sox cmake git \
                  python3-numpy python3-matplotlib qtbase5-dev libjack-jackd2-dev
 ```
 
@@ -71,14 +79,20 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
+make docs                 # documentation site into build/site/ (after make test; see below)
 make standalone           # build/<name>/<name> (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
-make uninstall
+make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
+make pluginval            # pluginval at strictness 10 on every VST3 bundle
+make install-vst3         # copies VST3 bundles to ~/.vst3
+make uninstall            # removes both
 ```
 
 Add `FX=bassdrive` or `FX=basspreamp` to any target to build one effect only.
 
 Plugin URIs have the form `urn:pedalkit/<name>`, so BassDrive is `urn:pedalkit/bassdrive` and BassPreamp is `urn:pedalkit/basspreamp`.
+
+The VST3 build uses Steinberg's [VST3 SDK](https://github.com/steinbergmedia/vst3sdk), which has been MIT-licensed since version 3.8. `make vst3` clones a pinned release into `build/vst3sdk` (only the submodules it needs), or uses an existing checkout given as `VST3_SDK=/path/to/vst3sdk`. The SDK's validator runs on each bundle as part of the build. For `make pluginval`, download pluginval and put it on `PATH`, or pass `PLUGINVAL=/path/to/pluginval`. The VST3 plugins have no custom GUI, so hosts show their generic parameter editor.
 
 Quick check from a terminal once it is installed:
 
@@ -108,19 +122,29 @@ pre-commit run --all-files
 | `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
+GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. A second job runs `make vst3 pluginval` and uploads the bundles as the `vst3` artifact. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
+
+### Documentation site
+
+The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, and embeds the plots and CSV data from `make test`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
+
+```sh
+python -m venv .venv && .venv/bin/pip install -r tools/docs-requirements.txt
+make test docs MKDOCS=.venv/bin/mkdocs        # build/site/
+make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000/
+```
 
 ## Loading in a host
 
-All three hosts below find plugins in `~/.lv2` once `make install` has run.
+All three hosts below find plugins in `~/.lv2` once `make install` has run. For the VST3 version, run `make install-vst3`, which copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux. REAPER, Bitwig, Ardour and Carla scan it, so "BassDrive" and "BassPreamp" then appear in their VST3 lists.
 
 **Ardour.** Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*. On a bass track's mixer strip, right-click the processor box, choose *New Plugin → Plugin Selector…*, search for "BassDrive" (or "BassPreamp") and add it.
 
 **REAPER (Linux).**
 
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
-2. Open the track's FX window, choose *Add*, and find "BassDrive" under *LV2*.
-3. BassDrive is mono. On a stereo track, REAPER feeds it channel 1, so record bass on a mono track or set the plugin's pin connector.
+2. Open the track's FX window, choose *Add*, and find "BassDrive" or "BassPreamp" under *LV2*.
+3. Both plugins are mono. On a stereo track, REAPER feeds it channel 1, so record bass on a mono track or set the plugin's pin connector.
 
 **Carla.**
 
@@ -180,7 +204,7 @@ These are measured approximations, not listening-tested. Each item below names t
 - **It isn't a full circuit simulation.** The drive stage is modelled as linear filters around a memoryless waveshaper (static nonlinearity). Effects that depend on the circuit's history are not captured: bias shifting under heavy playing, supply sag, and interaction between the clipper and the filters around it. Fast transients therefore compress a little more neatly than real hardware does.
 - **Several values are educated guesses.** These are the Gain pot taper and range, the stage-2 gain, the clipping asymmetry and the post-filter. Each one is marked as "chosen" in the circuit notes, and all are named constants near the top of `src/bassdrive.dsp`.
 - **The tone stack doesn't interact.** The EQ bands are independent digital filters, whereas a passive or active network would interact.
-- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host through an LV2 latency port, so hosts that support plugin delay compensation will line the track up.
+- **Latency.** The oversampler adds 32 samples (0.67 ms at 48 kHz). It is compensated inside the plugin between the clean and driven paths, and reported to the host (through an LV2 latency port, or the VST3 latency call), so hosts that support plugin delay compensation will line the track up.
 - **Mono only.**
 - **Some aliasing remains.** At extreme Gain with very high-pitched material, some aliasing remains despite the 4x oversampling. The safety limiter runs at the base rate and can alias if you drive it hard with Level.
 
@@ -199,6 +223,22 @@ These are measured approximations, not listening-tested. Each item below names t
 | Mid Shift | off/on | off | Moves Mid from 500 Hz to 1 kHz |
 
 Every control is smoothed, including the two switches, which glide the band frequency rather than jumping. The plugin reports 64 samples of latency (two 4x-oversampled clipping stages).
+
+### BassPreamp: presets
+
+The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+
+| Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
+|---|---|---|---|---|---|---|---|---|---|
+| Clean DI | 0 | 0 | 0 | 50 | 0 | 0 | 0 | | Clean path, flat EQ. The level reference. |
+| Warm Blend | +0.2 | 40 | 35 | 40 | +2 | 0 | −2 | | Some preamp under the clean signal |
+| Growl | −2.5 | 70 | 65 | 60 | +2 | +4 | 0 | Mid | Audible breakup with a 1 kHz lift |
+| Grind | −8.5 | 100 | 90 | 70 | +3 | +3 | +2 | | Preamp only. Mid fills the voicing's fixed dip near 450 Hz. |
+| Scooped Slap | −1 | 25 | 20 | 70 | +5 | −6 | +6 | | For slap and pop |
+| Low B Thump | +0.5 | 35 | 40 | 40 | +4 | −2 | −3 | Bass | 40 Hz shelf for five- and six-string basses |
+| Dark Dub | −1.5 | 45 | 25 | 20 | +6 | +2 | −9 | | Heavy lows, little treble |
+
+Levels are in dB and Blend, Drive and Presence in %. The presets live in `src/basspreamp.presets.toml`. Edit that file and run `make lv2 test FX=basspreamp`: the build checks that every preset sets every control within its range, and `test_presets.py` re-measures loudness and peak level.
 
 **Signal path:** input DC blocker → split into clean and preamp paths. The preamp path, following a public schematic of the earlier hardware version, runs:
 
@@ -226,6 +266,7 @@ From `make test FX=basspreamp` at 48 kHz. The plots are in `tests/out/basspreamp
   | 100 % | 18.8 % | 8.7 % | heavy, odd-order. H2 grows with Drive (−35 dBc at 41 Hz). |
 
 - **The low end holds up.** At Blend 50 %, the low E fundamental rises by 5.2 dB from Drive 0 to 100 %, and never drops.
+- **Presets.** All seven are within 0.25 dB of "Clean DI" in K-weighted loudness on a −12 dBFS bass line. With a 0 dBFS 41 Hz square wave in, none peaks above −0.10 dBFS.
 - **Aliasing.** Against a 1x build, 4x oversampling lowers the worst alias by 59 dB for a 3.7 kHz tone and by 68 dB for a 1.1 kHz tone at full Drive and Presence. The worst alias at 1.1 kHz is −113 dBc.
 
 ### BassPreamp: what to tune by ear
@@ -238,6 +279,7 @@ These are measured approximations, not listening-tested. Each item names the con
 4. **Clean/preamp loudness.** `drvTrim` (0.32). Set it so that sweeping Blend at your usual Drive doesn't change the perceived volume.
 5. **The blend notch.** At Blend around 50 % and high Drive, the paths cancel near 2.5 kHz. Listen for a hollow top end. This is a property of the hardware's blend circuit as traced.
 6. **EQ shapes.** `midQ` (0.7) and `trebF` (2.8 kHz) are choices, and so is the use of shelves for Bass and Treble.
+7. **Presets.** Every setting in `src/basspreamp.presets.toml` is chosen. Check that each preset sounds like its name, and that the loudness match holds with a real bass and your interface gain.
 
 ### BassPreamp: known limitations
 
@@ -255,4 +297,4 @@ The default source is a synthesised plucked bass. To audition a real clean DI re
 
 ## Licence
 
-The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive and BassPreamp are independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive and BassPreamp are independent models built from public information. They are not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.

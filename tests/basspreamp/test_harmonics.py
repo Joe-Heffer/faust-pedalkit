@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Harmonic content at several Drive settings, and the aliasing benefit of 4x
 oversampling compared with a 1x build of the same DSP."""
 
@@ -5,10 +7,24 @@ import os
 
 import numpy as np
 
-from fxtest import OUT, RENDER, RENDER_1X, SR, check, db, finish, harmonics, plt, render, sine
+from fxtest import (
+    RENDER,
+    RENDER_1X,
+    SR,
+    check,
+    db,
+    finish,
+    harmonics,
+    plt,
+    render,
+    save_plot,
+    sine,
+    write_csv,
+)
 
 print("test_harmonics")
 fig, axes = plt.subplots(1, 3, figsize=(16, 5), constrained_layout=True)
+harm_rows = []
 
 # Harmonic spectra for low E (41 Hz) and A (110 Hz) at -12 dBFS.
 for ax, f0 in zip(axes[:2], (41, 110), strict=True):
@@ -17,6 +33,7 @@ for ax, f0 in zip(axes[:2], (41, 110), strict=True):
         y = render(sine(f0, 3, -12), Drive=g, Presence=50, Blend=100)
         hk = harmonics(y, f0, 10)
         rel = db(hk / hk[0])
+        harm_rows.extend((f0, g, k + 1, rel[k]) for k in range(10))
         ax.bar(
             np.arange(1, 11) + (i - 1) * width, rel + 100, width, bottom=-100, label=f"Drive {g}%"
         )
@@ -65,7 +82,7 @@ for name, binary in (("1x (reference)", RENDER_1X), ("4x oversampled", RENDER)):
         print(f"  {name:15s} {f0:5d} Hz: worst alias {worst:6.1f} dBc")
         if f0 == 3700:
             ax.plot(np.arange(len(spec)), db(spec), lw=0.7, label=name)
-ax.set_title("3700 Hz at Drive and Presence 100%: harmonics and aliases")
+ax.set_title("3700 Hz, Drive and Presence 100%: aliases")
 ax.set_xlabel("frequency (Hz)")
 ax.set_ylabel("dB relative to fundamental")
 ax.set_ylim(-140, 5)
@@ -81,6 +98,11 @@ if ("1x (reference)", 3700) in results and ("4x oversampled", 3700) in results:
         results[("4x oversampled", 1100)] < -60,
         f"1100 Hz: worst alias with 4x {results[('4x oversampled', 1100)]:.1f} dBc (< -60 dBc)",
     )
-fig.savefig(f"{OUT}/harmonics.png", dpi=110)
-print(f"  wrote {OUT}/harmonics.png")
+save_plot(fig, "harmonics")
+write_csv("harmonics", ("f0_hz", "drive", "harmonic", "level_dbc"), harm_rows)
+write_csv(
+    "aliasing",
+    ("build", "f0_hz", "worst_alias_dbc"),
+    ((name, f0, worst) for (name, f0), worst in results.items()),
+)
 finish()

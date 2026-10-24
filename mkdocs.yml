@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Documentation site, published to GitHub Pages by .github/workflows/docs.yml.
+#
+#   make test docs     build the site into build/site/ (strict: warnings fail)
+#   make docs-serve    live preview at http://127.0.0.1:8000/
+#
+# Install the tools with `pip install -r tools/docs-requirements.txt`.
+# tools/mkdocs_hooks.py publishes the plots and CSV data from tests/out/ under
+# measurements/<name>/, so effect pages can show the current measurements.
+#
+# No `!!python/name:` YAML tags here, so the check-yaml hook can parse it.
+
+site_name: Faust Pedal Kit
+site_description: >-
+  Clean-room models of classic guitar and bass pedals, written in Faust and
+  built as native Linux LV2 plugins, with offline measurement tests.
+site_author: Joe Heffer
+site_url: https://joe-heffer.github.io/faust-pedalkit/
+repo_url: https://github.com/Joe-Heffer/faust-pedalkit
+repo_name: Joe-Heffer/faust-pedalkit
+edit_uri: edit/main/docs/
+copyright: >-
+  Code: MIT. Documentation: CC BY 4.0. Not affiliated with any pedal
+  manufacturer.
+
+docs_dir: docs
+site_dir: build/site
+
+theme:
+  name: material
+  language: en
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - content.action.edit
+    - content.code.copy
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - toc.follow
+
+hooks:
+  - tools/mkdocs_hooks.py
+
+plugins:
+  - search
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Install and build: install.md
+      - Loading in a host: hosts.md
+  - Effects:
+      - effects/index.md
+      - BassDrive:
+          - bassdrive/index.md
+          - Circuit notes: bassdrive/circuit-notes.md
+      - BassPreamp:
+          - basspreamp/index.md
+          - Circuit notes: basspreamp/circuit-notes.md
+          - Using it in REAPER: basspreamp/reaper.md
+  - Development:
+      - development/index.md
+      - Adding an effect: development/adding-an-effect.md
+      - Shared library: development/pedalkit-lib.md
+      - Tests and measurements: development/testing.md
+      - Linting and CI: development/ci.md
+  - About: about.md
