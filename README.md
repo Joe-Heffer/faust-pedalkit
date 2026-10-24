@@ -9,7 +9,7 @@ A small repository for building guitar and bass effects in [Faust](https://faust
 | Effect | Description | Notes |
 |---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
-| **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
+| **BassPreamp** (`src/basspreamp.dsp`) | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md), [REAPER guide](docs/basspreamp/reaper.md) |
 
 ## Layout
 
@@ -119,8 +119,8 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run.
 **REAPER (Linux).**
 
 1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
-2. Open the track's FX window, choose *Add*, and find "BassDrive" under *LV2*.
-3. BassDrive is mono. On a stereo track, REAPER feeds it channel 1, so record bass on a mono track or set the plugin's pin connector.
+2. Open the track's FX window, choose *Add*, and find "BassDrive" or "BassPreamp" under *LV2*.
+3. Both plugins are mono. On a stereo track, REAPER feeds it channel 1, so record bass on a mono track or set the plugin's pin connector.
 
 **Carla.**
 
