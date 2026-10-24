@@ -4,16 +4,19 @@
 #
 #   make lv2          build LV2 bundles into build/<name>.lv2
 #   make vst3         build VST3 bundles into build/<name>.vst3
+#   make clap         build CLAP plugins into build/<name>.clap
 #   make standalone   build JACK applications (Qt GUI) into build/<name>/
 #   make lint         run lv2lint on each LV2 bundle
 #   make pluginval    run pluginval on each VST3 bundle
+#   make clap-validate  run clap-validator on each CLAP plugin
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make docs         build the documentation site into build/site (run `make test` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make install      copy the LV2 bundles into ~/.lv2
 #   make install-vst3 copy the VST3 bundles into ~/.vst3
-#   make uninstall    remove both from ~/.lv2 and ~/.vst3
+#   make install-clap copy the CLAP plugins into ~/.clap
+#   make uninstall    remove them from ~/.lv2, ~/.vst3 and ~/.clap
 #   make clean        remove build/ and tests/out/
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
@@ -25,6 +28,7 @@ BUILD      := build
 URI_PREFIX := urn:pedalkit
 LV2DIR     ?= $(HOME)/.lv2
 VST3DIR    ?= $(HOME)/.vst3
+CLAPDIR    ?= $(HOME)/.clap
 
 # VST3 SDK (MIT since 3.8), fetched into build/ on first use. Point VST3_SDK
 # at an existing checkout to skip the download.
@@ -33,14 +37,21 @@ VST3_SDK     ?= $(BUILD)/vst3sdk
 VST3_ARCH    := tools/vst3/faust-vst3.cpp
 PLUGINVAL    ?= pluginval
 
+# CLAP headers (MIT), fetched into build/ on first use. Point CLAP_SDK at an
+# existing checkout of github.com/free-audio/clap to skip the download.
+CLAP_TAG       := 1.2.10
+CLAP_SDK       ?= $(BUILD)/clap
+CLAP_ARCH      := tools/clap/faust-clap.cpp
+CLAP_VALIDATOR ?= clap-validator
+
 CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
 
-.PHONY: all lv2 vst3 standalone lint pluginval test describe docs docs-serve install install-vst3 \
-        uninstall clean
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe docs docs-serve \
+        install install-vst3 install-clap uninstall clean
 .SECONDARY:
 
 all: lv2
@@ -48,6 +59,8 @@ all: lv2
 lv2: $(foreach f,$(FX),$(BUILD)/$(f).lv2/manifest.ttl)
 
 vst3: $(foreach f,$(FX),$(BUILD)/$(f)/vst3.stamp)
+
+clap: $(foreach f,$(FX),$(BUILD)/$(f).clap)
 
 standalone: $(foreach f,$(FX),$(BUILD)/$(f)/standalone.stamp)
 
@@ -63,6 +76,12 @@ pluginval: vst3
 	    echo "== pluginval $$f"; \
 	    $(PLUGINVAL) --strictness-level 10 --skip-gui-tests --validate-in-process \
 	        --validate $(BUILD)/$$f.vst3 || status=1; \
+	done; exit $$status
+
+clap-validate: clap
+	@status=0; for f in $(FX); do \
+	    echo "== clap-validator $$f"; \
+	    $(CLAP_VALIDATOR) validate --only-failed $(BUILD)/$$f.clap || status=1; \
 	done; exit $$status
 
 test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x)
@@ -86,8 +105,12 @@ install-vst3: vst3
 	mkdir -p $(VST3DIR)
 	for f in $(FX); do rm -rf $(VST3DIR)/$$f.vst3 && cp -r $(BUILD)/$$f.vst3 $(VST3DIR)/; done
 
+install-clap: clap
+	mkdir -p $(CLAPDIR)
+	for f in $(FX); do cp $(BUILD)/$$f.clap $(CLAPDIR)/; done
+
 uninstall:
-	for f in $(FX); do rm -rf $(LV2DIR)/$$f.lv2 $(VST3DIR)/$$f.vst3; done
+	for f in $(FX); do rm -rf $(LV2DIR)/$$f.lv2 $(VST3DIR)/$$f.vst3 $(CLAPDIR)/$$f.clap; done
 
 # faust2lv2 and faust2jaqt build in the current directory, so each effect is
 # staged in build/<name>/ with the shared libraries copied alongside.
@@ -126,6 +149,24 @@ $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt 
 	rm -rf $(BUILD)/$*.vst3
 	cp -r $(@D)/vst3/build/VST3/Release/$*.vst3 $(BUILD)/
 	touch $@
+
+# CLAP: faust compiles the effect into the architecture in tools/clap/,
+# tools/clap-meta.py writes its ID, names and features, and the result is
+# linked straight into a shared object. CLAP is a header-only C API, so no
+# SDK library or CMake is involved.
+$(CLAP_SDK)/include/clap/clap.h:
+	rm -rf $(CLAP_SDK)
+	git -c advice.detachedHead=false clone --quiet --depth 1 --branch $(CLAP_TAG) \
+	    https://github.com/free-audio/clap $(CLAP_SDK)
+
+$(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta.py \
+                 | $(CLAP_SDK)/include/clap/clap.h
+	mkdir -p $(BUILD)/$*/clap
+	faust -I src/lib -a $(CLAP_ARCH) -o $(BUILD)/$*/clap/$*.cpp $<
+	python3 tools/clap-meta.py $< $* $(BUILD)/$*/clap/plugin_meta.h
+	$(CXX) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
+	    -I$(BUILD)/$*/clap -I$(FAUST_INC) -I$(CLAP_SDK)/include \
+	    $(BUILD)/$*/clap/$*.cpp -o $@
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $*.dsp || faust2jack $*.dsp)

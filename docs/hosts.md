@@ -4,6 +4,8 @@ After `make install`, the bundles are in `~/.lv2`, which every common Linux LV2 
 
 For VST3, run `make install-vst3` instead. It copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux, which REAPER, Bitwig, Ardour and Carla scan; the effects then appear in their VST3 lists under the same names.
 
+For CLAP, run `make install-clap`. It copies the plugins to `~/.clap`, the per-user CLAP folder on Linux, which REAPER, Bitwig and Carla scan. In REAPER the effects are listed under *CLAP* in the FX browser; if they don't appear, use *Options → Preferences → Plug-ins → CLAP → Re-scan*.
+
 ## Ardour
 
 Ardour scans `~/.lv2` at start-up. If it was already open, use *Window → Plugin Manager → Re-scan*.
@@ -34,7 +36,7 @@ Connect its ports with your patchbay of choice (`qpwgraph`, `helvum` or Carla on
 
 ## Latency
 
-Effects that oversample add a fixed delay, which they report to the host (through an LV2 latency port, or the VST3 latency call). BassDrive adds 32 samples, which is 0.67 ms at 48 kHz. Hosts with plugin delay compensation, including Ardour and REAPER, use the reported value to line the track up with the others.
+Effects that oversample add a fixed delay, which they report to the host (through an LV2 latency port, the VST3 latency call or the CLAP latency extension). BassDrive adds 32 samples, which is 0.67 ms at 48 kHz. Hosts with plugin delay compensation, including Ardour and REAPER, use the reported value to line the track up with the others.
 
 ## Input level
 
