@@ -18,8 +18,10 @@ The TTL is edited in place.
 import re
 import sys
 
+from dspmeta import declares
+
 dsp_path, ttl_path = sys.argv[1], sys.argv[2]
-decl = dict(re.findall(r'^\s*declare\s+(\w+)\s+"([^"]*)"\s*;', open(dsp_path).read(), re.M))
+decl = declares(dsp_path)
 ttl = open(ttl_path).read()
 
 # The plugin's own triples start at its subject and end at the first port.

@@ -9,8 +9,9 @@ target-version = "py311"
 select = ["E", "W", "F", "I", "UP", "B", "NPY"]
 
 [tool.ruff.lint.isort]
-# Test scripts import the shared helpers from tests/lib/ via PYTHONPATH.
-known-first-party = ["fxtest"]
+# Test scripts import the shared helpers from tests/lib/ via PYTHONPATH; the
+# scripts in tools/ import tools/dspmeta.py from their own directory.
+known-first-party = ["fxtest", "dspmeta"]
 
 [tool.codespell]
 skip = "./build,./tests/out,./.git,./.claude"
