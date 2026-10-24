@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Fill in LV2 metadata that faust2lv2 cannot express, so lv2lint passes.
 
 Usage: fix-ttl.py <effect.dsp> <bundle>/<effect>.ttl

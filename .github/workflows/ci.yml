@@ -61,3 +61,12 @@ jobs:
           name: test-output
           path: tests/out/
           if-no-files-found: ignore
+      - name: Describe effects (JSON and block diagrams)
+        run: make describe
+      - name: Upload effect descriptions
+        uses: actions/upload-artifact@v5
+        with:
+          name: describe
+          path: |
+            build/*/*.dsp.json
+            build/*/*-svg/

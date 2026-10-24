@@ -1,11 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
 """Shared helpers for the offline effect tests.
 
 The effect under test is named by the FX environment variable (set by
 tests/run.sh). Signals are rendered by its compiled harness, build/<FX>/render,
 which reads and writes raw mono float32. Sliders keep their declared defaults
 unless a test overrides them by label. Only numpy and matplotlib are needed.
+
+Results go to tests/out/<FX>/ in open formats: plots as SVG (save_plot), the
+numbers behind them as CSV (write_csv) and audio as WAV (write_wav).
 """
 
+import csv
 import os
 import subprocess
 import sys
@@ -90,6 +96,24 @@ def write_wav(path, y):
         w.setsampwidth(3)
         w.setframerate(SR)
         w.writeframes(raw)
+
+
+def save_plot(fig, name):
+    """Save fig as OUT/<name>.svg."""
+    path = os.path.join(OUT, f"{name}.svg")
+    fig.savefig(path)
+    print(f"  wrote {path}")
+
+
+def write_csv(name, header, rows):
+    """Write rows (an iterable of sequences) to OUT/<name>.csv under header."""
+    path = os.path.join(OUT, f"{name}.csv")
+    with open(path, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(header)
+        for row in rows:
+            w.writerow([f"{v:.6g}" if isinstance(v, float) else v for v in row])
+    print(f"  wrote {path}")
 
 
 def check(cond, msg):

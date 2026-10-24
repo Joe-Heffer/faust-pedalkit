@@ -14,6 +14,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
 4. **Say when you're unsure.** Every circuit value in the DSP is documented, reported, inferred or chosen. The circuit notes must say which, with a link for anything sourced. Never guess silently.
 5. **Ask the user before anything destructive or system-wide.** That includes `sudo`, package installs, deleting outside `build/` and `tests/out/`, and overwriting their `~/.lv2` contents other than this repo's own bundles.
 6. **You can't listen.** Judge sound by measurement (harmonics, frequency response, aliasing, levels), describe it in those terms, and list the parameters a human should tune by ear.
+7. **Open formats and machine-readable licensing.** Every new file has an SPDX header (`SPDX-FileCopyrightText` and `SPDX-License-Identifier`), or an entry in `REUSE.toml` if it can't take comments. Code is `MIT` and `docs/` is `CC-BY-4.0`. The `reuse` pre-commit hook enforces this. Any audio that gets committed is FLAC. Schematics are KiCad `.kicad_sch`, redrawn from the sources rather than copied as images, because a third party's drawing has its own copyright.
 
 ## Adding a new effect `<name>`
 
@@ -25,7 +26,7 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
    - a numbered source list with links
    - open questions
 
-   Use `docs/bassdrive/circuit-notes.md` as the template.
+   Use `docs/bassdrive/circuit-notes.md` as the template. `REUSE.toml` already licenses everything under `docs/` as CC-BY-4.0.
 2. **DSP.** Write `src/<name>.dsp`:
    - `declare name/description/author/license/version/lv2class`. The LV2 plugin takes its name from `declare name`. `license` is an SPDX identifier (e.g. `MIT`), `version` is `major.minor.micro`, and `lv2class` is an LV2 plugin class without its prefix (e.g. `DistortionPlugin`, `DelayPlugin`, `FilterPlugin`). `tools/fix-ttl.py` turns these into the LV2 metadata `lv2lint` requires. An optional `declare homepage "https://…"` adds the maintainer's homepage.
    - If the effect adds latency (e.g. via `pk.oversample4`), report it: attach `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` fed with the delay, as `src/bassdrive.dsp` does.
@@ -37,10 +38,10 @@ A collection of Faust effects, each built as a native Linux LV2 plugin, with off
    - End `process` with `pk.safety(0.989)` so no sample can exceed 0 dBFS.
    - Comment the signal flow at the top of the file.
 3. **Tests.** Add `tests/<name>/test_*.py`:
-   - Each script does `from fxtest import ...` (`tests/lib/fxtest.py` provides `render`, `sine`, `log_sweep`, `transfer`, `harmonics`, `write_wav`, `check`, `finish`, `plt`, `SR`, `OUT`).
+   - Each script does `from fxtest import ...` (`tests/lib/fxtest.py` provides `render`, `sine`, `log_sweep`, `transfer`, `harmonics`, `write_wav`, `save_plot`, `write_csv`, `check`, `finish`, `plt`, `SR`, `OUT`).
    - Each script ends with `finish()`, which exits non-zero on any failed `check`.
    - The minimum set is silence in gives silence out, peak ≤ 0 dBFS at the extreme settings, frequency response at several settings, and harmonic content. Add an aliasing comparison (`RENDER` against `RENDER_1X`) whenever the effect oversamples.
-   - Write plots and WAVs to `OUT` (`tests/out/<name>/`).
+   - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
 4. **Build and check:** `make lv2 lint test FX=<name>`, then `pre-commit run --all-files`. Fix every `lv2lint` and pre-commit failure. Read the plots before reporting results. CI runs both on every push and pull request.
 5. **Docs.** Add a row to the README's effect table and a controls table for the effect.
 
@@ -60,13 +61,14 @@ When you add something reusable, put it here rather than copying it into an effe
 
 ## Build mechanics
 
-- `make` targets: `lv2`, `standalone`, `lint`, `test`, `install`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect.
+- `make` targets: `lv2`, `standalone`, `lint`, `test`, `describe`, `install`, `uninstall`, `clean`. All of them take `FX=<name>`, and the default is every effect.
 - `faust2lv2` and `faust2jaqt` build in the current directory, so each effect is staged in `build/<name>/`, with `src/lib/*.lib` copied next to the `.dsp`. The bundle ends up in `build/<name>.lv2`.
 - Plugin URI: `urn:pedalkit/<name>`.
 - After `faust2lv2`, the Makefile runs `tools/fix-ttl.py` on the bundle's TTL. `faust2lv2` writes the licence as a string, and has no way to express `lv2:minorVersion`/`microVersion` or a plugin class. Without the script, `lv2lint` fails.
 - `faust2lv2` prints spurious "bad port property 'unit:…'" messages. These are a quirk of its template and can be ignored.
 - `faust2lv2` needs the Boost headers (`boost` on Arch, `libboost-dev` on Debian), even for effects that use no MIDI.
 - Tests use a separate renderer, `build/<name>/render`, built from `tests/lib/render-arch.cpp`. It reads and writes raw float32 on stdin and stdout, takes `Label=value` arguments, and pre-rolls 2 s of silence so the smoothers settle. `render_1x` is the same DSP with `oversample4(` replaced by `oversample1(`.
+- `make describe` writes a format-neutral description of each effect: `faust -json` gives `build/<name>/<name>.dsp.json` (every control's label, unit, range and default), and `faust -svg` gives the block diagram in `build/<name>/<name>-svg/`. CI uploads both as the `describe` artifact.
 - Generated files only ever go in `build/` and `tests/out/`. Never commit them.
 
 ## Environment notes

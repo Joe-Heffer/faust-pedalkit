@@ -21,7 +21,7 @@ tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
 tests/run.sh <name>         runs one effect's tests
 build/                      generated (bundles, renderers)
-tests/out/<name>/           generated plots and WAV renders
+tests/out/<name>/           generated plots (SVG), data (CSV) and WAV renders
 ```
 
 ## Dependencies
@@ -67,7 +67,8 @@ cd faust-pedalkit
 ```sh
 make lv2                  # build/bassdrive.lv2
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
-make test                 # renders, checks, and writes plots to tests/out/
+make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
+make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
 make standalone           # build/bassdrive/bassdrive (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make uninstall
@@ -101,10 +102,11 @@ pre-commit run --all-files
 | `codespell (typos)` | common misspellings everywhere |
 | `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
 | `faust-compile` | every `src/*.dsp` compiles (needs `faust`) |
+| `reuse` | every file has a machine-readable licence (SPDX header or `REUSE.toml`) |
 | `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
 | whitespace, YAML/TOML, shebangs, large files | general hygiene |
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test`. The plots and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run.
+GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds every effect in an Arch Linux container and runs `make lv2 lint test describe`. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact of each run. Each effect's JSON description and block diagram are uploaded as the `describe` artifact.
 
 ## Loading in a host
 
@@ -142,7 +144,7 @@ Every control is smoothed, so automating or turning them does not zipper. The pl
 
 ## Measured behaviour
 
-From `make test` at 48 kHz. The plots are in `tests/out/bassdrive/`.
+From `make test` at 48 kHz. The plots (SVG) and the data behind them (CSV) are in `tests/out/bassdrive/`.
 
 - **Silence in gives silence out.** The output stays below −120 dBFS at all 48 combinations of extreme settings.
 - **Peak level.** With every control at maximum and 0 dBFS square waves, noise, sweeps or impulses in, the worst sample is −0.10 dBFS.
@@ -182,4 +184,4 @@ These are measured approximations, not listening-tested. Each item below names t
 
 ## Licence
 
-MIT; see [LICENSE](LICENSE). BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (circuit research and notes) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". BassDrive is an independent model built from public information. It is not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
