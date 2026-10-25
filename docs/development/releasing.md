@@ -30,7 +30,7 @@ To try the workflow without releasing, run it from the Actions tab (*Run workflo
 | Job | What it checks |
 |---|---|
 | **build** | On a tag, checks it with `tools/release/release-info.py`. Builds `Dockerfile.release` (Debian 12, Faust built from source) and runs `make lv2 vst3 clap dist` in it, for the tagged effect or, on a dry run, for every effect. Steinberg's validator runs on each VST3 bundle as part of the build. |
-| **validate** | In stock Ubuntu 22.04, `tools/release/check-portable.sh` checks that every plugin binary links: no missing libraries and no missing glibc or libstdc++ symbol versions. It prints the newest versions each binary needs (currently `GLIBC_2.35` and `GLIBCXX_3.4.29`). In the Arch toolchain image, `lv2lint`, pluginval (strictness 10) and clap-validator run on the plugins *as shipped*, and `install.sh` installs into and uninstalls from temporary folders. |
+| **validate** | In stock Ubuntu 22.04 and Debian 12, `tools/release/check-portable.sh` checks that every plugin binary links: no missing libraries and no missing glibc or libstdc++ symbol versions. It prints the newest versions each binary needs (currently `GLIBC_2.35` and `GLIBCXX_3.4.29`). In the Arch toolchain image, `lv2lint`, pluginval (strictness 10) and clap-validator run on the plugins *as shipped*, and `install.sh` installs into and uninstalls from temporary folders. |
 | **publish** | On a tag only: creates the draft release with the tarball and `SHA256SUMS`, titled from the effect's `declare name`, with the changelog section as its notes. |
 
 ## Why a separate image
