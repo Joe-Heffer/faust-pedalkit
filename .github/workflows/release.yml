@@ -79,8 +79,12 @@ jobs:
           mkdir unpacked
           for t in ./*.tar.gz; do tar -xzf "$t" -C unpacked; done
           ls -R unpacked
+      # The oldest releases we support, which are also the ones the install
+      # guide names.
       - name: Check the plugins link on Ubuntu 22.04
         run: docker run --rm -v "$PWD":/src -w /src ubuntu:22.04 tools/release/check-portable.sh dist/unpacked
+      - name: Check the plugins link on Debian 12
+        run: docker run --rm -v "$PWD":/src -w /src debian:12 tools/release/check-portable.sh dist/unpacked
       - name: Build toolchain image
         run: make image
       - name: Install, validate and uninstall
@@ -110,6 +114,14 @@ jobs:
         # which may belong to another effect.
         run: |
           title=$(tools/release/release-info.py "$TAG" "$RUNNER_TEMP/notes.md" | sed -n 's/^title=//p')
+          {
+            printf '\n## Install\n\n'
+            printf 'Download the tarball and `SHA256SUMS`, then:\n\n```sh\n'
+            printf 'sha256sum -c SHA256SUMS --ignore-missing\ntar -xzf *-linux-x86_64.tar.gz\n'
+            printf 'cd *-linux-x86_64 && ./install.sh\n```\n\n'
+            printf 'Needs x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). '
+            printf 'See the [install guide](https://joe-heffer.github.io/faust-pedalkit/install/).\n'
+          } >> "$RUNNER_TEMP/notes.md"
           gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "$title" --notes-file "$RUNNER_TEMP/notes.md"
