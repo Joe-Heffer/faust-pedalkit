@@ -13,7 +13,6 @@ SPDX-License-Identifier = "CC-BY-4.0"
 [[annotations]]
 path = [
   "*.md",
-  "CITATION.cff",
   ".gitignore",
   ".markdownlint-cli2.yaml",
   ".pre-commit-config.yaml",

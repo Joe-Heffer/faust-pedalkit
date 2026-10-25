@@ -95,9 +95,11 @@ nav:
       - BassDrive:
           - bassdrive/index.md
           - Circuit notes: bassdrive/circuit-notes.md
+          - Changelog: bassdrive/changelog.md
       - BassPreamp:
           - basspreamp/index.md
           - Circuit notes: basspreamp/circuit-notes.md
+          - Changelog: basspreamp/changelog.md
   - Development:
       - development/index.md
       - Designing new sounds: development/designing-new-sounds.md
