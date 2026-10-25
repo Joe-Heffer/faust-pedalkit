@@ -1,6 +1,7 @@
 # Faust Pedal Kit
 
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/Joe-Heffer/faust-pedalkit?include_prereleases&sort=semver)](https://github.com/Joe-Heffer/faust-pedalkit/releases)
 
 A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2, VST3 and CLAP plugins and checked by offline measurement tests.
 
