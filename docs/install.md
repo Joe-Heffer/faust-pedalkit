@@ -4,12 +4,12 @@ The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional sta
 
 ## Install a release
 
-Each [GitHub release](https://github.com/Joe-Heffer/faust-pedalkit/releases) has a tarball, `pedalkit-<version>-linux-x86_64.tar.gz`, holding every effect in all three formats, and a `SHA256SUMS` file to check it against.
+Each effect is released on its own. Its [GitHub release](https://github.com/Joe-Heffer/faust-pedalkit/releases), tagged `<name>-v<version>`, has a tarball, `<name>-<version>-linux-x86_64.tar.gz`, holding that effect in all three formats, and a `SHA256SUMS` file to check it against.
 
 ```sh
 sha256sum -c SHA256SUMS                 # in the folder you downloaded both files to
-tar -xzf pedalkit-*-linux-x86_64.tar.gz
-cd pedalkit-*-linux-x86_64
+tar -xzf bassdrive-*-linux-x86_64.tar.gz # or whichever effect you downloaded
+cd bassdrive-*-linux-x86_64
 ./install.sh
 ```
 

@@ -33,7 +33,7 @@ declare name        "BassPreamp";
 declare description "Tube-voiced bass preamp/DI with blend, presence and three-band EQ";
 declare author      "Joe Heffer";
 declare license     "MIT";              // SPDX identifier (see tools/fix-ttl.py)
-declare version     "0.2.0";
+declare version     "0.1.0";
 declare lv2class    "AmplifierPlugin";
 declare homepage    "https://github.com/Joe-Heffer/faust-pedalkit";
 

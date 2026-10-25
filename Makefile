@@ -11,7 +11,7 @@
 #   make clap-validate  run clap-validator on each CLAP plugin
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
-#   make dist         pack the LV2, VST3 and CLAP plugins into a release tarball in build/dist/
+#   make dist         pack each effect's LV2, VST3 and CLAP plugins into a release tarball in build/dist/
 #   make docs         build the documentation site into build/site (run `make test` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
@@ -65,10 +65,11 @@ ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
 PRE_COMMIT ?= pre-commit
 
-# Release tarball (make dist). The version is the project's, from CITATION.cff.
-VERSION    ?= $(shell sed -n 's/^version: *//p' CITATION.cff)
+# Release tarballs (make dist): one per effect, named from the effect's own
+# `declare version`, e.g. build/dist/bassdrive-0.1.0-linux-x86_64.tar.gz.
+fxversion   = $(shell sed -n 's/^ *declare *version *"\([^"]*\)".*/\1/p' src/$(1).dsp)
 DIST       := $(BUILD)/dist
-DISTNAME   := pedalkit-$(VERSION)-linux-$(shell uname -m)
+distname    = $(1)-$(call fxversion,$(1))-linux-$(shell uname -m)
 
 # Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
 # `run` options go in CONTAINER_FLAGS.
@@ -158,22 +159,25 @@ install-clap: clap
 	mkdir -p $(CLAPDIR)
 	for f in $(FX); do cp $(BUILD)/$$f.clap $(CLAPDIR)/; done
 
-# Release tarball: the plugins in one folder per format, plus install.sh,
-# which copies them into ~/.lv2, ~/.vst3 and ~/.clap. Build it with
-# Dockerfile.release so the plugins load on older distributions (see
-# docs/development/releasing.md).
+# Release tarballs: for each effect, its plugins in one folder per format,
+# plus install.sh, which copies them into ~/.lv2, ~/.vst3 and ~/.clap, and the
+# effect's changelog. Build them with Dockerfile.release so the plugins load
+# on older distributions (see docs/development/releasing.md).
 dist: lv2 vst3 clap
 	rm -rf $(DIST)
-	mkdir -p $(DIST)/$(DISTNAME)/lv2 $(DIST)/$(DISTNAME)/vst3 $(DIST)/$(DISTNAME)/clap
-	for f in $(FX); do \
-	    cp -r $(BUILD)/$$f.lv2 $(DIST)/$(DISTNAME)/lv2/ && \
-	    cp -r $(BUILD)/$$f.vst3 $(DIST)/$(DISTNAME)/vst3/ && \
-	    cp $(BUILD)/$$f.clap $(DIST)/$(DISTNAME)/clap/ || exit 1; \
-	done
-	cp tools/release/install.sh tools/release/README.txt LICENSE CHANGELOG.md $(DIST)/$(DISTNAME)/
-	tar -C $(DIST) --sort=name --owner=0 --group=0 --numeric-owner \
-	    -czf $(DIST)/$(DISTNAME).tar.gz $(DISTNAME)
-	cd $(DIST) && sha256sum $(DISTNAME).tar.gz > SHA256SUMS
+	$(foreach f,$(FX),$(call dist-one,$(f),$(call distname,$(f))))
+	cd $(DIST) && sha256sum *.tar.gz > SHA256SUMS
+
+define dist-one
+mkdir -p $(DIST)/$(2)/lv2 $(DIST)/$(2)/vst3 $(DIST)/$(2)/clap
+	cp -r $(BUILD)/$(1).lv2 $(DIST)/$(2)/lv2/
+	cp -r $(BUILD)/$(1).vst3 $(DIST)/$(2)/vst3/
+	cp $(BUILD)/$(1).clap $(DIST)/$(2)/clap/
+	cp tools/release/install.sh tools/release/README.txt LICENSE $(DIST)/$(2)/
+	cp docs/$(1)/changelog.md $(DIST)/$(2)/CHANGELOG.md
+	tar -C $(DIST) --sort=name --owner=0 --group=0 --numeric-owner -czf $(DIST)/$(2).tar.gz $(2)
+
+endef
 
 uninstall:
 	for f in $(FX); do rm -rf $(LV2DIR)/$$f.lv2 $(VST3DIR)/$$f.vst3 $(CLAPDIR)/$$f.clap; done
@@ -214,7 +218,7 @@ $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt 
 	faust -I src/lib -a $(VST3_ARCH) -o $(@D)/vst3/$*.cpp $<
 	python3 tools/vst3-meta.py $< $* $(@D)/vst3/plugin_meta.h
 	cmake -S tools/vst3 -B $(@D)/vst3/build -DCMAKE_BUILD_TYPE=Release \
-	    -DFX_NAME=$* -DFX_VERSION=$$(sed -n 's/^ *declare *version *"\([^"]*\)".*/\1/p' $<) \
+	    -DFX_NAME=$* -DFX_VERSION=$(call fxversion,$*) \
 	    -DFX_GEN_DIR=$(abspath $(@D)/vst3) -DFAUST_INC=$(FAUST_INC) \
 	    -DVST3_SDK_DIR=$(abspath $(VST3_SDK)) \
 	    -DCMAKE_SHARED_LINKER_FLAGS="$(LDFLAGS)" -DCMAKE_MODULE_LINKER_FLAGS="$(LDFLAGS)"

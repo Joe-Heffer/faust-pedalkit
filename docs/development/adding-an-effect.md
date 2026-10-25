@@ -28,7 +28,7 @@ declare name        "BassDrive";
 declare description "Bass overdrive with clean blend and two-band EQ";
 declare author      "Joe Heffer";
 declare license     "MIT";              // SPDX identifier
-declare version     "0.1.0";            // major.minor.micro
+declare version     "0.1.0";            // major.minor.micro; every new effect starts at 0.1.0
 declare lv2class    "DistortionPlugin"; // LV2 class without its prefix
 declare homepage    "https://github.com/Joe-Heffer/faust-pedalkit";
 
@@ -97,7 +97,8 @@ Fix every `lv2lint` and pre-commit failure, and read the plots before reporting 
 
 - Add a row to the effect table in `README.md`, on the [home page](../index.md) and on the [effects page](../effects/index.md).
 - Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
-- Add the effect page and its notes to `nav` in `mkdocs.yml`, under *Effects*.
+- Add `docs/<name>/changelog.md`, modelled on [the BassDrive changelog](../bassdrive/changelog.md), with a `## [0.1.0]` section. Every effect starts at version 0.1.0 and is released on its own (see [Releasing](releasing.md)).
+- Add the effect page, its notes and its changelog to `nav` in `mkdocs.yml`, under *Effects*.
 - Build the site with `make test docs` and check that it has no warnings.
 
 ## 6. Report back

@@ -1,13 +1,16 @@
 name: Release
 
-# Builds the release tarball (LV2, VST3 and CLAP plugins plus install.sh),
-# checks it, and on a v* tag creates a draft GitHub release for a person to
-# review and publish. See docs/development/releasing.md.
+# Each effect is released on its own, under a tag <name>-vX.Y.Z (e.g.
+# bassdrive-v0.1.0) that must match the effect's `declare version`. On a tag
+# this builds that effect's tarball (LV2, VST3 and CLAP plugins plus
+# install.sh), checks it, and creates a draft GitHub release for a person to
+# review and publish. A dry run builds and checks every effect's tarball. See
+# docs/development/releasing.md.
 
 on:
   push:
-    tags: ["v*"]
-  # A dry run: build and check the tarball and keep it as a workflow artifact.
+    tags: ["*-v*"]
+  # A dry run: build and check every tarball and keep them as a workflow artifact.
   workflow_dispatch:
   pull_request:
     paths:
@@ -28,14 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Check the tag matches CITATION.cff
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          version=$(sed -n 's/^version: *//p' CITATION.cff)
-          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in CITATION.cff"
-            exit 1
-          fi
+      # Fails unless the tag names an effect, matches its `declare version`
+      # and has a section in docs/<name>/changelog.md.
+      - name: Check the tag matches the effect
+        id: tag
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAG: ${{ github.ref_name }}
+        run: tools/release/release-info.py "$TAG" >> "$GITHUB_OUTPUT"
       - name: Cache the VST3 SDK
         uses: actions/cache@v6
         with:
@@ -45,8 +48,11 @@ jobs:
       # distributions than the Arch toolchain image's would.
       - name: Build release toolchain image
         run: make image DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release
+      # FX is empty on a dry run, so every effect is built.
       - name: Build plugins and tarball (runs Steinberg's validator)
-        run: make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release RUN="lv2 vst3 clap dist"
+        env:
+          FX: ${{ steps.tag.outputs.fx }}
+        run: make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release RUN="lv2 vst3 clap dist" ${FX:+FX="$FX"}
       - name: Upload tarball
         uses: actions/upload-artifact@v7
         with:
@@ -71,7 +77,7 @@ jobs:
           cd dist
           sha256sum -c SHA256SUMS
           mkdir unpacked
-          tar -xzf ./*.tar.gz -C unpacked
+          for t in ./*.tar.gz; do tar -xzf "$t" -C unpacked; done
           ls -R unpacked
       - name: Check the plugins link on Ubuntu 22.04
         run: docker run --rm -v "$PWD":/src -w /src ubuntu:22.04 tools/release/check-portable.sh dist/unpacked
@@ -80,16 +86,17 @@ jobs:
       - name: Install, validate and uninstall
         run: |
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/src -w /src pedalkit-build \
-            sh -c 'tools/release/validate.sh dist/unpacked/pedalkit-*'
+            sh -c 'for d in dist/unpacked/*-linux-*; do tools/release/validate.sh "$d" || exit 1; done'
 
   publish:
     name: Create draft release
     needs: validate
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v7
         with:
           name: release
@@ -98,7 +105,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+        # The notes are the version's section of docs/<name>/changelog.md.
+        # GitHub's generated notes would compare against the previous tag,
+        # which may belong to another effect.
         run: |
+          title=$(tools/release/release-info.py "$TAG" "$RUNNER_TEMP/notes.md" | sed -n 's/^title=//p')
           gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
-            --title "pedalkit ${TAG#v}" --generate-notes
+            --title "$title" --notes-file "$RUNNER_TEMP/notes.md"

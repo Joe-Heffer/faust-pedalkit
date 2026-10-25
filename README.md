@@ -23,11 +23,11 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 
 ## Install
 
-Download the tarball from the [latest release](https://github.com/Joe-Heffer/faust-pedalkit/releases/latest), unpack it and run its installer:
+Each effect is released on its own. Download its tarball from the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases) (tagged `<name>-v<version>`), unpack it and run its installer:
 
 ```sh
-tar -xzf pedalkit-*-linux-x86_64.tar.gz
-cd pedalkit-*-linux-x86_64
+tar -xzf bassdrive-*-linux-x86_64.tar.gz
+cd bassdrive-*-linux-x86_64
 ./install.sh          # copies the LV2, VST3 and CLAP plugins into ~/.lv2, ~/.vst3 and ~/.clap
 ```
 
@@ -355,4 +355,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the hard rules (clea
 
 ## Licence
 
-The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (design notes, circuit research and the site) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. The CLAP plugins are built against the MIT-licensed CLAP headers, and clap-validator (a test tool) is MIT as well. To cite this project, see [CITATION.cff](CITATION.cff); GitHub shows it as "Cite this repository". The effects are independent designs and models built from public information. They are not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
+The code is MIT; see [LICENSE](LICENSE). The documentation under `docs/` (design notes, circuit research and the site) is [CC-BY-4.0](LICENSES/CC-BY-4.0.txt). Every file's licence is machine-readable, following the [REUSE](https://reuse.software/) specification: an SPDX header in each source file, plus `REUSE.toml` for the rest. The VST3 bundles link the MIT-licensed VST3 SDK, so they are MIT too. pluginval, used only as a test tool, is GPL-3.0 and is not distributed with them. The CLAP plugins are built against the MIT-licensed CLAP headers, and clap-validator (a test tool) is MIT as well. The effects are independent designs and models built from public information. They are not affiliated with, or endorsed by, any pedal manufacturer, and no proprietary code was used.
