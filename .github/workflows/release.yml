@@ -5,7 +5,7 @@ name: Release
 # this builds that effect's tarball (LV2, VST3 and CLAP plugins plus
 # install.sh), checks it, and creates a draft GitHub release for a person to
 # review and publish. A dry run builds and checks every effect's tarball. See
-# docs/development/releasing.md.
+# RELEASING.md and docs/development/releasing.md.
 
 on:
   push:
