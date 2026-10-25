@@ -114,14 +114,21 @@ jobs:
         # which may belong to another effect.
         run: |
           title=$(tools/release/release-info.py "$TAG" "$RUNNER_TEMP/notes.md" | sed -n 's/^title=//p')
-          {
-            printf '\n## Install\n\n'
-            printf 'Download the tarball and `SHA256SUMS`, then:\n\n```sh\n'
-            printf 'sha256sum -c SHA256SUMS --ignore-missing\ntar -xzf *-linux-x86_64.tar.gz\n'
-            printf 'cd *-linux-x86_64 && ./install.sh\n```\n\n'
-            printf 'Needs x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). '
-            printf 'See the [install guide](https://joe-heffer.github.io/faust-pedalkit/install/).\n'
-          } >> "$RUNNER_TEMP/notes.md"
+          cat >> "$RUNNER_TEMP/notes.md" <<'EOF'
+
+          ## Install
+
+          Download the tarball and `SHA256SUMS`, then:
+
+          ```sh
+          sha256sum -c SHA256SUMS --ignore-missing
+          tar -xzf *-linux-x86_64.tar.gz
+          cd *-linux-x86_64 && ./install.sh
+          ```
+
+          Needs x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later).
+          See the [install guide](https://joe-heffer.github.io/faust-pedalkit/install/).
+          EOF
           gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "$title" --notes-file "$RUNNER_TEMP/notes.md"

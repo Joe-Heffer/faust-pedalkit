@@ -28,17 +28,17 @@ The longer explanation, including why the release image differs from the everyda
 `.github/workflows/release.yml` runs on tags matching `*-v*`, on manual dispatch and on pull requests that touch the release files. Only a tag push reaches the last job.
 
 * **build**
-    * On a tag, `tools/release/release-info.py` fails unless the tag is `<name>-vX.Y.Z`, `src/<name>.dsp` exists, its `declare version` equals `X.Y.Z`, and `docs/<name>/changelog.md` has a `## [X.Y.Z]` section.
-    * Builds `Dockerfile.release` (Debian 12, Faust built from source) and runs `make lv2 vst3 clap dist` in it, for the tagged effect only. A dry run builds every effect. Steinberg’s validator runs on each VST3 bundle during the build.
-    * Uploads the tarballs and `SHA256SUMS` as the `release` artifact.
+  * On a tag, `tools/release/release-info.py` fails unless the tag is `<name>-vX.Y.Z`, `src/<name>.dsp` exists, its `declare version` equals `X.Y.Z`, and `docs/<name>/changelog.md` has a `## [X.Y.Z]` section.
+  * Builds `Dockerfile.release` (Debian 12, Faust built from source) and runs `make lv2 vst3 clap dist` in it, for the tagged effect only. A dry run builds every effect. Steinberg’s validator runs on each VST3 bundle during the build.
+  * Uploads the tarballs and `SHA256SUMS` as the `release` artifact.
 * **validate**
-    * Verifies the checksums and unpacks the tarballs.
-    * `tools/release/check-portable.sh` runs in stock Ubuntu 22.04 and Debian 12 and fails on any missing library or missing glibc or libstdc++ symbol version.
-    * In the Arch toolchain image, `tools/release/validate.sh` runs `install.sh` into temporary folders, then lv2lint, pluginval (strictness 10) and clap-validator on the installed plugins, then `install.sh --uninstall`, which must leave the folders empty.
+  * Verifies the checksums and unpacks the tarballs.
+  * `tools/release/check-portable.sh` runs in stock Ubuntu 22.04 and Debian 12 and fails on any missing library or missing glibc or libstdc++ symbol version.
+  * In the Arch toolchain image, `tools/release/validate.sh` runs `install.sh` into temporary folders, then lv2lint, pluginval (strictness 10) and clap-validator on the installed plugins, then `install.sh --uninstall`, which must leave the folders empty.
 * **publish** (tags only)
-    * Creates a **draft** release with `gh release create --verify-tag`, titled from `declare name` and the version.
-    * The notes are the changelog section followed by short install instructions.
-    * It does not publish, so a failed or odd release can be fixed or deleted before anyone sees it.
+  * Creates a **draft** release with `gh release create --verify-tag`, titled from `declare name` and the version.
+  * The notes are the changelog section followed by short install instructions.
+  * It does not publish, so a failed or odd release can be fixed or deleted before anyone sees it.
 
 ## Rules that must hold
 
