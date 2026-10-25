@@ -1,5 +1,6 @@
 build/
 tests/out/
 __pycache__/
-.claude/
+.claude/*
+!.claude/skills/
 .venv/

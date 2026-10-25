@@ -8,6 +8,7 @@ This section is for anyone, human or coding agent, adding an effect or changing 
 - [Tests and measurements](testing.md): the render harness, the Python helpers and what every effect must check.
 - [Linting and CI](ci.md): pre-commit hooks, GitHub Actions and how this site is published.
 - [Releasing](releasing.md): cutting a release and how the release workflow builds portable plugins.
+- [Agent skill](https://github.com/Joe-Heffer/faust-pedalkit/tree/main/.claude/skills/pedalkit-effect): a Claude Code skill (`pedalkit-effect`) that walks an agent through the whole effect workflow, from notes to PR.
 
 ## Ground rules
 

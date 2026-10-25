@@ -10,5 +10,5 @@ config:
 ignores:
   - build/**
   - tests/out/**
-  - .claude/**
+  - .claude/worktrees/**
   - .venv/**
