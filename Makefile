@@ -30,6 +30,10 @@
 
 EFFECTS    := $(basename $(notdir $(wildcard src/*.dsp)))
 FX         ?= $(EFFECTS)
+# An empty FX (e.g. from an unset workflow input) also means every effect.
+ifeq ($(strip $(FX)),)
+override FX := $(EFFECTS)
+endif
 UNKNOWN_FX := $(filter-out $(EFFECTS),$(FX))
 ifneq ($(UNKNOWN_FX),)
 $(error Unknown effect(s): $(UNKNOWN_FX). Choose from: $(EFFECTS))
