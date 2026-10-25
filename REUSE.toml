@@ -17,6 +17,7 @@ path = [
   ".markdownlint-cli2.yaml",
   ".pre-commit-config.yaml",
   ".github/**",
+  ".claude/skills/**",
   "pyproject.toml",
   "tools/en-gb.codespell",
 ]

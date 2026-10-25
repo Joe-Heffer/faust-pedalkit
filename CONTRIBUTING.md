@@ -2,7 +2,7 @@
 
 Thanks for helping. This project is about making effects that don't exist yet; modelling classic hardware is a way to learn and to collect building blocks, not the end in itself. [Designing new sounds](docs/development/designing-new-sounds.md) explains the approach.
 
-Whether you are a human or a coding agent, read [`AGENTS.md`](AGENTS.md) before you change anything. It is the authoritative checklist. This page summarises it and says how to get a change merged.
+Whether you are a human or a coding agent, read [`AGENTS.md`](AGENTS.md) before you change anything. It is the authoritative checklist. This page summarises it and says how to get a change merged. Claude Code users also get a project skill, [`pedalkit-effect`](.claude/skills/pedalkit-effect/SKILL.md), that walks through adding an effect step by step.
 
 ## Hard rules
 
