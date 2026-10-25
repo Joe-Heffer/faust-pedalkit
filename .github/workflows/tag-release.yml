@@ -1,0 +1,51 @@
+name: Tag release
+
+# Tags a release when a version bump reaches main. For each effect whose
+# `declare version` has no tag yet and has a matching section in its
+# changelog (tools/release/untagged.py), this pushes the tag
+# <name>-vX.Y.Z and starts the Release workflow on it. That workflow builds
+# and checks the plugins and leaves a draft release for a person to publish.
+#
+# A tag pushed with the default token does not start other workflows, so the
+# Release workflow is dispatched explicitly on the new tag.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/*.dsp
+      - docs/*/changelog.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag new versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Tag and start the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          tools/release/untagged.py | while read -r tag; do
+            name=${tag%-v*}
+            version=${tag##*-v}
+            git tag -a "$tag" -m "$name $version"
+            git push origin "refs/tags/$tag"
+            gh workflow run release.yml --ref "$tag"
+            echo "Tagged $tag" >> "$GITHUB_STEP_SUMMARY"
+          done

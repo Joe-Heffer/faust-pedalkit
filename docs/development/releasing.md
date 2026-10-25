@@ -10,7 +10,7 @@ An effect's version is the `declare version` in `src/<name>.dsp`. Hosts show it,
 
 1. Set `declare version` in `src/<name>.dsp` to the new version, `X.Y.Z`.
 2. In `docs/<name>/changelog.md`, move the `## [Unreleased]` entries into a new `## [X.Y.Z]` section, and add its link at the foot of the file.
-3. Merge that to `main`, then tag the merge commit and push the tag:
+3. Merge that to `main`. The *Tag release* workflow (`.github/workflows/tag-release.yml`) then pushes `<name>-vX.Y.Z` for each effect whose `declare version` has no tag yet and has a matching changelog section (`tools/release/untagged.py` lists them), and starts the *Release* workflow on the tag. A version bump with no changelog section is skipped with a warning. To tag by hand instead, run *Tag release* from the Actions tab, or:
 
     ```sh
     git tag -a <name>-vX.Y.Z -m "<Name> X.Y.Z"

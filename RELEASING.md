@@ -2,7 +2,7 @@
 
 Each effect is versioned and released on its own. A release is a GitHub release for one effect, tagged `<name>-vX.Y.Z` (for example `bassdrive-v0.1.0`), with one tarball, `<name>-X.Y.Z-linux-x86_64.tar.gz`, and a `SHA256SUMS` file. The tarball holds the effect as LV2, VST3 and CLAP, plus `install.sh`, `README.txt`, `LICENSE` and the effect’s changelog as `CHANGELOG.md`.
 
-The release is semi-automatic. Pushing a tag builds, checks and drafts the release. A person reviews the draft and publishes it. Nothing is published without that step.
+The release is semi-automatic. Merging a version bump to `main` tags it, the tag builds, checks and drafts the release, and a person reviews the draft and publishes it. Nothing is published without that step.
 
 The longer explanation, including why the release image differs from the everyday one, is in [`docs/development/releasing.md`](docs/development/releasing.md).
 
@@ -12,7 +12,7 @@ The longer explanation, including why the release image differs from the everyda
 2. In `docs/<name>/changelog.md`, move the `## [Unreleased]` entries into a new `## [X.Y.Z]` section. Update the `[Unreleased]` and `[X.Y.Z]` link references at the foot of the file. The section body becomes the release notes.
 3. Merge to `main`. CI must be green.
 4. Optional dry run: in the Actions tab, run *Release* with *Run workflow*. It builds and checks a tarball for every effect, keeps them as a workflow artifact and publishes nothing. Pull requests that touch `Dockerfile.release`, `tools/release/**` or `release.yml` run the same dry run.
-5. Tag the merge commit and push the tag:
+5. The *Tag release* workflow runs on that merge and pushes `<name>-vX.Y.Z` for every effect whose version has no tag yet and has a changelog section. It then starts the *Release* workflow on the tag. To tag by hand instead (or if the workflow was skipped), run *Tag release* from the Actions tab, or:
 
     ```sh
     git tag -a <name>-vX.Y.Z -m "<Name> X.Y.Z"
@@ -22,6 +22,10 @@ The longer explanation, including why the release image differs from the everyda
 6. Watch the *Release* workflow. It stops early if the tag is wrong (see below).
 7. Open the draft on the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases). Check the title, the tarball name, `SHA256SUMS` and the notes, then publish.
 8. Confirm the links in the README and `docs/install.md` resolve.
+
+## Automatic tagging
+
+`.github/workflows/tag-release.yml` runs on pushes to `main` that touch `src/*.dsp` or `docs/*/changelog.md`, and on manual dispatch. `tools/release/untagged.py` lists the due tags: an effect is due when `declare version` has no tag and `release-info.py` accepts it. A version bump without a changelog section is skipped with a warning, so it releases once the section is merged. The workflow pushes an annotated tag for each due effect and dispatches *Release* on it, because a tag pushed with the default token does not start other workflows. It only creates tags. Publishing stays manual.
 
 ## What the workflow does
 
