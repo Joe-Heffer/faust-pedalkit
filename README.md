@@ -38,14 +38,14 @@ Then rescan plugins in your DAW. `./install.sh --help` lists the options, includ
 
 ```text
 src/<name>.dsp              one file per effect
-src/<name>.presets.toml     optional factory presets, built into the LV2 bundle
+src/<name>.presets.toml     optional factory presets, built into the LV2, VST3 and CLAP plugins
 src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, analogue filter sections, output safety limiter
 docs/<name>/design-notes.md   an original effect's idea, inspirations, design choices and targets
 docs/<name>/circuit-notes.md  a modelled circuit's research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
-tools/make-presets.py       turns src/<name>.presets.toml into LV2 presets in the bundle
+tools/presets.py            turns src/<name>.presets.toml into LV2 presets and a header for VST3 and CLAP
 tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
 tools/vst3/                 VST3 architecture (Faust) and CMake project for the VST3 SDK
 tools/vst3-meta.py          writes each VST3 plugin's name, version, category and class ID
@@ -279,7 +279,7 @@ Every control is smoothed, including the switches: the shifts glide the band fre
 
 ### BassPreamp: presets
 
-The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+The LV2, VST3 and CLAP plugins all ship with the same factory presets, which hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). VST3 hosts see them as the plugin's program list, and CLAP hosts through preset discovery. They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
 
 | Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
 |---|---|---|---|---|---|---|---|---|---|

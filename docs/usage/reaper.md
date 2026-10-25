@@ -47,7 +47,7 @@ Effects that oversample report a fixed latency, which REAPER compensates for aut
 
 ## 6. Presets and saving your settings
 
-Effects that ship factory presets list them in the preset box at the top of the plugin window. BassPreamp, for example, has "Clean DI", "Growl" and "Grind", loudness-matched so that you can switch between them without a jump in level; its page lists [every preset's settings](../basspreamp/index.md#presets). The presets are built into the LV2 bundle, so choose the LV2 version to get them.
+Effects that ship factory presets list them in the preset box at the top of the plugin window. BassPreamp, for example, has "Clean DI", "Growl" and "Grind", loudness-matched so that you can switch between them without a jump in level; its page lists [every preset's settings](../basspreamp/index.md#presets). The presets are built into all three formats. The CLAP version lists them through CLAP preset discovery, which needs a REAPER recent enough to load CLAP factory presets. If its preset box is empty, update REAPER or use the LV2 or VST3 version.
 
 Save your own settings as an FX preset with the *+* button next to the preset box. Or save the chain as a track template (*Track → Save tracks as track template…*).
 
