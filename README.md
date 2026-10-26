@@ -15,12 +15,13 @@ Studying classic hardware is part of the method rather than the goal. Clean-room
 - **Circuit-inspired:** a real circuit deliberately taken somewhere it couldn't go.
 - **Modelled:** a measured, sourced model of one device, written up in circuit notes.
 
-The two effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
+Two of the three effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
 
 | Effect | Kind | Description | Notes |
 |---|---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
+| **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend that the original circuit lacks. Untested first draft | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
 ## Install
 
@@ -203,6 +204,17 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run. For 
 1. Open *Settings → Configure Carla → Paths → LV2* and check that `~/.lv2` is listed.
 2. Click *Add Plugin*, then *Refresh* with LV2 ticked.
 3. Pick "BassDrive". In the patchbay, connect your audio input to it and it to the system outputs.
+
+## MidHump controls
+
+| Control | Range | Default | What it does |
+|---|---|---|---|
+| Drive | 0 to 100 % | 50 % | Clipping-stage gain, about 21 dB to 41 dB (audio taper) |
+| Tone | 0 to 100 % | 50 % | Treble shelf after the 723 Hz low-pass |
+| Level | −40 to +12 dB | 0 dB | Output level |
+| Blend | 0 to 100 % | 0 % | Adds a full-range clean signal. 0 is the circuit as published. |
+
+MidHump has not been compiled or measured yet. Details are in [its page](docs/midhump/index.md) and [circuit notes](docs/midhump/circuit-notes.md).
 
 ## BassDrive controls
 

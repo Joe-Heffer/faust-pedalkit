@@ -38,6 +38,9 @@ Gallien-Krueger
 Hartke
 Ibanez
 Tube Screamer
+TS808
+TS9
+Maxon
 Markbass
 Marshall
 Mesa Boogie

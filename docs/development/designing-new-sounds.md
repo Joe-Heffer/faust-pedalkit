@@ -9,7 +9,7 @@ This page covers the creative side of adding an effect. The mechanics (DSP conve
 | Kind | Starts from | Notes | Example |
 |---|---|---|---|
 | **Original** | A sonic idea, with no single reference device | `docs/<name>/design-notes.md` | None yet: this is where new effects should go |
-| **Circuit-inspired** | A real circuit, deliberately taken somewhere it couldn't go | Design notes, plus circuit notes for the borrowed part | None yet |
+| **Circuit-inspired** | A real circuit, deliberately taken somewhere it couldn't go | Design notes, plus circuit notes for the borrowed part | [MidHump](../midhump/index.md) |
 | **Modelled** | One piece of hardware, measured and sourced | `docs/<name>/circuit-notes.md` | [BassDrive](../bassdrive/index.md), [BassPreamp](../basspreamp/index.md) |
 
 Prefer the first two. When you do build a model, say what it makes possible that the hardware does not, and move what is reusable into the [shared library](pedalkit-lib.md).
