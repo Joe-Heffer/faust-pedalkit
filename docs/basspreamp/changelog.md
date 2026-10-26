@@ -4,6 +4,10 @@ Notable changes to BassPreamp. The format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Fixed
+
+- CPU use no longer climbs after the input falls silent. Filter state that decays below the smallest normal float is now flushed to zero (Faust's `-ftz 1`) in every format. Before, the LV2 plug-in, in a host that leaves the FPU's flush-to-zero off, spent 4.7 times as much CPU on a decaying tail as on live signal. The VST3 and CLAP plug-ins already flushed subnormals and are unchanged. The browser demo is built with the same flag.
+
 ### Added
 
 - Factory presets in the VST3 plugin (as its program list) and the CLAP plugin (through preset discovery), the same seven as in LV2.

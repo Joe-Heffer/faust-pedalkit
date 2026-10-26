@@ -65,6 +65,14 @@ CLAP_SDK       ?= $(BUILD)/clap
 CLAP_ARCH      := tools/clap/faust-clap.cpp
 CLAP_VALIDATOR ?= clap-validator
 
+# Options for every Faust build of an effect (plugins, renderers, browser
+# demo). -ftz 1 flushes recursive state to zero once it drops below the
+# smallest normal float. Without it a decaying filter tail goes subnormal
+# after the input stops and costs 20 to 30 times as much CPU as live signal,
+# in any host that leaves the FPU's own flush-to-zero off; tests/common/
+# test_cpu.py measures this. (-ftz 2, a bit mask, emits C++ that does not
+# compile in Faust 2.88.)
+FAUSTFLAGS ?= -ftz 1
 CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
 # Extra flags for linking the plugins. Dockerfile.release sets
@@ -241,7 +249,7 @@ $(WEB_NODE): tools/web/package.json tools/web/package-lock.json
 
 $(WEB)/%/dsp-module.wasm: src/%.dsp $(LIBS) $(WEB_NODE)
 	mkdir -p $(@D)
-	$(NODE) $(FAUSTWASM)/scripts/faust2wasm.js $< $(@D) -I src/lib -no-template
+	$(NODE) $(FAUSTWASM)/scripts/faust2wasm.js $< $(@D) -I src/lib $(FAUSTFLAGS) -no-template
 
 # The site embeds the plots and CSV data from tests/out/, the schematics from
 # build/schematics/ and the browser demo from build/web/, so run
@@ -321,7 +329,7 @@ presets-src = $(or $(wildcard src/$(1).presets.toml),-)
 .SECONDEXPANSION:
 $(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp $(BUILD)/%/controls.json tools/fix-ttl.py tools/presets.py \
                              $$(wildcard src/$$*.presets.toml)
-	cd $(BUILD)/$* && $(if $(LDFLAGS),CXXFLAGS="$(LDFLAGS)") faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
+	cd $(BUILD)/$* && $(if $(LDFLAGS),CXXFLAGS="$(LDFLAGS)") faust2lv2 -nomidicc $(FAUSTFLAGS) -uri-prefix $(URI_PREFIX) $*.dsp
 	rm -rf $(BUILD)/$*.lv2
 	mv $(BUILD)/$*/$*.lv2 $(BUILD)/
 	python3 tools/fix-ttl.py src/$*.dsp $(BUILD)/$*.lv2/$*.ttl
@@ -345,7 +353,7 @@ $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt 
                        tools/vst3-meta.py tools/dspmeta.py tools/presets.py $(BUILD)/%/controls.json \
                        $$(wildcard src/$$*.presets.toml) | $(VST3_SDK)/CMakeLists.txt
 	mkdir -p $(@D)/vst3
-	faust -I src/lib -a $(VST3_ARCH) -o $(@D)/vst3/$*.cpp $<
+	faust $(FAUSTFLAGS) -I src/lib -a $(VST3_ARCH) -o $(@D)/vst3/$*.cpp $<
 	python3 tools/vst3-meta.py $< $* $(@D)/vst3/plugin_meta.h
 	python3 tools/presets.py header $(call presets-src,$*) $(@D)/controls.json $(@D)/vst3/presets.h
 	cmake -S tools/vst3 -B $(@D)/vst3/build -DCMAKE_BUILD_TYPE=Release \
@@ -370,7 +378,7 @@ $(CLAP_SDK)/include/clap/clap.h:
 $(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta.py tools/presets.py \
                  $(BUILD)/%/controls.json $$(wildcard src/$$*.presets.toml) | $(CLAP_SDK)/include/clap/clap.h
 	mkdir -p $(BUILD)/$*/clap
-	faust -I src/lib -a $(CLAP_ARCH) -o $(BUILD)/$*/clap/$*.cpp $<
+	faust $(FAUSTFLAGS) -I src/lib -a $(CLAP_ARCH) -o $(BUILD)/$*/clap/$*.cpp $<
 	python3 tools/clap-meta.py $< $* $(BUILD)/$*/clap/plugin_meta.h
 	python3 tools/presets.py header $(call presets-src,$*) $(BUILD)/$*/controls.json $(BUILD)/$*/clap/presets.h
 	$(CXX) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
@@ -383,7 +391,7 @@ $(BUILD)/%/clap/check-presets: tools/clap/check-presets.cpp $(BUILD)/%.clap
 	$(CXX) $(CXXFLAGS) -I$(BUILD)/$*/clap -I$(CLAP_SDK)/include $< -ldl -o $@
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
-	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $*.dsp || faust2jack $*.dsp)
+	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $(FAUSTFLAGS) $*.dsp || faust2jack $(FAUSTFLAGS) $*.dsp)
 	touch $@
 
 # Format-neutral description of each effect: every control's label, unit,
@@ -393,17 +401,18 @@ $(BUILD)/%/describe.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && faust -json -svg $*.dsp -o /dev/null
 	touch $@
 
-# Offline renderer for the tests, plus a 1x variant (oversample4 swapped for
-# oversample1) used only to measure what the oversampling buys.
+# Offline renderer for the tests, plus a 1x variant (oversample4 and
+# oversample4c swapped for oversample1 and oversample1c) used only to measure
+# what the oversampling buys.
 $(BUILD)/%/render: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
-	faust -I src/lib -a $(ARCH) -o $(@D)/render.cpp $<
+	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render.cpp $<
 	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render.cpp -o $@
 
 $(BUILD)/%/render_1x: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
-	sed 's/oversample4(/oversample1(/g' $< > $(@D)/$*_1x.dsp
-	faust -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
+	sed -E 's/oversample4(c?)\(/oversample1\1(/g' $< > $(@D)/$*_1x.dsp
+	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
 	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
 
 # The VST3 SDK clone is slow to fetch and rarely changes, so `clean` keeps it.

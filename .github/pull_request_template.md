@@ -9,7 +9,8 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and the hard rules in [AGENTS.md](../A
 - [ ] Design notes (`docs/<name>/design-notes.md`, original or circuit-inspired effects) and/or circuit notes (`docs/<name>/circuit-notes.md`, modelled parts) cover every new or changed constant, mark it documented, reported, inferred or chosen, give the intent of chosen values, and link the sources
 - [ ] Clean-room: anything borrowed comes from public sources; no decompiled or proprietary code, binaries or firmware used, even as a reference
 - [ ] `make lv2 lint test FX=<name>` passes, the tests check the design notes' measurable targets (original effects), and I have read the plots in `tests/out/<name>/`
-- [ ] `pre-commit run --all-files` passes
+- [ ] `pre-commit run --all-files` passes, including `params-stable`: no released control renamed, retyped or moved
+- [ ] The checks in `tests/common/` pass (latency, zipper, CPU, recovery), and any change in `cpu.csv` of more than about 10 % against `main` is explained here
 - [ ] README has a row in the effect table and a controls table (new effects)
 - [ ] No trademarks: plugin names, `declare name`, UI labels, URIs and file names are neutral
 - [ ] British English in docs, comments and UI text

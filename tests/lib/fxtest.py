@@ -12,6 +12,7 @@ numbers behind them as CSV (write_csv) and audio as WAV (write_wav).
 """
 
 import csv
+import json
 import os
 import subprocess
 import sys
@@ -31,18 +32,84 @@ RENDER = os.path.join(ROOT, "build", FX, "render")
 RENDER_1X = os.path.join(ROOT, "build", FX, "render_1x")
 OUT = os.path.join(ROOT, "tests", "out", FX)
 PRESETS = os.path.join(ROOT, "src", f"{FX}.presets.toml")
+CONTROLS = os.path.join(ROOT, "build", FX, "controls.json")
 os.makedirs(OUT, exist_ok=True)
 
 _failures = []
 
 
-def render(x, binary=RENDER, sr=SR, **params):
-    """Process signal x at sample rate sr, overriding sliders by label."""
+def render(x, binary=RENDER, sr=SR, events=(), block=None, **params):
+    """Process signal x at sample rate sr, overriding sliders by label.
+
+    events is a sequence of (label, value, seconds): each control change is
+    applied at that point of x, at its exact sample, as host automation is.
+    block sets the processing block size (the harness default is 256).
+    """
     args = [binary, str(sr)] + [f"{k}={v}" for k, v in params.items()]
+    args += [f"{k}={v}@{t}" for k, v, t in events]
+    if block:
+        args += ["--block", str(block)]
     res = subprocess.run(
         args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
     )
     return np.frombuffer(res.stdout, dtype=np.float32).astype(np.float64)
+
+
+def reported_latency(binary=RENDER, sr=SR):
+    """The latency in samples that the effect reports to hosts (0 if none)."""
+    res = subprocess.run([binary, str(sr), "--latency"], capture_output=True, check=True)
+    return int(res.stdout.decode().strip())
+
+
+def bench(x, binary=RENDER, sr=SR, block=64, ftz=False, **params):
+    """Time the DSP on x; returns (ns per sample, times faster than real time).
+
+    The figure is for one instance on one core, best of five passes, and
+    excludes process start-up and I/O. ftz flushes subnormals to zero, as the
+    VST3 and CLAP wrappers do; without it the DSP runs as an LV2 host that
+    leaves the FPU alone would run it.
+    """
+    args = [binary, str(sr), "--bench", "--block", str(block)]
+    args += ["--ftz"] if ftz else []
+    args += [f"{k}={v}" for k, v in params.items()]
+    res = subprocess.run(
+        args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
+    )
+    ns, factor = res.stdout.decode().split()
+    return float(ns), float(factor)
+
+
+def controls():
+    """The effect's input controls in parameter order, from faust -json.
+
+    Each is a dict with label, type (hslider, vslider, nentry, checkbox or
+    button), init, min, max and step; checkboxes and buttons run from 0 to 1.
+    """
+
+    def walk(items):
+        for item in items:
+            if "items" in item:
+                yield from walk(item["items"])
+            else:
+                yield item
+
+    with open(CONTROLS) as f:
+        ui = json.load(f)["ui"]
+    out = []
+    for c in walk(ui):
+        if c["type"] in ("hbargraph", "vbargraph"):
+            continue
+        out.append(
+            dict(
+                label=c["label"],
+                type=c["type"],
+                init=float(c.get("init", 0)),
+                min=float(c.get("min", 0)),
+                max=float(c.get("max", 1)),
+                step=float(c.get("step", 1)),
+            )
+        )
+    return out
 
 
 def db(x, floor=1e-12):
@@ -85,6 +152,62 @@ def harmonics(y, f0, n=10):
     seg = y[-SR:]
     spec = np.abs(np.fft.rfft(seg)) * 2 / len(seg)
     return np.array([spec[int(f0 * k)] if f0 * k < SR / 2 else 0.0 for k in range(1, n + 1)])
+
+
+def pluck(f0, dur, amp_db=-12.0, decay=0.5, n=8):
+    """Synthetic plucked note: harmonics 1..n of f0 at 1/k amplitude, a 1 ms
+    attack and an exponential decay with time constant `decay` seconds.
+    Peak level is amp_db. A stand-in for a guitar DI, not a model of one."""
+    t = np.arange(int(dur * SR)) / SR
+    tone = sum(np.sin(2 * np.pi * f0 * k * t) / k for k in range(1, n + 1))
+    env = np.minimum(t / 0.001, 1) * np.exp(-t / decay)
+    x = tone * env
+    return 10 ** (amp_db / 20) * x / np.max(np.abs(x))
+
+
+def burst(f0, levels_db, durs):
+    """Tone of f0 in consecutive segments, at levels_db for durs seconds each,
+    with phase continuous across the steps (e.g. quiet, loud, quiet)."""
+    amp = np.concatenate(
+        [np.full(int(d * SR), 10 ** (lv / 20)) for lv, d in zip(levels_db, durs, strict=True)]
+    )
+    t = np.arange(len(amp)) / SR
+    return amp * np.sin(2 * np.pi * f0 * t)
+
+
+def harmonics_over_time(y, f0, n=5, periods=4, hop=0.0025):
+    """Short-time DC and harmonic amplitudes of y.
+
+    Returns (t, a): t are the window centres in seconds and a[i, k] is the
+    amplitude of harmonic k of f0 in window i, with k = 0 the mean (DC). The
+    window is Hann and `periods` periods of f0 long, which sets the time
+    resolution. A whole number of periods (at least 2) puts each harmonic on
+    a zero of the others' leakage, so a steady tone reads exactly.
+    """
+    m = int(round(periods * SR / f0))
+    w = np.hanning(m)
+    step = int(hop * SR)
+    starts = np.arange(0, len(y) - m, step)
+    tt = np.arange(m) / SR
+    basis = np.array([np.exp(-2j * np.pi * f0 * k * tt) for k in range(n + 1)])
+    a = np.empty((len(starts), n + 1))
+    for i, s in enumerate(starts):
+        seg = y[s : s + m] * w
+        c = np.abs(basis @ seg) / w.sum()
+        c[1:] *= 2
+        a[i] = c
+    return (starts + m / 2) / SR, a
+
+
+def harmonic_trajectory(f0, levels_db, n=7, dur=1.5, binary=RENDER, **params):
+    """Steady-state harmonics 1..n of a sine at each input level in levels_db.
+
+    Returns an array of shape (len(levels_db), n): the cleanup curve, showing
+    how the harmonic balance changes with playing strength. f0 must be a whole
+    number of hertz (see harmonics)."""
+    return np.array(
+        [harmonics(render(sine(f0, dur, lv), binary=binary, **params), f0, n) for lv in levels_db]
+    )
 
 
 def loudness(y):

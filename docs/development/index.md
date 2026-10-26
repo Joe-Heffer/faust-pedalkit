@@ -7,6 +7,7 @@ This section is for anyone, human or coding agent, adding an effect or changing 
 - [Adding an effect](adding-an-effect.md): from notes to DSP, tests and docs.
 - [Shared library](pedalkit-lib.md): the oversampler, clippers and safety limiter in `pedalkit.lib`.
 - [Tests and measurements](testing.md): the render harness, the Python helpers and what every effect must check.
+- [Playing feel, CPU and stability](feel-cpu-stability.md): the latency and CPU budgets, smoothing, settings recall, and the checks every effect gets automatically.
 - [Schematics](schematics.md): how to draw an effect's reference circuit in KiCad, and how it reaches this site.
 - [Linting and CI](ci.md): pre-commit hooks, GitHub Actions and how this site is published.
 - [Releasing](releasing.md): cutting a release and how the release workflow builds portable plugins.
