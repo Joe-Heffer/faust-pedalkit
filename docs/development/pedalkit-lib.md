@@ -124,7 +124,7 @@ biasShift(thr, maxShift, att, rel) = abs
     : si.onePoleSwitching(att, rel) : *(-1);
 ```
 
-The offset a coupling capacitor picks up when the stage after it conducts on loud peaks, and loses through its bias resistor afterwards. Each sample's excess over `thr` sets a target, which saturates at `maxShift`. The shift charges towards it with time constant `att` and discharges with `rel`, both in seconds. The smoothing comes after the saturation, so the shift builds up over `att` however hard the stage is driven. Below `thr` the output is exactly 0.
+The offset a coupling capacitor picks up when the stage after it conducts on loud peaks, and loses through its bias resistor afterwards. Each sample's excess over `thr` sets a target, which saturates at `maxShift`. The shift charges towards it with time constant `att` and discharges with `rel`, both in seconds. The smoothing comes after the saturation, so the shift builds up over `att` however hard the stage is driven. Below `thr` the output is exactly 0. MidHump's Bloom control uses it with `thr` = 0.6, `maxShift` = 0.3, `att` = 15 ms and `rel` = 150 ms.
 
 ## Analogue sections
 
