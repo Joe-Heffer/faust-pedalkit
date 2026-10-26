@@ -36,6 +36,11 @@ The survey comes from a web search in October 2026. Most of it rests on package 
 * **Wolf Shaper** offers a spline-based waveshaper, which is useful for sketching transfer curves before committing them to Faust.
 * **ScorchCrafter C120** is an amp-head emulator reported as GPL from version 3.0 ([forum post](https://community.ardour.org/node/4128)).
 
+### Text-to-plugin generators
+
+* **Pluginmaker.ai** is a browser tool that turns a text description into a plugin. You preview the result with a MIDI controller, an on-screen keyboard, your own audio or a built-in sequencer, then export it. Launch coverage from March 2026 describes exports to VST and AU, a beta product, and 300 free credits for new users ([SonicState](https://sonicstate.com/news/2026/03/27/pluginmakerai-/)). A comparison piece reports a paid subscription with a marketplace commission ([blog](https://blog.imseankim.com/?p=9782)). It is closed and commercial. No official documentation was found, so its DSP, its export pipeline and whether it targets VST3 or CLAP are unconfirmed.
+* **MATLAB’s `generateAudioPlugin`** builds a VST plugin from a MATLAB audio plugin class ([MathWorks reference](https://www.mathworks.com/help/audio/ref/generateaudioplugin.html)). It is a commercial numerical environment aimed at engineers rather than pedal designers. Its output format was not checked.
+
 ## What is different here
 
 None of the projects above combines all of the following. Several do some of them well.
@@ -46,10 +51,12 @@ None of the projects above combines all of the following. Several do some of the
 * **Clean-room and licensing rules are enforced by tooling.** Pre-commit hooks check for trademarks in names and sources and for SPDX headers, and the [REUSE](https://reuse.software/) specification makes every file's licence machine-readable. Code is MIT and documentation is CC BY 4.0.
 * **One Faust file, three formats.** A single `.dsp` builds LV2, VST3 and CLAP plugins. The VST3 and CLAP wrappers are this repo's own architectures written against the permissively licensed SDKs, so the plugins avoid the JUCE licensing question. All three formats share the same checked presets. The same file also compiles to WebAssembly for the [browser demo](usage/browser.md), and a test compares that output with the native renderer.
 * **Schematics are generated and checked.** Where an effect models a circuit, its KiCad schematic is produced by a script that asserts every corner frequency and gain quoted in the notes, so the drawing, the notes and the DSP cannot drift apart unnoticed.
+* **Plugins come from reviewed design, not a prompt.** A text-to-plugin generator goes from an idea to a plugin in one step. Here an effect starts as design notes, is written by hand in Faust (coding agents may help with that), and ships only when its constants are accounted for and its tests pass. Generated DSP would need the same review, so it could not skip the notes.
 * **The workflow suits coding agents.** [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) and a Claude Code skill describe the whole path from notes to released plugin, with checks that fail loudly.
 
 ## Limits and trade-offs
 
+* Slower to a first sound than a text-to-plugin generator. An effect starts with notes and hand-written Faust, and the path from idea to a released plugin is longer.
 * Linux only. Guitarix and the Faust ecosystem have a longer history and a far larger library of effects and amp models.
 * Plugins have no custom graphical interface. Hosts show generic controls.
 * Three effects exist so far, and only one is circuit-inspired. There is no original design yet.
