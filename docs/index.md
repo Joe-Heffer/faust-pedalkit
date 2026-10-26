@@ -11,6 +11,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 [Install and build](install.md){ .md-button .md-button--primary }
 [Browse the effects](effects/index.md){ .md-button }
 [Try them in your browser](demo/index.html){ .md-button }
+[Design an effect in your browser](demo/designer/index.html){ .md-button }
 
 ## Effects
 
@@ -20,6 +21,10 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 | **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) |
 | **MidHump** | Mid-hump overdrive with Drive, Tone, Level and an optional full-range clean Blend | [controls](midhump/index.md) · [circuit notes](midhump/circuit-notes.md) · [design notes](midhump/design-notes.md) |
 | **BassGrit** | Hard-clipping distortion for bass with a clean low band: Distortion, Filter, Level, Low Blend and Crossover | [controls](bassgrit/index.md) · [circuit notes](bassgrit/circuit-notes.md) · [design notes](bassgrit/design-notes.md) |
+
+## Design your own effect in the browser
+
+The [effect designer](demo/designer/index.html) lets you build an effect from blocks, wire them together and hear it straight away, with no install. It writes the Faust code for you, and you can download it as the starting point for a new `src/<name>.dsp`. [How the designer works](usage/designer.md) explains the blocks, the rules the generated code follows and what it does not do yet.
 
 ## Quick start
 
