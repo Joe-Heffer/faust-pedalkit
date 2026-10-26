@@ -30,9 +30,7 @@ CAVEAT = "Modelled circuit (src/bassgrit.dsp); departs from the published circui
 
 
 def project():
-    p = Project(
-        "bassgrit", "BassGrit", hardware="Pro Co RAT", date="2026-10-26", caveat=CAVEAT
-    )
+    p = Project("bassgrit", "BassGrit", hardware="Pro Co RAT", date="2026-10-26", caveat=CAVEAT)
     sup = stages.supply(
         p,
         [
@@ -126,7 +124,7 @@ def input_coupling(p):
             "Section 3 of the circuit notes. The DSP replaces the pedal's input network with a 5 Hz DC blocker, fi.dcblockerat(5) (chosen):",
             f"CX2 and RX3 stand in for it. The pedal has C1 22 nF with R2 1 MOhm to the bias rail, {hz(f_pedal)} [6] (reported),",
             "R1 1 MOhm across the input, and R4 1 kOhm with C4 1 nF as a radio-frequency low-pass [6]. None of those is modelled.",
-        ]
+        ],
     )
     return s
 
@@ -155,7 +153,14 @@ def gain_stage(p):
     # Zf: the Distortion pot (a rheostat) in parallel with C5.
     c5 = s.part(C, "C5", "100p", "reported", "[6]", (110.49, 111.76), rot=90, fields="below")
     rv = s.part(
-        RVAR, "RVX1", "100k log (Distortion)", "reported", "[6]", (110.49, 127), rot=90, fields="below"
+        RVAR,
+        "RVX1",
+        "100k log (Distortion)",
+        "reported",
+        "[6]",
+        (110.49, 127),
+        rot=90,
+        fields="below",
     )
     left, right = inv[0], u["5"][0] + 6.35
     s.wire((left, 78.74), (left, 127), rv["1"])
@@ -168,7 +173,9 @@ def gain_stage(p):
     f_a = expect("leg A corner (fcA)", rc_hz("47", "2.2u"), 1540, rel=0.01)
     f_b = expect("leg B corner (fcB)", rc_hz("560", "4.7u"), 60.5, rel=0.01)
     r_par = 1 / (1 / val("47") + 1 / val("560"))
-    g_hf = expect("gain at full Distortion (high frequency)", 1 + val("100k") / r_par, 2300, rel=0.01)
+    g_hf = expect(
+        "gain at full Distortion (high frequency)", 1 + val("100k") / r_par, 2300, rel=0.01
+    )
     f_fb = expect("feedback pole at full Distortion", rc_hz("100k", "100p"), 16e3, rel=0.01)
     s.text(
         [
@@ -186,7 +193,7 @@ def gain_stage(p):
             "from the LM308's compensation pins [6]; the stock symbol has no such pins, so it is not drawn and is accounted for in GBW.",
             "RVX1: the A100K Distortion pot [6], wired as a rheostat. The log law, about 9 % at noon, is chosen (no source gives the taper).",
             "In the pedal the legs return to ground and the + input is biased to half supply through R2 [6]; here the bias is the rail VB.",
-        ]
+        ],
     )
     return s
 
@@ -203,7 +210,16 @@ def diodes(p):
     s.wire(r6["2"], (left, 76.2))
     y = 86.36
     d1 = s.part(D, "D1", "1N914", "reported", "[6]", ((left + right) / 2, y), fields="below")
-    d2 = s.part(D, "D2", "1N914", "reported", "[6]", ((left + right) / 2, y + 15.24), rot=180, fields="below")
+    d2 = s.part(
+        D,
+        "D2",
+        "1N914",
+        "reported",
+        "[6]",
+        ((left + right) / 2, y + 15.24),
+        rot=180,
+        fields="below",
+    )
     s.wire((left, 76.2), (left, y + 15.24))
     for part, a, b in ((d1, "K", "A"), (d2, "A", "K")):
         yy = part[a][1]
@@ -213,7 +229,7 @@ def diodes(p):
     s.gnd((right, y + 25.4))
     s.wire((left, 76.2), (right + 12.7, 76.2))
     s.hlabel("OUT", (right + 12.7, 76.2))
-    s.text("C7 with R6 while the diodes conduct: %s" % hz(rc_hz("1k", "4u7")), (45.72, 127))
+    s.text(f"C7 with R6 while the diodes conduct: {hz(rc_hz('1k', '4u7'))}", (45.72, 127))
     note(
         s,
         [
@@ -221,7 +237,7 @@ def diodes(p):
             "(R6 is the 1 kOhm between the coupling capacitor and the diodes in the schematic). The DSP models the pair as a memoryless soft-knee",
             "limit at 0.6 V (pk.kneeClip(0.6, 4), run at 4x; the level is inferred from silicon diodes, the hardness is chosen) and has no R6.",
             "C7 is the pedal's coupling capacitor [6]. The DSP has no DC, so it has no counterpart; its level-dependent corner is an open question.",
-        ]
+        ],
     )
     return s
 
@@ -252,7 +268,9 @@ def filt(p):
 
     f_lo = expect("filter, pot at 100 k", rc_hz(val("1k5") + val("100k"), "4n7"), 334, rel=0.01)
     f_hi = expect("filter, pot at 0", rc_hz("1k5", "4n7"), 22.6e3, rel=0.01)
-    p_lo = expect("pedal filter, pot at 100 k", rc_hz(val("1k5") + val("100k"), "3n3"), 475, rel=0.01)
+    p_lo = expect(
+        "pedal filter, pot at 100 k", rc_hz(val("1k5") + val("100k"), "3n3"), 475, rel=0.01
+    )
     p_hi = expect("pedal filter, pot at 0", rc_hz("1k5", "3n3"), 32.1e3, rel=0.01)
     f_out = expect("output coupling (not modelled)", rc_hz("1M", "22n"), 7.2, rel=0.01)
     s.text(
@@ -270,7 +288,7 @@ def filt(p):
             "C8 is 4.7 nF here (chosen, for bass); the pedal's is 3.3 nF [6], so the range moves from the values above to 334 Hz to 22.6 kHz.",
             "RVX2 has a log law, as in the DSP (chosen). C9 and R8 are the pedal's output coupling [6], about 0.02 dB at the 120 Hz crossover;",
             "the DSP has no counterpart. The JFET output buffer and the Volume pot that follow are not modelled; the Level stage replaces them.",
-        ]
+        ],
     )
     return s
 
@@ -339,7 +357,7 @@ def level(p):
             "UX2 sums both bands, inverted, at outTrim 1.2 (chosen) with +11.8 dB of make-up for the DSP's Level range of -40 to +12 dB (chosen).",
             "RVX4: the pedal's A100K Volume pot [6]. UX3 inverts back to the input's polarity (chosen). RVX3 is small against RX8 so the Low Blend",
             "law stays linear. The pedal's JFET buffer is replaced by this stage (section 7).",
-        ]
+        ],
     )
     return s
 
@@ -351,10 +369,10 @@ def sallen_key(s, kind, x, yl, refs, values):
     ground, op-amp. Returns the output point."""
     n1, n2, nf, ng, nu = refs
     v1, v2, vf, vg, vu = values
-    ser, fb = (R, C) if kind == "lp" else (C, R)
+    ser_el, fb = (R, C) if kind == "lp" else (C, R)
     # Ground element and series elements: horizontal for series, vertical for ground and feedback.
-    a = s.part(ser, n1, v1, "chosen", "-", (x + 8.89, yl), rot=90, fields="above")
-    b = s.part(ser, n2, v2, "chosen", "-", (x + 25.4, yl), rot=90, fields="above")
+    a = s.part(ser_el, n1, v1, "chosen", "-", (x + 8.89, yl), rot=90, fields="above")
+    b = s.part(ser_el, n2, v2, "chosen", "-", (x + 25.4, yl), rot=90, fields="above")
     u = s.part(OPAMP, nu, vu, "chosen", "-", (x + 63.5, yl + 2.54), fields="upright")
     s.opamp_power(u)
     node = (x + 16.51, yl)
@@ -374,7 +392,13 @@ def sallen_key(s, kind, x, yl, refs, values):
     out = u["5"]
     xr = out[0] + 5.08
     s.wire(f["2"], (xr, yfb), (xr, out[1]))
-    s.wire(u["-"], (u["-"][0] - 2.54, u["-"][1]), (u["-"][0] - 2.54, yl + 19.05), (xr, yl + 19.05), (xr, out[1]))
+    s.wire(
+        u["-"],
+        (u["-"][0] - 2.54, u["-"][1]),
+        (u["-"][0] - 2.54, yl + 19.05),
+        (xr, yl + 19.05),
+        (xr, out[1]),
+    )
     s.wire(out, (xr, out[1]))
     return (xr, out[1])
 
@@ -427,10 +451,19 @@ def band_split(p):
     s.wire(h2, (h2[0] + 12.7, h2[1]))
     s.hlabel("HIGH", (h2[0] + 12.7, h2[1]))
 
-    f_lp = expect("low-pass corner", 1 / (2 * math.pi * val(r) * math.sqrt(val(c1) * val(c2))), 120, rel=0.01)
+    f_lp = expect(
+        "low-pass corner", 1 / (2 * math.pi * val(r) * math.sqrt(val(c1) * val(c2))), 120, rel=0.01
+    )
     q_lp = expect("low-pass Q", 0.5 * math.sqrt(val(c1) / val(c2)), 1 / math.sqrt(2), rel=0.005)
-    f_hp = expect("high-pass corner", 1 / (2 * math.pi * val(hp_c) * math.sqrt(val(hp_rf) * val(hp_rg))), 120, rel=0.01)
-    q_hp = expect("high-pass Q", 0.5 * math.sqrt(val(hp_rg) / val(hp_rf)), 1 / math.sqrt(2), rel=0.005)
+    f_hp = expect(
+        "high-pass corner",
+        1 / (2 * math.pi * val(hp_c) * math.sqrt(val(hp_rf) * val(hp_rg))),
+        120,
+        rel=0.01,
+    )
+    q_hp = expect(
+        "high-pass Q", 0.5 * math.sqrt(val(hp_rg) / val(hp_rf)), 1 / math.sqrt(2), rel=0.005
+    )
     s.text(f"each low-pass section: {hz(f_lp)}, Q = {q_lp:.3f}", (x0, yl_lp + 24.0))
     s.text(f"each high-pass section: {hz(f_hp)}, Q = {q_hp:.3f}", (x0, yl_hp + 24.0))
     note(
@@ -440,6 +473,6 @@ def band_split(p):
             "a 4th-order Linkwitz-Riley pair, so the bands are in phase at Crossover and sum to an all-pass. There is no circuit behind it:",
             "this is a standard analogue stand-in, all chosen. Each section is a unity-gain Sallen-Key with Q = 0.707 and a fixed 120 Hz corner",
             "(the DSP's default); the Crossover control would move all four corners together, which is not drawn.",
-        ]
+        ],
     )
     return s
