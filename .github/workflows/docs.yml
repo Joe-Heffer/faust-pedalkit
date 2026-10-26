@@ -15,7 +15,31 @@ name: Docs
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/docs.yml"
+      - "Dockerfile"
+      - "Dockerfile.docs"
+      - ".dockerignore"
+      - "Makefile"
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
+      - "web/**"
   pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "Dockerfile"
+      - "Dockerfile.docs"
+      - ".dockerignore"
+      - "Makefile"
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
+      - "web/**"
   workflow_dispatch:
 
 permissions:
