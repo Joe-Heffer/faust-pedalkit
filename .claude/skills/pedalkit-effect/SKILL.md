@@ -88,7 +88,7 @@ Fix every failure. The first VST3 build clones the SDK into `build/`, and the fi
 
 ### 5. Presets (optional)
 
-Write `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template. Set **every** control in every preset, because LV2 hosts leave unlisted controls where they were. Keys are UI labels. Say in the file that the settings are chosen. Add `tests/<name>/test_presets.py`, which renders each preset, checks its peak and loudness-matches it with `loudness()`.
+Write `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template. Set **every** control in every preset, because LV2 hosts leave unlisted controls where they were. Keys are UI labels. `tools/presets.py` builds the file into the LV2, VST3 and CLAP plugins alike. Say in the file that the settings are chosen. Add `tests/<name>/test_presets.py`, which renders each preset, checks its peak and loudness-matches it with `loudness()`.
 
 ### 6. Docs
 
