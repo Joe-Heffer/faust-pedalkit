@@ -236,7 +236,7 @@ erc:
 # controls from its dsp-meta.json (the same description as `make describe`).
 web: $(foreach f,$(FX),$(WEB)/$(f)/dsp-module.wasm)
 	mkdir -p $(WEB)/faustwasm
-	cp web/index.html web/demo.js web/demo.css $(WEB)/
+	cp web/index.html web/demo.js web/demo.css docs/assets/favicon.svg $(WEB)/
 	cp $(FAUSTWASM)/dist/esm/index.js $(FAUSTWASM)/dist/esm/index.js.map $(FAUSTWASM)/COPYING.txt $(WEB)/faustwasm/
 	printf '[%s]\n' "$$(printf '"%s",' $(FX) | sed 's/,$$//')" > $(WEB)/effects.json
 

@@ -107,6 +107,16 @@ repos:
         entry: tools/check-params.py
         files: ^src/.*\.dsp$
         pass_filenames: false
+      # Every effect has what AGENTS.md's new-effect checklist requires:
+      # declares, unit and smoothing on each control, latency reporting with
+      # oversample4, pk.safety, notes, docs pages and rows, and the minimum
+      # tests (tools/check-effects.py).
+      - id: effect-checklist
+        name: every effect meets the new-effect checklist
+        language: python
+        entry: tools/check-effects.py
+        files: ^(src/|tests/|docs/|README\.md$|mkdocs\.yml$)
+        pass_filenames: false
       - id: faust-compile
         name: faust compiles every effect
         language: system

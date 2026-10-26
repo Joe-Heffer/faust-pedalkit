@@ -19,6 +19,7 @@ pre-commit run --all-files
 | `workflow-permissions` | Each workflow sets a top-level `permissions:` with no write scope, nothing uses `write-all`, and every `uses:` names a version tag or commit SHA rather than a branch (`tools/check-workflows.py`) |
 | `codespell (typos)` | Common misspellings everywhere |
 | `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
+| `effect-checklist` | Every `src/<name>.dsp` meets the new-effect checklist: the required `declare`s, a unit and `si.smoo` on each control, a `Latency` bargraph whenever it uses `oversample4`, `pk.safety` on the output, design or circuit notes, `index.md` and a changelog section for its version, rows in the effect tables and `mkdocs.yml` nav, and the minimum tests (`tools/check-effects.py`) |
 | `faust-compile` | Every `src/*.dsp` compiles (needs `faust` installed) |
 | `reuse` | Every file has a machine-readable licence (an SPDX header or an entry in `REUSE.toml`) |
 | `no-generated-files` | Nothing from `build/` or `tests/out/` is committed |

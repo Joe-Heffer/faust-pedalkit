@@ -1,5 +1,7 @@
 # Faust Pedal Kit
 
+<img src="docs/assets/logo-wordmark.svg" alt="Pedal Kit logo: a pedal with a sine wave going in and a clipped wave coming out" width="360">
+
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/Joe-Heffer/faust-pedalkit?include_prereleases&sort=semver)](https://github.com/Joe-Heffer/faust-pedalkit/releases)
 
@@ -182,6 +184,7 @@ make check                # same as: pre-commit run --all-files
 | `workflow-permissions` | workflows grant no write scope at the top level and pin each action to a version tag (`tools/check-workflows.py`) |
 | `codespell (typos)` | common misspellings everywhere |
 | `codespell (British English)` | American spellings in `.md`, `.dsp` and `.lib` files (word list in `tools/en-gb.codespell`) |
+| `effect-checklist` | every effect has its `declare`s, control units and smoothing, latency reporting, notes, docs pages and minimum tests (`tools/check-effects.py`) |
 | `faust-compile` | every `src/*.dsp` compiles (needs `faust`) |
 | `reuse` | every file has a machine-readable licence (SPDX header or `REUSE.toml`) |
 | `no-generated-files` | nothing from `build/` or `tests/out/` is committed |
