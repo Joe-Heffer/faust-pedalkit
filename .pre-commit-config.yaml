@@ -53,10 +53,14 @@ repos:
         additional_dependencies: [tomli]
       # Hard rule 3: British English in docs, comments and UI text. Only
       # prose-bearing files are checked, so code such as matplotlib's
-      # `color=` is not flagged.
+      # `color=` is not flagged. The ignore-regex lets a cited title keep its
+      # published American spelling (Pakarinen and Yeh, 2009).
       - id: codespell
         name: codespell (British English)
-        args: [--builtin=, --dictionary=tools/en-gb.codespell]
+        args:
+          - --builtin=
+          - --dictionary=tools/en-gb.codespell
+          - "--ignore-regex=techniques for modeling vacuum-tube"
         files: \.(md|dsp|lib)$
 
   # Every file has a machine-readable licence (SPDX header or REUSE.toml).

@@ -27,8 +27,8 @@ Two of the four effects so far are models. Original and circuit-inspired effects
 |---|---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
-| **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 | **BassGrit** (`src/bassgrit.dsp`) | Circuit-inspired | Hard-clipping op-amp distortion for bass (Distortion, Filter, Level, Low Blend, Crossover) with a 4th-order split that keeps the low band clean | [circuit notes](docs/bassgrit/circuit-notes.md), [design notes](docs/bassgrit/design-notes.md) |
+| **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend and a Bloom (bias shift) control that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
 > [!NOTE]
 > To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
@@ -230,6 +230,7 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run. For 
 | Tone | 0 to 100 % | 50 % | Treble shelf after the 723 Hz low-pass |
 | Level | −40 to +12 dB | 0 dB | Output level |
 | Blend | 0 to 100 % | 0 % | Adds a full-range clean signal. 0 is the circuit as published. |
+| Bloom | 0 to 100 % | 0 % | Bias shift: hard playing pushes the diodes off centre, adding second harmonic that builds up over tens of milliseconds and fades after the note. 0 is the circuit as published. |
 
 MidHump ships four factory presets, loudness-matched on a −12 dBFS guitar line: **Edge of Breakup** (Drive 10, Tone 40), **Mid Hump** (the defaults), **Lead** (Drive 100, Tone 65) and **Bass Grind** (Drive 60, Tone 40, Blend 100). They live in `src/midhump.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/midhump/index.md). The values behind it are in the [circuit notes](docs/midhump/circuit-notes.md) and [design notes](docs/midhump/design-notes.md).
 

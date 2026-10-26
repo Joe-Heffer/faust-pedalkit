@@ -1,6 +1,6 @@
 # MidHump
 
-A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes at unity gain, which keeps the low end tight. An optional clean Blend, which the original circuit does not have, brings back the full range.
+A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes at unity gain, which keeps the low end tight. An optional clean Blend, which the original circuit does not have, brings back the full range, and Bloom adds a bias shift that makes the distortion change over the life of each note.
 
 | Property | Value |
 |---|---|
@@ -19,6 +19,7 @@ A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes
 | Tone | 0 to 100 % | 50 % | Treble shelf after the 723 Hz low-pass, about 13 dB of range (a stand-in for the pedal's tone network; see [limitations](#known-limitations)) |
 | Level | −40 to +12 dB | 0 dB | Output level |
 | Blend | 0 to 100 % | 0 % | Adds a full-range clean signal. 0 is the circuit as published. |
+| Bloom | 0 to 100 % | 0 % | Bias shift: hard playing pushes the diodes off centre, adding second harmonic that builds up over tens of milliseconds and fades after the note. 0 is the circuit as published. |
 
 Every control is smoothed. The plugin also has a read-only *Latency* output for the host.
 
@@ -26,12 +27,12 @@ Every control is smoothed. The plugin also has a read-only *Latency* output for 
 
 The LV2, VST3 and CLAP plugins all ship with the same factory presets. They are starting points chosen by measurement, not by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked guitar line comes out within 0.05 dB of "Edge of Breakup" (K-weighted), so switching presets doesn't jump in loudness.
 
-| Preset | Drive | Tone | Level | Blend | Idea |
-|---|---|---|---|---|---|
-| Edge of Breakup | 10 | 40 | 0 | 0 | Light odd-harmonic grit for pushing an amplifier |
-| Mid Hump | 50 | 50 | −2 | 0 | The defaults: the reference circuit at mid Drive and Tone |
-| Lead | 100 | 65 | −6.4 | 0 | Full Drive with a brighter Tone, for sustained single notes |
-| Bass Grind | 60 | 40 | −3.6 | 100 | Mid-hump drive on bass, with the full clean Blend to keep the lowest octave |
+| Preset | Drive | Tone | Level | Blend | Bloom | Idea |
+|---|---|---|---|---|---|---|
+| Edge of Breakup | 10 | 40 | 0 | 0 | 0 | Light odd-harmonic grit for pushing an amplifier |
+| Mid Hump | 50 | 50 | −2 | 0 | 0 | The defaults: the reference circuit at mid Drive and Tone |
+| Lead | 100 | 65 | −6.4 | 0 | 0 | Full Drive with a brighter Tone, for sustained single notes |
+| Bass Grind | 60 | 40 | −3.6 | 100 | 0 | Mid-hump drive on bass, with the full clean Blend to keep the lowest octave |
 
 Levels are in dB, the rest in %. The presets live in [`src/midhump.presets.toml`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/midhump.presets.toml).
 
@@ -45,12 +46,13 @@ Data: [`presets_spectrum.csv`](../measurements/midhump/presets_spectrum.csv) (`p
 in → input high-pass (15.6 Hz)
    ├─ clean:  delay 32 samples → × Blend × 0.5 ──────────────────────────┐
    └─ clipping stage: input + 4x oversampled diode clip of               │
-        (720 Hz high-pass → feedback low-pass → gain 11.9 to 118)        │
+        (720 Hz high-pass → feedback low-pass → gain 11.9 to 118),       │
+        biased by an envelope of the same branch × Bloom                 │
       → 723 Hz low-pass → Tone shelf → DC blocker (5 Hz) ────────────────┤
 → sum → Level → safety limiter (≤ −0.1 dBFS) → out
 ```
 
-The [schematic](../development/schematics.md) redraws this as analogue stages, one sheet per section of the [circuit notes](circuit-notes.md). It draws the model, including Blend and the modelled tone shelf, rather than the pedal exactly.
+The [schematic](../development/schematics.md) redraws this as analogue stages, one sheet per section of the [circuit notes](circuit-notes.md). It draws the model, including Blend and the modelled tone shelf, rather than the pedal exactly. Bloom is not drawn: it has no counterpart in the circuit, and at 0 the model is unchanged.
 
 ![MidHump schematic, root sheet: one block per stage](../schematics/midhump/midhump.svg)
 
@@ -60,11 +62,12 @@ These figures come from `make test` at 48 kHz. The plots below are regenerated e
 
 ### Summary
 
-- **Silence in gives silence out.** The output stays below −120 dBFS at 16 combinations of extreme settings.
-- **Peak level.** With 0 dBFS square waves, noise, sweeps or impulses in, at every Blend setting, the worst sample is −0.10 dBFS. The plugin is finite and bounded at every sample rate from 8 kHz to 192 kHz.
+- **Silence in gives silence out.** The output stays below −120 dBFS at 32 combinations of extreme settings.
+- **Peak level.** With 0 dBFS square waves, noise, sweeps or impulses in, at every Blend setting and at Bloom 0 and 100, the worst sample is −0.10 dBFS. The plugin is finite and bounded at every sample rate from 8 kHz to 192 kHz.
 - **The model matches its equations.** The small-signal response is within 0.16 dB of the analytic circuit model from 50 Hz to 4 kHz at Drive 0, 50 and 100.
 - **Mid hump.** At Drive 100 the response peaks at 826 Hz, with 100 Hz 12.1 dB below the peak. Gain at 2 kHz runs from 20.9 dB at Drive 0 to 40.4 dB at Drive 100.
-- **Odd-order distortion.** The clipper is symmetric, and even harmonics stay at the float noise floor.
+- **Odd-order distortion at Bloom 0.** The clipper is symmetric, and even harmonics stay at the float noise floor.
+- **Bloom.** On a loud 220 Hz tone, Bloom 100 raises H2 from the noise floor to −19.9 dBc at Drive 50 (−31.2 dBc at Drive 100). It builds up over 22 ms to 34 ms, lasts past the loud passage (−41 dBc 100 ms later at Drive 50) and has died away 1.2 s after it. A −40 dBFS tone is bit-identical at Bloom 0 and 100.
 - **Aliasing.** Against a 1x build at Drive 100, 4x oversampling lowers the worst alias by 24.5 dB for a 3.7 kHz tone and by 46.0 dB for a 1.1 kHz tone. The worst alias at 1.1 kHz is −83.3 dBc.
 
 ### Frequency response
@@ -94,6 +97,19 @@ Single sines at −12 dBFS, Tone 50 %:
 
 Only odd harmonics appear. 220 Hz distorts more than 110 Hz at low Drive, because more of it gets through the 720 Hz high-pass into the clipper.
 
+### Dynamics (Bloom)
+
+[![H2 over time for a quiet, loud, quiet tone; H2 and H3 against input level; H2 over a plucked note](../measurements/midhump/dynamics.svg)](../measurements/midhump/dynamics.svg "Open the full-size plot")
+
+Data: [`dynamics.csv`](../measurements/midhump/dynamics.csv) (`test, drive, bloom, series, x, value_db`, where `x` is time in seconds, input level in dBFS or frequency in hertz, depending on `test`).
+
+- **Left.** A 220 Hz tone at −12 dBFS for 0.6 s between quieter passages. At Bloom 0 the second harmonic stays at the analysis floor. At Bloom 50 and 100 it settles at −26 dBc and −20 dBc, and after the loud section it falls away over about a second rather than at once. The spikes at the two steps come from analysis windows that straddle them, not from the effect.
+- **Middle.** The cleanup curve. H3 is the same at both settings. H2 appears only once the branch passes the diode knee (about −18 dBFS in at Drive 50), peaks around −12 dBFS and falls again as harder clipping squares off both halves.
+- **Right.** A plucked 110 Hz note (a decaying sine). At Bloom 100, H2 rises to −37 dBc about 50 ms into the note and decays with it.
+- **Aliasing.** At Drive 100 and Bloom 100 the worst alias for a 1.1 kHz tone is −84.5 dBc with 4x oversampling, against −38.5 dBc at 1x.
+
+`tests/out/midhump/pluck-bloom0.wav` and `pluck-bloom100.wav` are a harmonic-rich pluck through Drive 50 at each setting, for listening.
+
 ### Sweeps and targets
 
 [![Spectrograms of a log sweep at three Drive settings and output level against sweep frequency](../measurements/midhump/sweep.svg)](../measurements/midhump/sweep.svg "Open the full-size plot")
@@ -115,6 +131,8 @@ These values are chosen or inferred, and nothing has been listened to. The const
 3. `cleanTrim` (0.5): the size of the Blend path.
 4. `fcZero` and `fcShelf`: the Tone shelf, which is a stand-in for the real tone network.
 5. The input level convention: 0 dBFS is treated as 1 V at the input.
+6. Bloom's time constants, `bloomAtt` (15 ms) and `bloomRel` (150 ms): how long the attack stays clean and how long the asymmetry hangs on after a loud passage.
+7. `bloomMax` (half of `Vd`): how far off centre the diodes go at Bloom 100, and so how strong the second harmonic is. Also listen for whether the slow recovery reads as a swell or as a gated, sputtering decay at high Drive.
 
 ## Known limitations
 

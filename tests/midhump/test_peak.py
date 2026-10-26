@@ -19,12 +19,13 @@ signals = {
 worst = -np.inf
 for name, x in signals.items():
     for blend in (0, 50, 100):
-        y = render(x, Level=12, Drive=100, Tone=100, Blend=blend)
-        peak = np.max(np.abs(y))
-        worst = max(worst, db(peak))
-        check(
-            peak <= 1.0 and np.all(np.isfinite(y)),
-            f"{name}, Blend {blend}: peak {db(peak):+.2f} dBFS",
-        )
+        for bloom in (0, 100):
+            y = render(x, Level=12, Drive=100, Tone=100, Blend=blend, Bloom=bloom)
+            peak = np.max(np.abs(y))
+            worst = max(worst, db(peak))
+            check(
+                peak <= 1.0 and np.all(np.isfinite(y)),
+                f"{name}, Blend {blend}, Bloom {bloom}: peak {db(peak):+.2f} dBFS",
+            )
 print(f"  worst-case peak {worst:+.3f} dBFS")
 finish()

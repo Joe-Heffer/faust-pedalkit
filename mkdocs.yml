@@ -118,6 +118,7 @@ nav:
       - development/index.md
       - How it works: development/how-it-works.md
       - Designing new sounds: development/designing-new-sounds.md
+      - Designing for feel: development/designing-for-feel.md
       - Adding an effect: development/adding-an-effect.md
       - Shared library: development/pedalkit-lib.md
       - Tests and measurements: development/testing.md
