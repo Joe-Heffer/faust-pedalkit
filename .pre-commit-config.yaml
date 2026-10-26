@@ -88,6 +88,15 @@ repos:
         additional_dependencies: [pyyaml]
         entry: tools/check-workflows.py
         files: ^\.github/workflows/.*\.ya?ml$
+      # Every effect with circuit notes has a generated KiCad schematic
+      # (AGENTS.md, step 6). make schematic-check, in the docs workflow,
+      # checks that the committed sheets match their scripts.
+      - id: schematics-present
+        name: every effect with circuit notes has a schematic
+        language: python
+        entry: tools/check-schematics.py
+        files: ^(docs/[^/]+/(circuit-notes\.md|schematics/)|tools/schematics/)
+        pass_filenames: false
       - id: faust-compile
         name: faust compiles every effect
         language: system
