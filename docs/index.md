@@ -33,6 +33,8 @@ The plugins install into `~/.lv2`, where Ardour, REAPER, Carla and other LV2 hos
 
 ## How the effects are made
 
+New to DSP or Faust? [How it works](development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements.
+
 **Ideas first, models as a means.** An effect is *original* (a sonic idea with no single reference device), *circuit-inspired* (a real circuit taken somewhere it couldn't go), or *modelled* (a measured, sourced model of one device). Original effects are documented in design notes, models in circuit notes.
 
 **Clean-room.** Anything taken from existing hardware is built from public schematics, circuit analyses, measurements, reviews and manuals. No proprietary plugin, binary or firmware is decompiled, disassembled or used as a reference.

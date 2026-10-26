@@ -24,6 +24,8 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 
 To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
 
+New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
+
 ## Install
 
 Each effect is released on its own. Download its tarball from the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases) (tagged `<name>-v<version>`), unpack it and run its installer:
