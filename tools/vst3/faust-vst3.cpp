@@ -13,9 +13,14 @@
 // - A bargraph tagged [lv2:reportsLatency] is the plug-in's latency.
 // - Parameter changes are applied once per block (last point of each queue);
 //   the DSP smooths its own controls with si.smoo.
+// - Factory presets (src/<name>.presets.toml) are compiled in as the root
+//   unit's program list. Its program-change parameter has the fixed ID
+//   kProgramListId, well clear of the control IDs, and is not part of the
+//   saved state. Effects without presets have neither.
 //
 // Names, version, category and class ID come from plugin_meta.h, which
-// tools/vst3-meta.py generates from the .dsp's declare statements.
+// tools/vst3-meta.py generates from the .dsp's declare statements. The
+// presets come from presets.h, which tools/presets.py generates.
 
 #include <cmath>
 #include <cstring>
@@ -38,6 +43,7 @@
 #include "public.sdk/source/vst/vstsinglecomponenteffect.h"
 
 #include "plugin_meta.h"
+#include "presets.h"
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__SSE__)
 #include <xmmintrin.h>
@@ -158,6 +164,17 @@ public:
             parameters.addParameter(p);
         }
 
+        if (kNumPresets > 0 && fUI.controls.size() == kNumPresetControls) {
+            addUnit(new Unit(STR16("Root"), kRootUnitId, kNoParentUnitId, kProgramListId));
+            auto* list = new ProgramList(STR16("Factory Presets"), kProgramListId, kRootUnitId);
+            for (unsigned i = 0; i < kNumPresets; ++i) {
+                auto name = StringConvert::convert(kPresets[i].name);
+                list->addProgram(reinterpret_cast<const TChar*>(name.c_str()));
+            }
+            addProgramList(list);
+            parameters.addParameter(list->getParameter());
+        }
+
         resetDSP(44100);
         return kResultOk;
     }
@@ -197,8 +214,9 @@ public:
                 if (!queue || queue->getPointCount() <= 0) continue;
                 int32 offset;
                 ParamValue value;
-                if (queue->getPoint(queue->getPointCount() - 1, offset, value) == kResultTrue)
-                    applyNormalized(queue->getParameterId(), value);
+                if (queue->getPoint(queue->getPointCount() - 1, offset, value) != kResultTrue) continue;
+                if (queue->getParameterId() == ParamID(kProgramListId)) applyPreset(value);
+                else applyNormalized(queue->getParameterId(), value);
             }
         }
 
@@ -227,6 +245,23 @@ public:
         return kResultOk;
     }
 
+    // Choosing a factory preset sets every control's parameter to its value.
+    tresult PLUGIN_API setParamNormalized(ParamID tag, ParamValue value) SMTG_OVERRIDE
+    {
+        tresult result = SingleComponentEffect::setParamNormalized(tag, value);
+        if (result != kResultOk || tag != ParamID(kProgramListId)) return result;
+        const unsigned index = presetIndex(value);
+        if (index >= kNumPresets) return result;
+        for (size_t i = 0; i < kNumPresetControls; ++i) {
+            Parameter* p = parameters.getParameter(ParamID(i));
+            const ParamValue norm = p->toNormalized(kPresets[index].values[i]);
+            SingleComponentEffect::setParamNormalized(ParamID(i), norm);
+            applyNormalized(ParamID(i), norm);
+        }
+        if (componentHandler) componentHandler->restartComponent(kParamValuesChanged);
+        return result;
+    }
+
     tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE
     {
         IBStreamer s(state, kLittleEndian);
@@ -246,6 +281,29 @@ public:
 
 private:
     static constexpr int32 kStateVersion = 1;
+    // ID of the factory preset list and of its program-change parameter.
+    // Chosen far above the control IDs (0, 1, 2, ...) so that adding controls
+    // never collides with it. Hosts save it in projects, so it must not change.
+    static constexpr ProgramListID kProgramListId = 0x10000;
+
+    // Normalised program-change value -> preset index (kNumPresets if none).
+    unsigned presetIndex(ParamValue norm)
+    {
+        Parameter* p = parameters.getParameter(ParamID(kProgramListId));
+        if (!p) return kNumPresets;
+        return unsigned(std::lround(p->toPlain(norm)));
+    }
+
+    // Audio side of a preset change: write the values straight to the DSP.
+    void applyPreset(ParamValue norm)
+    {
+        const unsigned index = presetIndex(norm);
+        if (index >= kNumPresets) return;
+        for (size_t i = 0; i < kNumPresetControls; ++i) {
+            const auto& c = fUI.controls[i];
+            *c.zone = FAUSTFLOAT(std::fmin(std::fmax(kPresets[index].values[i], c.min), c.max));
+        }
+    }
 
     static bool arrangementFor(int channels, SpeakerArrangement& arr)
     {
