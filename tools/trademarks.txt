@@ -20,6 +20,7 @@ Bass OD
 Tech 21
 SansAmp
 Bass Driver DI
+Pro Co RAT
 
 # Other bass and pedal makers and products likely to be modelled.
 Aguilar

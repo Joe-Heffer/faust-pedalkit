@@ -107,6 +107,11 @@ nav:
           - Circuit notes: midhump/circuit-notes.md
           - Design notes: midhump/design-notes.md
           - Changelog: midhump/changelog.md
+      - BassGrit:
+          - bassgrit/index.md
+          - Circuit notes: bassgrit/circuit-notes.md
+          - Design notes: bassgrit/design-notes.md
+          - Changelog: bassgrit/changelog.md
   - Development:
       - development/index.md
       - How it works: development/how-it-works.md
