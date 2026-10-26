@@ -48,7 +48,7 @@ Builds this site and publishes it to GitHub Pages:
 
 1. Build the docs image (`Dockerfile.docs`: the Faust toolchain plus KiCad, Node.js and MkDocs) and, in it, run `make test`, so the effect pages show the current measurements.
 2. Build the [browser demo](../usage/browser.md) with `make web` and check it against the native renderers with `make web-test`.
-3. Run `make erc` and `make schematics`, which check each effect's KiCad schematic and render it to SVG (see [Schematics](schematics.md)).
+3. Run `make schematic-check`, which fails if a committed schematic differs from what its script generates, then `make erc` and `make schematics`, which check each effect's KiCad schematic and render it to SVG (see [Schematics](schematics.md)).
 4. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page, missing measurement or missing demo fails the build.
 5. On `main` only, deploy `build/site/` to GitHub Pages. Pull requests build the site but don't deploy it.
 

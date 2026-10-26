@@ -20,7 +20,9 @@ CAVEAT = "Modelled circuit (src/midhump.dsp); departs from the published circuit
 
 
 def project():
-    p = Project("midhump", "MidHump", hardware="Ibanez TS808 / TS9", date="2026-10-26", caveat=CAVEAT)
+    p = Project(
+        "midhump", "MidHump", hardware="Ibanez TS808 / TS9", date="2026-10-26", caveat=CAVEAT
+    )
     sup = stages.supply(
         p,
         [
@@ -122,7 +124,9 @@ def clipping(p):
     d1 = s.part(D, "DX1", "silicon", "reported", "[3]", (110.49, 111.76), fields="below")
     d2 = s.part(D, "DX2", "silicon", "reported", "[3]", (110.49, 127), rot=180, fields="below")
     r6 = s.part(R, "R6", "51k", "reported", "[2]", (101.6, 144.78), rot=90, fields="below")
-    rv = s.part(RVAR, "RVX1", "500k log (Drive)", "chosen", "[2]", (116.84, 144.78), rot=90, fields="below")
+    rv = s.part(
+        RVAR, "RVX1", "500k log (Drive)", "chosen", "[2]", (116.84, 144.78), rot=90, fields="below"
+    )
     left, right = 93.98, 127.0
     s.wire((left, 78.74), (left, 144.78), r6["1"])
     s.wire(r6["2"], rv["1"])
@@ -213,7 +217,9 @@ def tone(p):
     s.hlabel("OUT", (152.4, 76.2))
 
     fp = expect("shelf pole (fcShelf)", rc_hz("220", "220n"), 3290, rel=0.01)
-    fz = expect("shelf zero at Tone 100 (fcPassive)", rc_hz(val("220") + 780, "220n"), 723, rel=0.01)
+    fz = expect(
+        "shelf zero at Tone 100 (fcPassive)", rc_hz(val("220") + 780, "220n"), 723, rel=0.01
+    )
     fdc = expect("DC blocker", rc_hz("33k", "1u"), 5.0)
     s.text(
         [
@@ -237,7 +243,11 @@ def tone(p):
 
 
 def level(p):
-    s = p.sheet(8, "Level and calibration", pins=[("DRIVEN", "input"), ("CLEAN", "input"), ("OUT", "output")])
+    s = p.sheet(
+        8,
+        "Level and calibration",
+        pins=[("DRIVEN", "input"), ("CLEAN", "input"), ("OUT", "output")],
+    )
     s.heading("8 Level and calibration, with Blend")
     # Inverting summer: the driven path at x3.9 and the clean path at Blend x 1.95.
     u = s.part(OPAMP, "UX3", "OPAMP", "chosen", "-", (93.98, 81.28), fields="upright")
@@ -261,7 +271,9 @@ def level(p):
     s.wire(rf["2"], (111.76, 124.46), (111.76, 81.28))
     s.wire(u["5"], (111.76, 81.28))
     # Level: the pedal's 100 k audio pot, then an inverting unity buffer.
-    lvl = s.part(POT, "RVX4", "100k log (Level)", "reported", "[2]", (124.46, 88.9), fields="upright")
+    lvl = s.part(
+        POT, "RVX4", "100k log (Level)", "reported", "[2]", (124.46, 88.9), fields="upright"
+    )
     s.wire((111.76, 81.28), (124.46, 81.28), lvl["1"])
     s.wire(lvl["3"], (124.46, 97.79))
     s.glabel("VB", (124.46, 97.79), 270)

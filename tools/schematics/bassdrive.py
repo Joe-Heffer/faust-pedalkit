@@ -14,7 +14,7 @@ import math
 
 import stages
 from kicadsch import Project, expect, hz, lc_hz, rc_hz, val
-from stages import C, CP, JACK, LED, OPAMP, POT, RVAR, D, L, R, band, series
+from stages import CP, JACK, LED, OPAMP, POT, RVAR, C, D, L, R, band, series
 
 CAVEAT = "Modelled circuit (src/bassdrive.dsp), not a trace of the pedal"
 
@@ -67,7 +67,9 @@ def root(p, sup, buf, emph, clip, post, eq_, bal, lvl):
     b9 = p.block(lvl, (142.24, y2))
 
     # Input and output jacks: the pedal's documented interface [1].
-    j1 = s.part(JACK, "JX1", "Input", "documented", "[1]", (25.4, 66.04), fields="above", mirror="x")
+    j1 = s.part(
+        JACK, "JX1", "Input", "documented", "[1]", (25.4, 66.04), fields="above", mirror="x"
+    )
     s.wire(j1["T"], b2["IN"])
     s.wire(j1["S"], (33.02, j1["S"][1]), (33.02, 73.66))
     s.gnd((33.02, 73.66))
@@ -84,7 +86,9 @@ def root(p, sup, buf, emph, clip, post, eq_, bal, lvl):
 
     s.wire(b8["OUT"], b7["IN"])
     s.wire(b7["OUT"], b9["IN"])
-    j2 = s.part(JACK, "JX2", "Output", "documented", "[1]", (205.74, 111.76), rot=180, fields="above")
+    j2 = s.part(
+        JACK, "JX2", "Output", "documented", "[1]", (205.74, 111.76), rot=180, fields="above"
+    )
     s.wire(b9["OUT"], j2["T"])
     s.wire(j2["S"], (198.12, j2["S"][1]), (198.12, 119.38))
     s.gnd((198.12, 119.38))
@@ -157,7 +161,9 @@ def pre_emphasis(p):
     s.wire(c10["2"], (76.2, 104.14))
     # Feedback: C8 across the Gain pot and its series resistor (section 4).
     c8 = s.part(C, "C8", "300p", "inferred", "[2]", (106.68, 99.06), rot=90, fields="below")
-    rv = s.part(RVAR, "RVX1", "1M log (Gain)", "chosen", "-", (101.6, 132.08), rot=90, fields="above")
+    rv = s.part(
+        RVAR, "RVX1", "1M log (Gain)", "chosen", "-", (101.6, 132.08), rot=90, fields="above"
+    )
     rx = s.part(R, "RX4", "3.3k", "chosen", "-", (116.84, 132.08), rot=90, fields="above")
     s.wire((93.98, 78.74), (93.98, 99.06), c8["1"])
     s.wire((93.98, 99.06), (93.98, 132.08), rv["1"])
@@ -172,7 +178,10 @@ def pre_emphasis(p):
     expect("Rf/R31 at maximum Gain", rf_max / val("3.3k"), 304, rel=0.01)
     f_fb = expect("C8 corner at maximum Gain", rc_hz(rf_max, "300p"), 530, rel=0.02)
     s.text([f"R31 with C10: {hz(f_emph)}", "gain rises above it"], (38.1, 111.76))
-    s.text([f"C8 with Rf: {hz(f_fb)} at maximum Gain", "Rf/R31 = 1 (min), ~30 (noon), 304 (max)"], (139.7, 104.14))
+    s.text(
+        [f"C8 with Rf: {hz(f_fb)} at maximum Gain", "Rf/R31 = 1 (min), ~30 (noon), 304 (max)"],
+        (139.7, 104.14),
+    )
     s.text("Rf = RVX1 + RX4", (99.06, 144.78))
     s.note(
         [
@@ -204,7 +213,9 @@ def clipping(p):
     rs = s.part(R, "RX7", "1k", "chosen", "-", (99.06, 76.2), rot=90, fields="above")
     s.wire((91.44, 76.2), rs["1"])
     # LEDs D2 and D3 in anti-parallel to VB [2]; DX1 clips the negative side first.
-    d2 = s.part(LED, "D2", "red LED", "inferred", "[2], [4]", (111.76, 86.36), rot=90, fields="left")
+    d2 = s.part(
+        LED, "D2", "red LED", "inferred", "[2], [4]", (111.76, 86.36), rot=90, fields="left"
+    )
     d3 = s.part(LED, "D3", "red LED", "inferred", "[2], [4]", (129.54, 86.36), rot=270)
     dx = s.part(D, "DX1", "1N4148", "chosen", "-", (154.94, 86.36), rot=270)
     s.wire(rs["2"], (111.76, 76.2), d2["A"])
@@ -263,10 +274,14 @@ def post_filter(p):
     s.hlabel("OUT", (149.86, 78.74))
 
     f_dc = expect("post DC blocker", rc_hz("33k", "1u"), 5.0)
-    f_lp = expect("post low-pass", 1 / (2 * math.pi * val("10k") * math.sqrt(val("4.7n") * val("2.2n"))), 5000)
+    f_lp = expect(
+        "post low-pass", 1 / (2 * math.pi * val("10k") * math.sqrt(val("4.7n") * val("2.2n"))), 5000
+    )
     q = expect("post low-pass Q", 0.5 * math.sqrt(val("4.7n") / val("2.2n")), 1 / math.sqrt(2))
     s.text(f"CX3 with RX8: {hz(f_dc)}", (40.64, 101.6))
-    s.text([f"Sallen-Key: {hz(f_lp)}, Q {q:.2f}", "(DSP: 2nd-order 5 kHz low-pass)"], (139.7, 66.04))
+    s.text(
+        [f"Sallen-Key: {hz(f_lp)}, Q {q:.2f}", "(DSP: 2nd-order 5 kHz low-pass)"], (139.7, 66.04)
+    )
     s.note(
         [
             "Section 6 of the circuit notes. The pedal's post-clip filtering is not documented; everything here is chosen.",
@@ -301,7 +316,9 @@ def balance(p):
 
     trim = expect("driven-path trim", val("5.1k") / (val("13k") + val("5.1k")), 0.28)
     s.text(f"x{trim:.2f} (drvTrim)", (45.72, 116.84))
-    s.text(["wiper = clean + b (driven - clean)", "b = 0 clean only, 1 driven only"], (129.54, 68.58))
+    s.text(
+        ["wiper = clean + b (driven - clean)", "b = 0 clean only, 1 driven only"], (129.54, 68.58)
+    )
     s.note(
         [
             "Section 8 of the circuit notes. A clean/driven blend is documented [1]; its circuit is not.",
@@ -321,11 +338,15 @@ def eq(p):
     s.hlabel("IN", (20.32, y), 180)
 
     # Bass: peaking band at 110 Hz, Q 0.9, +/-12 dB.
-    bin_, bout, bw = band(s, x0, y, ("RX13", "RVX3", "RX14", "UX6"), ("3k", "100k (Bass)", "3k", "OPAMP"))
+    bin_, bout, bw = band(
+        s, x0, y, ("RX13", "RVX3", "RX14", "UX6"), ("3k", "100k (Bass)", "3k", "OPAMP")
+    )
     s.wire((20.32, y), bin_)
     series(s, bw[0], bw[1], [(R, "RX15", "1k"), (L, "LX1", "2.55H"), (C, "CX6", "820n")])
     f_b = expect("bass band centre", lc_hz("2.55", "820n"), 110, rel=0.02)
-    g_b = expect("bass band range", 20 * math.log10((val("3k") + val("1k")) / val("1k")), 12, rel=0.02)
+    g_b = expect(
+        "bass band range", 20 * math.log10((val("3k") + val("1k")) / val("1k")), 12, rel=0.02
+    )
     w0 = 2 * math.pi * f_b
     q_b = expect("bass band Q", math.sqrt((w0 * 2.55 / 1e3) * (w0 * 2.55 / 4e3)), 0.9, rel=0.03)
     s.text([f"Bass: {hz(f_b)}, Q {q_b:.2f}", f"+/-{g_b:.0f} dB"], (x0 + 25.4, y + 50.8))
@@ -342,17 +363,23 @@ def eq(p):
     s.wire(u7["-"], (x1 + 25.4, y + 20.32), (sout[0], y + 20.32), sout)
     s.wire(u7["5"], sout)
     f_s = expect("scoop centre", lc_hz("2.07", "100n"), 350, rel=0.02)
-    depth = expect("scoop depth", 20 * math.log10(val("4.7k") / (val("4.7k") + val("4.7k"))), -6, rel=0.02)
+    depth = expect(
+        "scoop depth", 20 * math.log10(val("4.7k") / (val("4.7k") + val("4.7k"))), -6, rel=0.02
+    )
     w0 = 2 * math.pi * f_s
     q_s = expect("scoop Q", math.sqrt((w0 * 2.07 / 4.7e3) * (w0 * 2.07 / 9.4e3)), 0.7, rel=0.03)
     s.text([f"Scoop: {hz(f_s)}, Q {q_s:.2f}", f"{depth:.0f} dB (scoopDB)"], (x1 + 22.86, y + 33.02))
 
     # Treble: shelf, half its range at 2.5 kHz, +/-15 dB.
     x2 = x1 + 55.88
-    tin, tout, tw = band(s, x2, y, ("RX18", "RVX4", "RX19", "UX8"), ("12k", "100k (Treble)", "12k", "OPAMP"))
+    tin, tout, tw = band(
+        s, x2, y, ("RX18", "RVX4", "RX19", "UX8"), ("12k", "100k (Treble)", "12k", "OPAMP")
+    )
     s.wire(sout, (x2 + 1.27, sout[1]), (x2 + 1.27, y), tin)
     series(s, tw[0], tw[1], [(R, "RX20", "2.7k"), (C, "CX8", "10n")])
-    g_t = expect("treble range", 20 * math.log10((val("12k") + val("2.7k")) / val("2.7k")), 15, rel=0.03)
+    g_t = expect(
+        "treble range", 20 * math.log10((val("12k") + val("2.7k")) / val("2.7k")), 15, rel=0.03
+    )
     f_mid = expect(
         "treble shelf midpoint",
         math.sqrt(rc_hz("2.7k", "10n") * rc_hz(val("12k") + val("2.7k"), "10n")),

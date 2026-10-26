@@ -13,7 +13,7 @@ import math
 
 import stages
 from kicadsch import Project, expect, hz, lc_hz, rc_hz, val
-from stages import C, JACK, L, OPAMP, POT, RVAR, SW, R, band, series
+from stages import JACK, OPAMP, POT, RVAR, SW, C, L, R, band, series
 
 CAVEAT = "Modelled circuit (src/basspreamp.dsp): V1 trace [2] for the drive and voicing, chosen EQ"
 TL = ("TL07x", "reported", "[2]")
@@ -49,7 +49,7 @@ def project():
     return p
 
 
-def root(p, sup, buf, pre, pres, drv, voi, bl, eq_):
+def root(p, sup, buf, pre, presence, drv, voi, bl, eq_):
     s = p.root
     s.heading("BassPreamp: modelled circuit")
     s.text(
@@ -64,11 +64,15 @@ def root(p, sup, buf, pre, pres, drv, voi, bl, eq_):
     p.block(sup, (40.64, 134.62), (33.02, 15.24))
     y1, y2 = 60.96, 106.68
     xs = [40.64, 88.9, 137.16, 185.42, 233.68]
-    b2, b3, b4, b5, b7 = (p.block(sh, (x, y1), size) for sh, x in zip((buf, pre, pres, drv, voi), xs, strict=True))
+    b2, b3, b4, b5, b7 = (
+        p.block(sh, (x, y1), size) for sh, x in zip((buf, pre, presence, drv, voi), xs, strict=True)
+    )
     b8 = p.block(bl, (40.64, y2), size)
     b9 = p.block(eq_, (88.9, y2), size)
 
-    j1 = s.part(JACK, "JX1", "Input", "documented", "[1]", (25.4, 66.04), fields="above", mirror="x")
+    j1 = s.part(
+        JACK, "JX1", "Input", "documented", "[1]", (25.4, 66.04), fields="above", mirror="x"
+    )
     s.wire(j1["T"], b2["IN"])
     s.wire(j1["S"], (33.02, j1["S"][1]), (33.02, 73.66))
     s.gnd((33.02, 73.66))
@@ -78,9 +82,18 @@ def root(p, sup, buf, pre, pres, drv, voi, bl, eq_):
     jx = b2["OUT"][0] + 6.35
     s.wire((jx, b2["OUT"][1]), (jx, 91.44), (33.02, 91.44), (33.02, b8["CLEAN"][1]), b8["CLEAN"])
     xo = b7["OUT"][0] + 5.08
-    s.wire(b7["OUT"], (xo, b7["OUT"][1]), (xo, 96.52), (35.56, 96.52), (35.56, b8["DRIVEN"][1]), b8["DRIVEN"])
+    s.wire(
+        b7["OUT"],
+        (xo, b7["OUT"][1]),
+        (xo, 96.52),
+        (35.56, 96.52),
+        (35.56, b8["DRIVEN"][1]),
+        b8["DRIVEN"],
+    )
     s.wire(b8["OUT"], b9["IN"])
-    j2 = s.part(JACK, "JX2", "Output", "documented", "[1]", (147.32, 111.76), rot=180, fields="above")
+    j2 = s.part(
+        JACK, "JX2", "Output", "documented", "[1]", (147.32, 111.76), rot=180, fields="above"
+    )
     s.wire(b9["OUT"], j2["T"])
     s.wire(j2["S"], (139.7, j2["S"][1]), (139.7, 119.38))
     s.gnd((139.7, 119.38))
@@ -184,7 +197,11 @@ def gain_stage(p, number, title):
     s.wire((63.5, 73.66), u["+"])
     s.wire(u["-"], (93.98, 78.74), (76.2, 78.74))
     if presence:
-        leg = [(C, "C7", "10n", *rep), (R, "R8", "3.3k", *rep), (RVAR, "RVX1", "100k lin (Presence)", *rep)]
+        leg = [
+            (C, "C7", "10n", *rep),
+            (R, "R8", "3.3k", *rep),
+            (RVAR, "RVX1", "100k lin (Presence)", *rep),
+        ]
         cf, rf = ("C6", "220p"), ("R7", "330k")
     else:
         leg = [(R, "R10", "3.3k", *rep), (RVAR, "RVX2", "100k lin (Drive)", *rep)]
@@ -218,9 +235,14 @@ def gain_stage(p, number, title):
             "the DSP sweeps it log-uniformly from 103.3 kOhm to 3.3 kOhm instead (chosen, section 4).",
         ]
     else:
-        g0 = expect("Drive gain at minimum", 1 + val("330k") / (val("3.3k") + val("100k")), 4.2, rel=0.01)
+        g0 = expect(
+            "Drive gain at minimum", 1 + val("330k") / (val("3.3k") + val("100k")), 4.2, rel=0.01
+        )
         g1 = expect("Drive gain at maximum", 1 + val("330k") / val("3.3k"), 101, rel=0.01)
-        lines = [f"G = 1 + R9/(R10 + pot): {g0:.1f} to {g1:.0f}", f"extra gain rolls off above {hz(f_hi)}"]
+        lines = [
+            f"G = 1 + R9/(R10 + pot): {g0:.1f} to {g1:.0f}",
+            f"extra gain rolls off above {hz(f_hi)}",
+        ]
         note = [
             "Section 5 of the circuit notes. IC2_D: H = 1 + (G - 1)/(1 + s R9 C8), with no capacitor in the ground leg, as traced [2].",
             "RVX2: the traced 100 kOhm linear pot as a rheostat; the DSP makes G log-uniform in the control (chosen).",
@@ -313,7 +335,12 @@ def voicing(p):
     s.wire(u3["5"], o3, (259.08, 83.82))
     s.hlabel("OUT", (259.08, 83.82))
 
-    f2 = expect("second Sallen-Key", 1 / (2 * math.pi * val("33k") * math.sqrt(val("2.2n") * val("1.2n"))), 2970, rel=0.01)
+    f2 = expect(
+        "second Sallen-Key",
+        1 / (2 * math.pi * val("33k") * math.sqrt(val("2.2n") * val("1.2n"))),
+        2970,
+        rel=0.01,
+    )
     q2 = expect("second Sallen-Key Q", 0.5 * math.sqrt(val("2.2n") / val("1.2n")), 0.68, rel=0.01)
     s.text(["1: pole 86.7 Hz, zero 338.6 Hz,", "resonant pair 5.76 kHz, Q 1.85"], (38.1, 121.92))
     s.text([f"2: {hz(f2)}, Q {q2:.2f}"], (139.7, 121.92))
@@ -330,7 +357,9 @@ def voicing(p):
 
 
 def blend(p):
-    s = p.sheet(8, "Blend and level", pins=[("DRIVEN", "input"), ("CLEAN", "input"), ("OUT", "output")])
+    s = p.sheet(
+        8, "Blend and level", pins=[("DRIVEN", "input"), ("CLEAN", "input"), ("OUT", "output")]
+    )
     s.heading("8 Blend, level and calibration")
     rep = ("reported", "[2]")
     s.hlabel("DRIVEN", (40.64, 63.5), 180)
@@ -368,7 +397,9 @@ def blend(p):
 
     f = expect("C16 into the Blend pot (fcBlend)", rc_hz("100k", "47n"), 34, rel=0.01)
     g = expect("mixer gain", 1 + val("12k") / val("10k"), 2.2, rel=0.01)
-    s.text([f"C16 with the pot: {hz(f)}", "lows below it pass clean at every Blend"], (43.18, 109.22))
+    s.text(
+        [f"C16 with the pot: {hz(f)}", "lows below it pass clean at every Blend"], (43.18, 109.22)
+    )
     s.text(f"x{g:.1f}", (154.94, 111.76))
     s.note(
         [
@@ -410,17 +441,34 @@ def eq(p):
     s.hlabel("IN", (20.32, y), 180)
 
     # Bass: low shelf, half its range at 80 Hz, or 40 Hz with Bass Shift (switch open).
-    bin_, bout, bw = band(s, x0, y, ("RX5", "RVX5", "RX6", "UX1"), ("3k", "100k (Bass)", "3k", "OPAMP"))
+    bin_, bout, bw = band(
+        s, x0, y, ("RX5", "RVX5", "RX6", "UX1"), ("3k", "100k (Bass)", "3k", "OPAMP")
+    )
     s.wire((20.32, y), bin_)
-    chain(s, bw[0], bw[1], [(R, "RX7", "1k"), (L, "LX1", "3.98H"), (L, "LX2", "3.98H", "SWX1", "Bass Shift")])
-    f80 = expect("bass shelf midpoint", math.sqrt(val("1k") * (val("1k") + val("3k"))) / (2 * math.pi * 3.98), 80, rel=0.01)
+    chain(
+        s,
+        bw[0],
+        bw[1],
+        [(R, "RX7", "1k"), (L, "LX1", "3.98H"), (L, "LX2", "3.98H", "SWX1", "Bass Shift")],
+    )
+    f80 = expect(
+        "bass shelf midpoint",
+        math.sqrt(val("1k") * (val("1k") + val("3k"))) / (2 * math.pi * 3.98),
+        80,
+        rel=0.01,
+    )
     f40 = expect("bass shelf with Bass Shift", f80 / 2, 40, rel=0.01)
     g_b = expect("bass range", 20 * math.log10((val("3k") + val("1k")) / val("1k")), 12, rel=0.01)
-    s.text([f"Bass: shelf, half at {hz(f80)}", f"({hz(f40)} with Bass Shift), +/-{g_b:.0f} dB"], (x0 + 25.4, y + 73.66))
+    s.text(
+        [f"Bass: shelf, half at {hz(f80)}", f"({hz(f40)} with Bass Shift), +/-{g_b:.0f} dB"],
+        (x0 + 25.4, y + 73.66),
+    )
 
     # Mid: peaking band at 500 Hz, Q 0.7, or 1 kHz with Mid Shift (SWX2 closed, SWX3 open).
     x1 = x0 + 66.04
-    min_, mout, mw = band(s, x1, y, ("RX8", "RVX6", "RX9", "UX2"), ("3k", "100k (Mid)", "3k", "OPAMP"))
+    min_, mout, mw = band(
+        s, x1, y, ("RX8", "RVX6", "RX9", "UX2"), ("3k", "100k (Mid)", "3k", "OPAMP")
+    )
     s.wire(bout, (x1 + 1.27, bout[1]), (x1 + 1.27, y), min_)
     chain(
         s,
@@ -437,14 +485,21 @@ def eq(p):
     f500 = expect("mid centre", lc_hz(2 * val("0.23"), "220n"), 500, rel=0.02)
     f1k = expect("mid centre with Mid Shift", lc_hz("0.23", val("220n") / 2), 1000, rel=0.02)
     q = expect("mid Q", 2 * math.pi * f500 * 0.46 / (2 * val("1k")), 0.7, rel=0.05)
-    s.text([f"Mid: {hz(f500)} ({hz(f1k)} with Mid Shift)", f"Q {q:.2f}, +/-12 dB"], (x1 + 15.24, y + 96.52))
+    s.text(
+        [f"Mid: {hz(f500)} ({hz(f1k)} with Mid Shift)", f"Q {q:.2f}, +/-12 dB"],
+        (x1 + 15.24, y + 96.52),
+    )
 
     # Treble: high shelf, half its range at 2.8 kHz.
     x2 = x1 + 66.04
-    tin, tout, tw = band(s, x2, y, ("RX11", "RVX7", "RX12", "UX3"), ("7.5k", "100k (Treble)", "7.5k", "OPAMP"))
+    tin, tout, tw = band(
+        s, x2, y, ("RX11", "RVX7", "RX12", "UX3"), ("7.5k", "100k (Treble)", "7.5k", "OPAMP")
+    )
     s.wire(mout, (x2 + 1.27, mout[1]), (x2 + 1.27, y), tin)
     series(s, tw[0], tw[1], [(R, "RX13", "2.4k"), (C, "CX4", "12n")])
-    g_t = expect("treble range", 20 * math.log10((val("7.5k") + val("2.4k")) / val("2.4k")), 12, rel=0.03)
+    g_t = expect(
+        "treble range", 20 * math.log10((val("7.5k") + val("2.4k")) / val("2.4k")), 12, rel=0.03
+    )
     f_t = expect(
         "treble shelf midpoint",
         math.sqrt(rc_hz("2.4k", "12n") * rc_hz(val("7.5k") + val("2.4k"), "12n")),

@@ -93,6 +93,10 @@ in → DC blocker (5 Hz)
 
 The [circuit notes](circuit-notes.md) give the derivation of every stage and the confidence level of each value. The fixed networks are generated from the traced component values by `tools/basspreamp-networks.py`.
 
+The [schematic](../development/schematics.md) draws the same path, one sheet per section of the circuit notes, with the trace's designators. Its EQ sheet is a chosen stand-in, because no schematic of the current version is public.
+
+![BassPreamp schematic, root sheet: one block per stage](../schematics/basspreamp/basspreamp.svg)
+
 ## Measured behaviour
 
 These figures come from `make test` at 48 kHz. The plots below are regenerated each time the site is published. Click a plot to open it full size; the CSV data behind each one is linked underneath.

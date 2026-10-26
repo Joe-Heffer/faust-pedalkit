@@ -32,7 +32,9 @@ sys.path.insert(0, str(HERE))
 
 
 def scripts():
-    return sorted(p.stem for p in HERE.glob("*.py") if p.stem not in ("build", "kicadsch", "stages"))
+    return sorted(
+        p.stem for p in HERE.glob("*.py") if p.stem not in ("build", "kicadsch", "stages")
+    )
 
 
 def load(name):
@@ -54,7 +56,9 @@ def write(name, out):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--check", action="store_true", help="fail if a committed schematic is stale")
     ap.add_argument("--out", type=Path, help="write DIR/<name>/ instead of docs/<name>/schematics/")
     ap.add_argument("names", nargs="*")
@@ -80,7 +84,12 @@ def main():
         if args.check:
             out = ROOT / "build" / "schematics-check" / name
             files = write(name, out)
-            stale = [f for f in files if not (committed / f).exists() or not filecmp.cmp(out / f, committed / f, shallow=False)]
+            stale = [
+                f
+                for f in files
+                if not (committed / f).exists()
+                or not filecmp.cmp(out / f, committed / f, shallow=False)
+            ]
             extra = [p.name for p in committed.glob("*.kicad_sch") if p.name not in files]
             if stale or extra:
                 for f in stale:
@@ -94,7 +103,9 @@ def main():
         else:
             out = args.out / name if args.out else committed
             files = write(name, out)
-            print(f"{name}: wrote {len(files)} files to {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out}")
+            print(
+                f"{name}: wrote {len(files)} files to {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out}"
+            )
     return status
 
 

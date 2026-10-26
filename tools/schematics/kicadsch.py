@@ -183,7 +183,12 @@ def first(node, key):
 
 
 # Tokens newer libraries add that KiCad 8 does not know.
-_NEWER = ("embedded_fonts", "duplicate_pin_numbers_are_jumpers", "jumper_pin_groups", "in_pos_files")
+_NEWER = (
+    "embedded_fonts",
+    "duplicate_pin_numbers_are_jumpers",
+    "jumper_pin_groups",
+    "in_pos_files",
+)
 _NEWER_PROP = ("show_name", "do_not_autoplace")
 
 
@@ -352,7 +357,9 @@ def P(x, y):
 class Part:
     """A placed symbol. part["1"] is the absolute position of pin 1."""
 
-    def __init__(self, sheet, sym, ref, value, confidence, source, at, rot, fields, extra, mirror=None):
+    def __init__(
+        self, sheet, sym, ref, value, confidence, source, at, rot, fields, extra, mirror=None
+    ):
         self.sheet, self.sym, self.ref, self.value = sheet, sym, ref, value
         self.mirror = mirror
         self.confidence, self.source = confidence, source
@@ -457,16 +464,19 @@ class Part:
         if hide_ref:
             # Power symbols show only their net name, under or over the symbol.
             props = [
-                f"(property \"Reference\" {quote(self.ref)} (at {_fmt(self.at[0])} {_fmt(self.at[1])} 0) "
+                f'(property "Reference" {quote(self.ref)} (at {_fmt(self.at[0])} {_fmt(self.at[1])} 0) '
                 f"(effects (font (size {FONT} {FONT})) hide))",
                 self._power_value(),
             ]
         for k in ("Footprint", "Datasheet", "Description"):
             props.append(
-                f"(property {quote(k)} \"\" (at {_fmt(self.at[0])} {_fmt(self.at[1])} 0) "
+                f'(property {quote(k)} "" (at {_fmt(self.at[0])} {_fmt(self.at[1])} 0) '
                 f"(effects (font (size {FONT} {FONT})) hide))"
             )
-        pins = " ".join(f"(pin {quote(n)} (uuid {quote(self.sheet.uid(f'pin:{self.ref}:{n}'))}))" for n in self.sym.pins)
+        pins = " ".join(
+            f"(pin {quote(n)} (uuid {quote(self.sheet.uid(f'pin:{self.ref}:{n}'))}))"
+            for n in self.sym.pins
+        )
         inst = (
             f"(instances (project {quote(project.name)} (path {quote(self.sheet.path)} "
             f"(reference {quote(self.ref)}) (unit 1))))"
@@ -487,7 +497,7 @@ class Part:
         if self.rot in (90, 270):
             y = (y0 + y1) / 2
         return (
-            f"(property \"Value\" {quote(self.value)} (at {_fmt(self.at[0])} {_fmt(y)} {self.rot % 180}) "
+            f'(property "Value" {quote(self.value)} (at {_fmt(self.at[0])} {_fmt(y)} {self.rot % 180}) '
             f"(effects (font (size {FONT} {FONT}))))"
         )
 
@@ -525,7 +535,19 @@ class Sheet:
         if not SOURCE_RE.match(source):
             raise ValueError(f"{ref}: source {source!r} must be like [2] or -")
         self.project.claim(ref)
-        p = Part(self, self.project.lib.get(lib_id), ref, value, confidence, source, at, rot, fields, {}, mirror)
+        p = Part(
+            self,
+            self.project.lib.get(lib_id),
+            ref,
+            value,
+            confidence,
+            source,
+            at,
+            rot,
+            fields,
+            {},
+            mirror,
+        )
         self.parts.append(p)
         if confidence in ("inferred", "chosen"):
             self.boxes.append(p)
@@ -578,7 +600,7 @@ class Sheet:
         self.items.append(
             f"(global_label {quote(name)} (shape {shape}) (at {_fmt(at[0])} {_fmt(at[1])} {angle}) "
             f"(fields_autoplaced yes) (effects (font (size {FONT} {FONT})) (justify {just})) "
-            f"(uuid {quote(self.uid())}) (property \"Intersheetrefs\" \"${{INTERSHEET_REFS}}\" "
+            f'(uuid {quote(self.uid())}) (property "Intersheetrefs" "${{INTERSHEET_REFS}}" '
             f"(at {_fmt(at[0])} {_fmt(at[1])} 0) (effects (font (size {FONT} {FONT})) hide)))"
         )
 
@@ -666,7 +688,9 @@ class Sheet:
                 p = part[n]
                 on_wire = p in nodes or any(_inside(p, a, b) for a, b in self.wires)
                 if not on_wire and len(allpins[p]) < 2:
-                    raise AssertionError(f"{self.file}: pin {n} of {part.ref} at {p} is not connected")
+                    raise AssertionError(
+                        f"{self.file}: pin {n} of {part.ref} at {p} is not connected"
+                    )
         for a, b in self.wires:
             for p in (a, b):
                 hits = p in allpins or p in self.points
@@ -678,7 +702,9 @@ class Sheet:
     def render(self):
         self.check()
         p = self.project
-        syms = sorted({part.sym.lib_id: part.sym for part in self.parts}.values(), key=lambda s: s.lib_id)
+        syms = sorted(
+            {part.sym.lib_id: part.sym for part in self.parts}.values(), key=lambda s: s.lib_id
+        )
         out = [
             "(kicad_sch",
             f"  (version {SCH_VERSION})",
@@ -781,9 +807,9 @@ class Block:
         return (
             f"(sheet (at {_fmt(x)} {_fmt(y)}) (size {_fmt(w)} {_fmt(h)}) (fields_autoplaced yes) "
             f"(stroke (width 0.1524) (type solid)) (fill (color 0 0 0 0.0000)) (uuid {quote(s.uuid)}) "
-            f"(property \"Sheetname\" {quote(s.name)} (at {_fmt(x)} {_fmt(y - 0.71)} 0) "
+            f'(property "Sheetname" {quote(s.name)} (at {_fmt(x)} {_fmt(y - 0.71)} 0) '
             f"(effects (font (size {FONT} {FONT})) (justify left bottom))) "
-            f"(property \"Sheetfile\" {quote(s.file)} (at {_fmt(x)} {_fmt(y + h + 0.71)} 0) "
+            f'(property "Sheetfile" {quote(s.file)} (at {_fmt(x)} {_fmt(y + h + 0.71)} 0) '
             f"(effects (font (size {FONT} {FONT})) (justify left top))) "
             + " ".join(pins)
             + f" (instances (project {quote(root.project.name)} (path {quote(root.path)} (page {quote(str(s.page))})))))"

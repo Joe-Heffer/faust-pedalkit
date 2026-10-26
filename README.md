@@ -126,6 +126,8 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
+make schematic-sources   # regenerate the KiCad schematics from tools/schematics/<name>.py (needs kicad-library)
+make schematic-check      # fail if a committed schematic differs from its script
 make schematics           # KiCad schematics to SVG in build/schematics/<name>/ (needs kicad-cli)
 make erc                  # KiCad's electrical rules check on each schematic
 make web                  # browser demo into build/web/ (needs Node.js and npm)
