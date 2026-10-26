@@ -32,14 +32,15 @@ RUN echo "Server = https://archive.archlinux.org/repos/${ARCH_SNAPSHOT}/\$repo/o
         sleep 30; \
     done \
  && pacman -Scc --noconfirm \
- && python -m venv /opt/docs \
+ && python -m venv --system-site-packages /opt/docs \
  && /opt/docs/bin/pip install --no-cache-dir -r /tmp/docs-requirements.txt \
  && rm /tmp/docs-requirements.txt \
  && faust --version \
  && kicad-cli version
 
 # See Dockerfile for FAUSTINC and HOME. MkDocs is on PATH, so `make docs`
-# needs no MKDOCS=.
+# needs no MKDOCS=. That puts the venv's python3 first for the tests too,
+# which is why the venv sees the system numpy and matplotlib.
 ENV FAUSTINC=/usr/include/faust \
     HOME=/tmp \
     PATH=/opt/docs/bin:$PATH
