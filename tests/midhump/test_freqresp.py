@@ -15,6 +15,9 @@ print("test_freqresp")
 rng = np.random.default_rng(7)
 noise = rng.normal(0, 1, 8 * SR)
 drives = (0, 25, 50, 75, 100)
+# Repeated from src/midhump.dsp and src/lib/pedalkit.lib.
+FC_IN = 1 / (2 * np.pi * 510e3 * 20e-9)
+OS4_LATENCY = 32
 rows = []
 
 
@@ -53,12 +56,36 @@ for bl in (0, 50, 100):
     f, H = transfer(x, y)
     ax.semilogx(f[1:], db(H[1:]), label=f"Blend {bl}%")
     keep("blend", -70, 50, 50, bl, f, H)
+    if bl == 0:
+        H0 = H
     if bl == 100:
-        band = (f > 30) & (f < 60)
-        y0 = render(x, Drive=50, Tone=50, Blend=0)
-        _, H0 = transfer(x, y0)
-        rise = np.mean(db(H[band])) - np.mean(db(H0[band]))
-        check(2.5 < rise < 4.5, f"Blend 100% lifts 30-60 Hz by {rise:+.2f} dB (expect about +3.5)")
+        # The clean path is linear, so Blend 100 minus Blend 0 should be
+        # exactly cleanTrim times the input high-pass, delayed by the same
+        # os4Latency as the driven path. Any misalignment would show here as
+        # a phase ramp (and as comb filtering in the blend).
+        band = (f > 100) & (f < 10000)
+        fb = f[band]
+        expect = 0.5 * (1j * fb / (1j * fb + FC_IN)) * np.exp(-2j * np.pi * fb * OS4_LATENCY / SR)
+        ratio = (H[band] - H0[band]) / expect
+        mag_err = np.max(np.abs(db(ratio)))
+        ph_err = np.degrees(np.max(np.abs(np.angle(ratio))))
+        check(mag_err < 0.3, f"Blend path is 0.5 x input within {mag_err:.2f} dB (< 0.3)")
+        check(ph_err < 2, f"Blend path is time-aligned within {ph_err:.2f} deg (< 2)")
+
+# Low-end lift at playing level. At -20 dBFS the feedback branch clips, so the
+# clean half-amplitude copy adds to bass that the driven path holds near unity.
+# (At -70 dBFS the unclipped branch is large even at 45 Hz and the lift falls
+# from 2.6 dB at Drive 0 to 0.1 dB at Drive 100.)
+xl = noise * 10 ** (-20 / 20)
+for d in (0, 50, 100):
+    _, L0 = transfer(xl, render(xl, Drive=d, Tone=50, Blend=0))
+    fl, L1 = transfer(xl, render(xl, Drive=d, Tone=50, Blend=100))
+    low = (fl > 30) & (fl < 60)
+    rise = np.mean(db(L1[low])) - np.mean(db(L0[low]))
+    check(
+        2 < rise < 4.5,
+        f"Drive {d}, -20 dBFS: Blend 100% lifts 30-60 Hz by {rise:+.2f} dB (2 to 4.5)",
+    )
 ax.set_title("Blend at Drive 50%, Tone 50%, -70 dBFS noise")
 ax.set_ylim(-10, 50)
 

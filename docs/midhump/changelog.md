@@ -10,7 +10,8 @@ First release.
 
 ### Added
 
-* Mid-hump overdrive with Drive, Tone and Level, and an optional full-range clean Blend. The diode clipper is 4x oversampled.
+- Mid-hump overdrive with Drive, Tone and Level, and an optional full-range clean Blend. The diode clipper is 4x oversampled.
+- Four factory presets (Edge of Breakup, Mid Hump, Lead, Bass Grind) in the LV2, VST3 and CLAP plugins.
 
 [Unreleased]: https://github.com/Joe-Heffer/faust-pedalkit/compare/midhump-v0.1.0...HEAD
 [0.1.0]: https://github.com/Joe-Heffer/faust-pedalkit/releases/tag/midhump-v0.1.0

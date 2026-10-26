@@ -63,7 +63,9 @@ for d in (0, 50, 100):
     ref = analytic(f[band], d / 100, 0.5)
     err = db(H[band]) - db(ref)
     worst = np.max(np.abs(err))
-    check(worst < 1.5, f"Drive {d}: model within {worst:.2f} dB of the analytic response (< 1.5)")
+    # Measured worst case 0.16 dB; 0.5 dB leaves margin for the smoothers
+    # and the noise estimate.
+    check(worst < 0.5, f"Drive {d}: model within {worst:.2f} dB of the analytic response (< 0.5)")
     ax.semilogx(f[band], db(H[band]), label=f"measured, Drive {d}%")
     ax.semilogx(f[band], db(ref), "k:", lw=0.8)
     rows.extend(("analytic", d, fq, e) for fq, e in zip(f[band][::8], err[::8], strict=True))

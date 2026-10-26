@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Factory presets for MidHump. tools/presets.py builds this file into the
+# LV2 bundle (presets.ttl) and into the VST3 and CLAP plugins (presets.h), and
+# tests/midhump/test_presets.py renders each one.
+#
+# Keys under `controls` are the UI labels from src/midhump.dsp. Every preset
+# sets every control, because an LV2 host leaves unlisted controls where they
+# were.
+#
+# The control settings are chosen starting points, not measurements of the
+# reference pedal. Level is chosen per preset so that a -12 dBFS plucked guitar
+# line comes out within about 1 dB of "Edge of Breakup" (measured by
+# test_presets.py), so switching presets doesn't jump in loudness.
+
+[[preset]]
+name = "Edge of Breakup"
+comment = "Lowest Drive, slightly dark: light odd-harmonic grit for pushing an amplifier."
+[preset.controls]
+Drive = 10
+Tone = 40
+Level = 0
+Blend = 0
+
+[[preset]]
+name = "Mid Hump"
+comment = "The plugin's defaults: the reference circuit at mid Drive and Tone."
+[preset.controls]
+Drive = 50
+Tone = 50
+Level = -2
+Blend = 0
+
+[[preset]]
+name = "Lead"
+comment = "Full Drive with a brighter Tone, for sustained single notes."
+[preset.controls]
+Drive = 100
+Tone = 65
+Level = -6.4
+Blend = 0
+
+[[preset]]
+name = "Bass Grind"
+comment = "Mid-hump drive on bass, with the full clean Blend to keep the lowest octave."
+[preset.controls]
+Drive = 60
+Tone = 40
+Level = -3.6
+Blend = 100

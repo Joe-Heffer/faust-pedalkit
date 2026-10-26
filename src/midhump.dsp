@@ -56,7 +56,9 @@ C3       = 47e-9;     // grounded leg capacitor
 R6       = 51e3;      // fixed part of the feedback resistance
 Rpot     = 500e3;     // Drive pot
 C4       = 51e-12;    // feedback capacitor
-fcHP     = 1 / (2 * ma.PI * R4 * C3);         // about 720 Hz
+// Corners are capped at 0.45 SR, as in BassDrive: fi.highpass/fi.lowpass go
+// unstable above Nyquist, which only matters at very low host sample rates.
+fcHP     = min(1 / (2 * ma.PI * R4 * C3), 0.45 * ma.SR);   // about 720 Hz
 
 // Drive pot law (chosen): log taper, about 9 % of the pot at noon.
 Rd       = Rpot * (pow(10, 2 * drive) - 1) / 99;
@@ -70,7 +72,7 @@ Vd       = 0.6;
 
 // Tone (reported corners, chosen shelf law). The passive low-pass follows the
 // clipping stage; the shelf is a behavioural stand-in for the active stage.
-fcPassive = 1 / (2 * ma.PI * 1e3 * 220e-9);   // about 723 Hz
+fcPassive = 1 / (2 * ma.PI * 1e3 * 220e-9);   // about 723 Hz (shelf corner)
 fcShelf   = 1 / (2 * ma.PI * 220 * 220e-9);   // about 3.29 kHz
 fcZero    = fcShelf * pow(fcPassive / fcShelf, tone);   // 3.29 kHz down to 723 Hz
 wShelf    = 2 * ma.PI * fcShelf;
@@ -98,7 +100,7 @@ clipStage = _ <: @(pk.os4Latency), (branch : pk.oversample4(diodes)) :> _;
 toneShelf = pk.tf1a(wShelf / wZero, wShelf, wShelf, wShelf);
 
 driven = clipStage
-       : fi.lowpass(1, fcPassive)
+       : fi.lowpass(1, min(fcPassive, 0.45 * ma.SR))
        : toneShelf
        : fi.dcblockerat(5);
 
