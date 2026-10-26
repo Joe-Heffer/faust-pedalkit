@@ -54,6 +54,35 @@ osDnPhase(q) = _ <: par(j, osT, @(j) : *(osH(osL * j - q))) :> _;
 oversample4(f) = _ <: par(p, osL, osUpPhase(p) : f) : par(q, osL, osDnPhase(q)) :> _;
 oversample1(f) = f;
 
+//======================== Oversampling with a control =========================
+// oversample4c(f): as oversample4, but f takes two inputs, f(x, c), where x is
+// the audio and c a slowly varying control computed at the base rate (an
+// envelope, a bias offset, a headroom). The block has two inputs, audio then
+// control, and one output.
+//
+// f must still be memoryless in x. Any memory (an envelope follower, a
+// charging capacitor) belongs in the base-rate path that produces c. c is
+// held for the four phases of each base-rate sample, which is only valid if
+// it is band-limited well below the base Nyquist frequency.
+//
+// The interpolator delays x by half of os4Latency, so c is delayed by
+// os4CtrlDelay (16) to meet the sample it was computed from. The end-to-end
+// delay is os4Latency, as for oversample4.
+//
+// oversample1c(f) = f is the A/B counterpart; render_1x swaps it in.
+//==============================================================================
+
+ro = library("routes.lib");
+
+os4CtrlDelay = os4Latency / 2;    // 16 samples
+
+oversample4c(f) = (_ <: par(p, osL, osUpPhase(p))),
+                  (@(os4CtrlDelay) <: par(p, osL, _))
+                : ro.interleave(osL, 2)
+                : par(p, osL, f)
+                : par(q, osL, osDnPhase(q)) :> _;
+oversample1c(f) = f;
+
 //============================== Waveshapers ===================================
 
 // Asymmetric soft clipper: tanh knees at +pos and -neg. Both halves have
@@ -75,6 +104,33 @@ kneeClip(a, n, x) = x / pow(1 + pow(abs(x) / a, n), 1 / n);
 // almost symmetric; once the negative side reaches neg it clips sooner and
 // harder, so even harmonics rise with drive.
 asymSoftHard(pos, neg, n, x) = ba.if(x > 0, pos * ma.tanh(x / pos), kneeClip(neg, n, x));
+
+//============================== Dynamic state =================================
+// Building blocks for behaviour that depends on what was played a moment ago.
+// Each one splits into a base-rate control (with memory) and a memoryless
+// shaper that takes the control, for use with oversample4c.
+//==============================================================================
+
+si = library("signals.lib");
+
+// Moves the operating point of a memoryless shaper f by b. The f(b) term
+// keeps the output centred on zero, so a moving bias changes the shape of
+// the clipping (and the balance of even and odd harmonics) without a DC step.
+// biased(f, x, 0) = f(x).
+biased(f, x, b) = f(x + b) - f(b);
+
+// Bias shift: the offset a coupling capacitor picks up when the stage after
+// it conducts on loud peaks, and loses through its bias resistor afterwards.
+// Each sample's excess over thr sets a target shift, saturating at maxShift,
+// and the shift charges towards it with time constant att and discharges
+// with rel (seconds):
+//   b = -onePoleSwitching(att, rel)(maxShift * tanh(max(0, |x| - thr) / thr))
+// The smoothing comes after the saturation, so the shift builds up over att
+// however hard the stage is driven. Below thr the output is exactly 0, so
+// quiet playing is untouched. Feed b to biased(f) inside oversample4c.
+biasShift(thr, maxShift, att, rel) = abs
+    : \(e).(maxShift * ma.tanh(max(0, e - thr) / thr))
+    : si.onePoleSwitching(att, rel) : *(-1);
 
 //============================ Analogue sections ===============================
 // First- and second-order analogue transfer functions with coefficients in

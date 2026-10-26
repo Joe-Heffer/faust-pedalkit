@@ -401,8 +401,9 @@ $(BUILD)/%/describe.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && faust -json -svg $*.dsp -o /dev/null
 	touch $@
 
-# Offline renderer for the tests, plus a 1x variant (oversample4 swapped for
-# oversample1) used only to measure what the oversampling buys.
+# Offline renderer for the tests, plus a 1x variant (oversample4 and
+# oversample4c swapped for oversample1 and oversample1c) used only to measure
+# what the oversampling buys.
 $(BUILD)/%/render: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
 	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render.cpp $<
@@ -410,7 +411,7 @@ $(BUILD)/%/render: src/%.dsp $(LIBS) $(ARCH)
 
 $(BUILD)/%/render_1x: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
-	sed 's/oversample4(/oversample1(/g' $< > $(@D)/$*_1x.dsp
+	sed -E 's/oversample4(c?)\(/oversample1\1(/g' $< > $(@D)/$*_1x.dsp
 	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
 	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
 
