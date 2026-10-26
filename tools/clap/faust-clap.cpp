@@ -5,8 +5,8 @@
 //
 // Written against the plain C API, so a plug-in needs only the CLAP headers
 // and the Faust ones: no clap-helpers and no CMake. Extensions: audio-ports,
-// params, state and latency. There is no GUI, so hosts show their generic
-// parameter editor.
+// params, state, latency and preset-load. There is no GUI, so hosts show
+// their generic parameter editor.
 //
 // - Every slider, numeric entry, checkbox and button becomes a CLAP parameter,
 //   numbered in the order buildUserInterface() reports them. Units come from
@@ -16,9 +16,14 @@
 // - A bargraph tagged [lv2:reportsLatency] is the plug-in's latency.
 // - Parameter events are applied at their sample position: the block is split
 //   there. The DSP smooths its own controls with si.smoo.
+// - Factory presets (src/<name>.presets.toml) are compiled in. A preset
+//   discovery factory lists them to the host as presets inside the plug-in
+//   (location kind PLUGIN, load key = preset index), and preset-load applies
+//   one. Effects without presets offer neither.
 //
 // ID, names, version and features come from plugin_meta.h, which
-// tools/clap-meta.py generates from the .dsp's declare statements.
+// tools/clap-meta.py generates from the .dsp's declare statements. The
+// presets come from presets.h, which tools/presets.py generates.
 
 #include <algorithm>
 #include <cmath>
@@ -39,6 +44,7 @@
 #include <clap/clap.h>
 
 #include "plugin_meta.h"
+#include "presets.h"
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__SSE__)
 #include <xmmintrin.h>
@@ -165,6 +171,7 @@ struct FaustEffect {
     clap_plugin_t fPlugin;
     const clap_host_t* fHost;
     const clap_host_params_t* fHostParams = nullptr;
+    const clap_host_preset_load_t* fHostPresetLoad = nullptr;
     mydsp fDSP;
     ControlCollector fUI;
     std::vector<FAUSTFLOAT*> fIn, fOut;
@@ -178,6 +185,10 @@ struct FaustEffect {
         fIn.resize(size_t(fDSP.getNumInputs()));
         fOut.resize(size_t(fDSP.getNumOutputs()));
         fHostParams = static_cast<const clap_host_params_t*>(fHost->get_extension(fHost, CLAP_EXT_PARAMS));
+        fHostPresetLoad = static_cast<const clap_host_preset_load_t*>(fHost->get_extension(fHost, CLAP_EXT_PRESET_LOAD));
+        if (!fHostPresetLoad)
+            fHostPresetLoad =
+                static_cast<const clap_host_preset_load_t*>(fHost->get_extension(fHost, CLAP_EXT_PRESET_LOAD_COMPAT));
         // Sets every control to its default, so the parameters can be read
         // before the host activates the plug-in.
         fDSP.init(48000);
@@ -382,6 +393,37 @@ static constexpr clap_plugin_latency_t kLatency = {
     [](const clap_plugin_t* p) { return FaustEffect::self(p)->fLatency; },
 };
 
+// A preset's load key is its index in kPresets, as a decimal string.
+static bool presetIndex(uint32_t kind, const char* location, const char* key, unsigned* index)
+{
+    if (kind != CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN || location || !key || !*key) return false;
+    char* end;
+    const unsigned long i = std::strtoul(key, &end, 10);
+    if (*end || i >= kNumPresets) return false;
+    *index = unsigned(i);
+    return true;
+}
+
+static constexpr clap_plugin_preset_load_t kPresetLoad = {
+    [](const clap_plugin_t* p, uint32_t kind, const char* location, const char* key) {
+        FaustEffect* fx = FaustEffect::self(p);
+        unsigned index;
+        if (!presetIndex(kind, location, key, &index) || fx->fUI.controls.size() != kNumPresetControls) {
+            if (fx->fHostPresetLoad && fx->fHostPresetLoad->on_error)
+                fx->fHostPresetLoad->on_error(fx->fHost, kind, location, key, 0, "no such factory preset");
+            return false;
+        }
+        for (size_t i = 0; i < kNumPresetControls; ++i) {
+            const auto& c = fx->fUI.controls[i];
+            *c.zone = FAUSTFLOAT(std::fmin(std::fmax(kPresets[index].values[i], c.min), c.max));
+        }
+        if (fx->fHostParams) fx->fHostParams->rescan(fx->fHost, CLAP_PARAM_RESCAN_VALUES);
+        if (fx->fHostPresetLoad && fx->fHostPresetLoad->loaded)
+            fx->fHostPresetLoad->loaded(fx->fHost, kind, location, key);
+        return true;
+    },
+};
+
 
 const void* FaustEffect::extension(const char* id)
 {
@@ -389,6 +431,9 @@ const void* FaustEffect::extension(const char* id)
     if (std::strcmp(id, CLAP_EXT_PARAMS) == 0) return &kParams;
     if (std::strcmp(id, CLAP_EXT_STATE) == 0) return &kState;
     if (std::strcmp(id, CLAP_EXT_LATENCY) == 0) return &kLatency;
+    if (kNumPresets > 0 &&
+        (std::strcmp(id, CLAP_EXT_PRESET_LOAD) == 0 || std::strcmp(id, CLAP_EXT_PRESET_LOAD_COMPAT) == 0))
+        return &kPresetLoad;
     return nullptr;
 }
 
@@ -411,9 +456,72 @@ static constexpr clap_plugin_factory_t gFactory = {
     },
 };
 
+// Preset discovery: one provider, which declares the presets compiled into
+// the plug-in as its only location and reports each one's metadata.
+static const clap_preset_discovery_provider_descriptor_t gProviderDescriptor = {
+    CLAP_VERSION_INIT, FX_ID ".presets", FX_NAME " factory presets", FX_VENDOR,
+};
+
+struct PresetProvider {
+    clap_preset_discovery_provider_t provider;
+    const clap_preset_discovery_indexer_t* indexer;
+};
+
+static const clap_preset_discovery_provider_t kProvider = {
+    &gProviderDescriptor,
+    nullptr,
+    [](const clap_preset_discovery_provider_t* p) {
+        const auto* indexer = static_cast<const PresetProvider*>(p->provider_data)->indexer;
+        const clap_preset_discovery_location_t location = {
+            CLAP_PRESET_DISCOVERY_IS_FACTORY_CONTENT, "Factory presets", CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN, nullptr,
+        };
+        return indexer->declare_location(indexer, &location);
+    },
+    [](const clap_preset_discovery_provider_t* p) { delete static_cast<PresetProvider*>(p->provider_data); },
+    [](const clap_preset_discovery_provider_t*, uint32_t kind, const char* location,
+       const clap_preset_discovery_metadata_receiver_t* receiver) {
+        if (kind != CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN || location) return false;
+        const clap_universal_plugin_id_t plugin = {"clap", FX_ID};
+        for (unsigned i = 0; i < kNumPresets; ++i) {
+            const std::string key = std::to_string(i);
+            if (!receiver->begin_preset(receiver, kPresets[i].name, key.c_str())) break;
+            receiver->add_plugin_id(receiver, &plugin);
+            receiver->set_flags(receiver, CLAP_PRESET_DISCOVERY_IS_FACTORY_CONTENT);
+            receiver->add_creator(receiver, FX_VENDOR);
+            if (*kPresets[i].comment) receiver->set_description(receiver, kPresets[i].comment);
+        }
+        return true;
+    },
+    [](const clap_preset_discovery_provider_t*, const char*) -> const void* { return nullptr; },
+};
+
+static constexpr clap_preset_discovery_factory_t gPresetFactory = {
+    [](const clap_preset_discovery_factory_t*) -> uint32_t { return 1; },
+    [](const clap_preset_discovery_factory_t*, uint32_t index) {
+        return index == 0 ? &gProviderDescriptor : nullptr;
+    },
+    [](const clap_preset_discovery_factory_t*, const clap_preset_discovery_indexer_t* indexer,
+       const char* id) -> const clap_preset_discovery_provider_t* {
+        if (!clap_version_is_compatible(indexer->clap_version) || std::strcmp(id, gProviderDescriptor.id) != 0)
+            return nullptr;
+        auto* p = new PresetProvider{kProvider, indexer};
+        p->provider.provider_data = p;
+        return &p->provider;
+    },
+};
+
+static const void* getFactory(const char* id)
+{
+    if (std::strcmp(id, CLAP_PLUGIN_FACTORY_ID) == 0) return &gFactory;
+    if (kNumPresets > 0 && (std::strcmp(id, CLAP_PRESET_DISCOVERY_FACTORY_ID) == 0 ||
+                            std::strcmp(id, CLAP_PRESET_DISCOVERY_FACTORY_ID_COMPAT) == 0))
+        return &gPresetFactory;
+    return nullptr;
+}
+
 extern "C" CLAP_EXPORT const clap_plugin_entry_t clap_entry = {
     CLAP_VERSION_INIT,
     entryInit,
     [] {},
-    [](const char* id) -> const void* { return std::strcmp(id, CLAP_PLUGIN_FACTORY_ID) == 0 ? &gFactory : nullptr; },
+    getFactory,
 };

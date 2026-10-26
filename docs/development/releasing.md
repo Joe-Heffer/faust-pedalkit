@@ -35,7 +35,7 @@ To try the workflow without releasing, run it from the Actions tab (*Run workflo
 
 ## Why a separate image
 
-The everyday toolchain image (`Dockerfile`) is Arch, which ships a newer glibc than most distributions, so plugins built there may not load on Ubuntu or Debian. `Dockerfile.release` uses Debian 12, the oldest base whose own packages cover the build: Python 3.11 for `tomllib` (`tools/make-presets.py`) and CMake 3.25 (the VST3 SDK's minimum). It builds Faust from the release tarball at `FAUST_VERSION`, pinned by checksum. It sets `LDFLAGS="-static-libgcc"`, which the Makefile passes to every plugin link line. libstdc++ stays dynamic on purpose: Debian 12's static libstdc++ calls `arc4random`, which only exists from glibc 2.36, whereas Ubuntu 22.04 already ships the same GCC 12 libstdc++.
+The everyday toolchain image (`Dockerfile`) is Arch, which ships a newer glibc than most distributions, so plugins built there may not load on Ubuntu or Debian. `Dockerfile.release` uses Debian 12, the oldest base whose own packages cover the build: Python 3.11 for `tomllib` (`tools/presets.py`) and CMake 3.25 (the VST3 SDK's minimum). It builds Faust from the release tarball at `FAUST_VERSION`, pinned by checksum. It sets `LDFLAGS="-static-libgcc"`, which the Makefile passes to every plugin link line. libstdc++ stays dynamic on purpose: Debian 12's static libstdc++ calls `arc4random`, which only exists from glibc 2.36, whereas Ubuntu 22.04 already ships the same GCC 12 libstdc++.
 
 Keep `FAUST_VERSION` in step with the Faust that `ARCH_SNAPSHOT` installs in `Dockerfile`, so the released plugins come from the same compiler that CI tests.
 

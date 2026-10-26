@@ -3,10 +3,13 @@
 """Factory presets (src/basspreamp.presets.toml): each one sets every control
 within its range, stays below 0 dBFS, and is loudness-matched to the first
 preset ("Clean DI") on a plucked bass line, so switching presets doesn't jump
-in level."""
+in level. Also checks that presets.h, which carries the presets into the VST3
+and CLAP plugins, holds each preset's values in parameter order."""
 
 import os
 import re
+import subprocess
+import sys
 
 import numpy as np
 
@@ -40,6 +43,14 @@ for kind, label, args in re.findall(
     else:
         _, lo, hi, _ = (float(a) for a in args.strip(", \n").split(","))
         controls[label] = (lo, hi)
+# Parameter order: the [n] prefixes, which the VST3 and CLAP parameter IDs follow.
+order = [
+    label
+    for _, label in sorted(
+        (int(n), label)
+        for n, label in re.findall(r'(?:hslider|checkbox)\(\s*"\[(\d+)\]([^\["]+?)\s*[\["]', src)
+    )
+]
 
 
 def bass_line():
@@ -116,4 +127,34 @@ ax.set(
 ax.grid(True, which="both", alpha=0.3)
 ax.legend(fontsize=8)
 save_plot(fig, "presets_spectrum")
+
+# presets.h: generate it as the VST3 and CLAP builds do, and compare it with
+# the TOML in the order of the [n] prefixes. Copies already built into
+# build/basspreamp/{vst3,clap}/ must be identical to it.
+header = os.path.join(OUT, "presets.h")
+subprocess.run(
+    [
+        sys.executable,
+        "tools/presets.py",
+        "header",
+        "src/basspreamp.presets.toml",
+        "build/basspreamp/controls.json",
+        header,
+    ],
+    cwd=ROOT,
+    check=True,
+)
+text = open(header).read()
+entries = re.findall(r'^    \{"((?:[^"\\]|\\.)*)", "(?:[^"\\]|\\.)*", \{([^}]*)\}\},$', text, re.M)
+check(len(entries) == len(P), f"presets.h holds {len(entries)} of {len(P)} presets")
+for (name, ctl), (hname, values) in zip(P, entries, strict=False):
+    got = [float(v.strip().rstrip("f")) for v in values.split(",")]
+    want = [float(ctl[label]) for label in order]
+    check(hname == name and got == want, f"presets.h: {name} in parameter order")
+for fmt in ("vst3", "clap"):
+    built = os.path.join(ROOT, "build", "basspreamp", fmt, "presets.h")
+    if os.path.exists(built):
+        check(open(built).read() == text, f"build/basspreamp/{fmt}/presets.h is up to date")
+    else:
+        print(f"  (no {fmt} build to compare: run make {fmt})")
 finish()

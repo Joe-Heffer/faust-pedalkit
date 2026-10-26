@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Joe Heffer
 # SPDX-License-Identifier: MIT
-# Factory presets for BassPreamp. tools/make-presets.py turns this file into
-# LV2 presets inside build/basspreamp.lv2, and tests/basspreamp/test_presets.py
-# renders each one.
+# Factory presets for BassPreamp. tools/presets.py builds this file into the
+# LV2 bundle (presets.ttl) and into the VST3 and CLAP plugins (presets.h), and
+# tests/basspreamp/test_presets.py renders each one.
 #
 # Keys under `controls` are the UI labels from src/basspreamp.dsp. Every
 # preset sets every control, because an LV2 host leaves unlisted controls

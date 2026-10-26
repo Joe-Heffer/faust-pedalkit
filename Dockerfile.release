@@ -13,7 +13,7 @@
 #        RUN="lv2 vst3 clap dist"
 #
 # Debian 12 is the oldest base that has everything the build needs from its
-# own packages: Python 3.11 (tools/make-presets.py uses tomllib) and CMake
+# own packages: Python 3.11 (tools/presets.py uses tomllib) and CMake
 # 3.25 (the VST3 SDK's minimum).
 #
 # Keep FAUST_VERSION in step with the Faust that ARCH_SNAPSHOT in Dockerfile
