@@ -4,14 +4,17 @@
 //
 // The clipping stage and tone filters follow public circuit analyses of a
 // well-known green overdrive pedal (docs/midhump/circuit-notes.md). With Blend
-// at 0 the plugin is that model. Blend adds a full-range clean path, which the
-// pedal does not have (docs/midhump/design-notes.md).
+// and Bloom at 0 the plugin is that model. Blend adds a full-range clean path
+// and Bloom a bias shift on the diodes, neither of which the pedal has
+// (docs/midhump/design-notes.md).
 //
 // Signal flow (mono):
 //
-//   in -> input high-pass -+-> delay (latency match) -----------+
-//                          |                                    +-> sum
-//                          +-> 720 Hz HP -> feedback LP -> gain -> 4x OS diode clip
+//   in -> input high-pass -+-> delay (latency match) ---------------------+
+//                          |                                              +-> sum
+//                          +-> 720 Hz HP -> feedback LP -> gain -+-> 4x OS diode clip
+//                                                                |    ^ bias
+//                                                                +-> envelope -> bias shift x Bloom
 //   (sum of input and clipped feedback branch = the op-amp output)
 //   -> 723 Hz passive LP -> Tone shelf -> DC block -> + Blend x clean
 //   -> Level -> safety limiter -> out
@@ -40,6 +43,8 @@ tone  = hslider("[1]Tone [unit:%] [tooltip:0 = dark, 100 = bright]",
 level = hslider("[2]Level [unit:dB] [tooltip:Output level]",
                 0, -40, 12, 0.1) : si.smoo;
 blend = hslider("[3]Blend [unit:%] [tooltip:Adds a full-range clean signal. 0 = the circuit as published]",
+                0, 0, 100, 0.1) / 100 : si.smoo;
+bloom = hslider("[4]Bloom [unit:%] [tooltip:Bias shift: hard playing pushes the diodes off centre, adding even harmonics that build up and fade away. 0 = the circuit as published]",
                 0, 0, 100, 0.1) / 100 : si.smoo;
 
 //============================================================================
@@ -78,6 +83,14 @@ fcZero    = fcShelf * pow(fcPassive / fcShelf, tone);   // 3.29 kHz down to 723 
 wShelf    = 2 * ma.PI * fcShelf;
 wZero     = 2 * ma.PI * fcZero;
 
+// Bloom (all chosen, docs/midhump/design-notes.md section 4). The pedal's
+// diodes sit in the op-amp feedback and have no bias to shift; these values
+// give them one, as if a coupling capacitor charged on loud peaks.
+bloomThr   = Vd;        // shift starts once the branch envelope passes the knee
+bloomMax   = 0.5 * Vd;  // largest offset at Bloom 100: the knees at -0.3 and +0.9
+bloomAtt   = 0.015;     // seconds: the first ~15 ms of a pick stays symmetric
+bloomRel   = 0.15;      // seconds: the bias takes a few hundred ms to recover
+
 cleanTrim = 0.5;      // Blend 100 % adds a clean path at half amplitude (chosen)
 outCeil   = 0.989;    // safety-limiter ceiling, about -0.1 dBFS
 
@@ -85,15 +98,19 @@ outCeil   = 0.989;    // safety-limiter ceiling, about -0.1 dBFS
 // Driven path.
 //============================================================================
 
-// Memoryless diode pair, run inside the oversampler.
+// Memoryless diode pair, run inside the oversampler. biased() moves its
+// operating point by the Bloom control; at Bloom 0 it is softSat(Vd) itself.
 diodes = pk.softSat(Vd);
+shiftedDiodes = pk.biased(diodes);
+bias = pk.biasShift(bloomThr, bloomMax, bloomAtt, bloomRel) : *(bloom);
 
 // Feedback branch voltage before the diodes: Rf/R4 times a 720 Hz high-pass
 // and the C4 low-pass. The diodes limit it; the op-amp output is the input
 // plus the limited branch (Yeh's simplified model).
 branch = fi.highpass(1, fcHP) : fi.lowpass(1, fcFb) : *(gainRatio);
 
-clipStage = _ <: @(pk.os4Latency), (branch : pk.oversample4(diodes)) :> _;
+clipStage = _ <: @(pk.os4Latency),
+                 (branch <: _, bias : pk.oversample4c(shiftedDiodes)) :> _;
 
 // H(s) = (1 + s/wZero) / (1 + s/wShelf): flat at Tone 0, cancels the passive
 // low-pass pole at Tone 100.

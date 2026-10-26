@@ -4,6 +4,10 @@ Notable changes to MidHump. The format follows [Keep a Changelog](https://keepac
 
 ## [Unreleased]
 
+### Added
+
+- Bloom control (appended after Blend; at the default of 0 % existing settings and presets render as before, to within float rounding at about −122 dBFS): a bias shift on the diode clipper. Loud playing charges an offset that moves the diodes off centre, adding second harmonic that builds up over about 20 ms to 35 ms and fades within a second after the note.
+
 ## [0.1.0]
 
 First release.
