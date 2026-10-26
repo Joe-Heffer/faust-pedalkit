@@ -5,7 +5,8 @@
 
 A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2, VST3 and CLAP plugins and checked by offline measurement tests.
 
-**Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, design and circuit research, and current measurement plots.
+> [!NOTE]
+> **Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, design and circuit research, and current measurement plots.
 
 [Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2, a VST3 and a CLAP plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
 
@@ -24,7 +25,8 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 
 To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
 
-New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
+> [!TIP]
+> New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
 
 ## Install
 
