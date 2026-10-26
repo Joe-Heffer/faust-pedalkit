@@ -1,6 +1,6 @@
 # Adding an effect
 
-One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically, so there is no list to update. The steps below take an effect from an idea to a published page. BassDrive, a modelled effect, is the worked example for the mechanics. For where ideas come from and how to write them up, see [Designing new sounds](designing-new-sounds.md) first.
+New to DSP or Faust? Read [How it works](how-it-works.md) first. One effect is one `src/<name>.dsp`. The Makefile discovers effects automatically, so there is no list to update. The steps below take an effect from an idea to a published page. BassDrive, a modelled effect, is the worked example for the mechanics. For where ideas come from and how to write them up, see [Designing new sounds](designing-new-sounds.md) first.
 
 ## 1. Write the notes
 
@@ -88,10 +88,12 @@ Save every plot as SVG and the numbers behind it as CSV. See [Tests and measurem
 
 ```sh
 make lv2 lint test FX=<name>
-pre-commit run --all-files
+make vst3 pluginval FX=<name>
+make clap clap-validate FX=<name>
+make check                       # pre-commit run --all-files
 ```
 
-Fix every `lv2lint` and pre-commit failure, and read the plots before reporting results.
+Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results.
 
 ## 5. Document it
 
@@ -99,7 +101,11 @@ Fix every `lv2lint` and pre-commit failure, and read the plots before reporting 
 - Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
 - Add `docs/<name>/changelog.md`, modelled on [the BassDrive changelog](../bassdrive/changelog.md), with a `## [0.1.0]` section. Every effect starts at version 0.1.0 and is released on its own (see [Releasing](releasing.md)).
 - Add the effect page, its notes and its changelog to `nav` in `mkdocs.yml`, under *Effects*.
-- Build the site with `make test docs` and check that it has no warnings.
+- Build the site with `make test docs` (install the tools with `pip install -r tools/docs-requirements.txt`) and check that it has no warnings. The build is strict, so every warning fails it.
+
+## Presets (optional)
+
+Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables, each with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The settings are chosen values, and the file says so. Add `tests/<name>/test_presets.py` to render each preset, check its peak and loudness-match it with `loudness()`, and list the presets in the README and on the effect's docs page.
 
 ## 6. Report back
 
