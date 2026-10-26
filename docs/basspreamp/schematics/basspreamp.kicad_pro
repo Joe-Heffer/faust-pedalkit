@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "filename": "basspreamp.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "af0cbc56-20d9-592e-910e-4df1ae901ca3",
+      "Root"
+    ],
+    [
+      "90a3309a-905a-5d72-855e-f1502d0b1519",
+      "1 Supply and bias"
+    ],
+    [
+      "b3b014cf-97ad-51e9-accd-b26611d88e57",
+      "2 Input buffer"
+    ],
+    [
+      "d13449aa-fca5-5a8f-8e3a-b8afef6177c7",
+      "3 Pre-drive network"
+    ],
+    [
+      "12bfb352-598e-5f25-9d92-5df1ddfd3563",
+      "4 Presence stage"
+    ],
+    [
+      "8e49229f-c8d7-50fe-b86e-11a911d739e5",
+      "5 Drive stage"
+    ],
+    [
+      "4596ebbc-ae76-5c53-aad6-894ede3870cb",
+      "7 Speaker voicing"
+    ],
+    [
+      "70a0ddc4-8740-599e-9bac-d2bbd405b716",
+      "8 Blend and level"
+    ],
+    [
+      "bb69c8b7-65d8-599d-a722-94d7725f9d95",
+      "9 EQ"
+    ]
+  ],
+  "text_variables": {}
+}

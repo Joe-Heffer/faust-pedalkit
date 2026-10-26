@@ -103,9 +103,9 @@ Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit fa
 - Add the effect page, its notes and its changelog to `nav` in `mkdocs.yml`, under *Effects*.
 - Build the site with `make test web schematics docs` (install the tools with `pip install -r tools/docs-requirements.txt`) and check that it has no warnings. The build is strict, so every warning fails it.
 
-## Schematic (optional)
+## Schematic
 
-If the effect borrows from a circuit, draw the part it borrows in KiCad as `docs/<name>/schematics/<name>.kicad_sch`, with one sub-sheet per stage of the circuit notes. Mark every part's confidence and source, and outline the inferred and chosen ones. Run `make erc schematics FX=<name>` and embed the sheets on the circuit notes or the effect page. [Schematics](schematics.md) has the conventions.
+Every effect with circuit notes has a KiCad schematic of the modelled circuit, with one sub-sheet per section of the notes. It is generated from a script, `tools/schematics/<name>.py`, which marks every part's confidence and source and checks the values against the notes and the DSP. Run `make schematic-sources erc schematics FX=<name>`, read the rendered sheets, commit the script and the generated files, and embed each sheet next to its section of the circuit notes and the root sheet on the effect page. [Schematics](schematics.md) has the conventions and the workflow.
 
 ## Presets (optional)
 

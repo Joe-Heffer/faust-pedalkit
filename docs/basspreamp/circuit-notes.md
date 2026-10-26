@@ -13,6 +13,8 @@ Confidence levels used throughout:
 
 The most important caveat: the only public schematic I found [2] is a DIY trace of the **earlier version (V1)**, which has Bass and Treble but no Mid control and no shift switches. BassPreamp uses that schematic for the drive section and the fixed "speaker" voicing, on the assumption that V2 kept them, and builds the V2 EQ from its published specification. No V2 schematic or measurement is public, as far as I could find.
 
+Each stage with component values has a sheet of the [KiCad schematic](../development/schematics.md), redrawn from these notes. Sheets 2 to 8 follow the public trace [2] and keep its designators; designators with an `X` (RX1, RVX1 …) are parts the trace does not name or the notes add, and dashed outlines mark the inferred and chosen ones. It is the circuit BassPreamp implements, not a trace of the V2 pedal.
+
 ---
 
 ## 1. Controls and interface
@@ -48,6 +50,14 @@ in -> C1 22n / R2 1M -> buffer (IC1_D) -+---------------------------------------
 
 **Inferred:** the "tube" sound is op-amp clipping in the Presence and Drive stages. The board's author says the same ("It's op-amp clipping which can sound a little ratty" at full Drive) [2]. The "speaker simulation" is the fixed filtering that follows the clipper. It sits only in the preamp path, so the clean side of the blend is full-range.
 
+The schematic's root sheet is this block diagram, with one sub-sheet per stage. Sheet 1 holds the 9 V supply and the bias rail VB (divider values chosen), and sheet 2 the traced input coupling and buffer.
+
+![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/basspreamp/basspreamp.svg)
+
+![Sheet 1: the 9 V supply and the bias rail VB](../schematics/basspreamp/basspreamp-1-supply-and-bias.svg)
+
+![Sheet 2: C1, R2 and the input buffer IC1_D](../schematics/basspreamp/basspreamp-2-input-buffer.svg)
+
 ## 3. Pre-drive network (reported values, inferred function)
 
 From the buffer, R3 (100 kΩ) runs in series, bridged by C2 and C3 (22 nF each) to two nodes joined by C4 (22 nF), which go to VB through R4 (2.2 kΩ) and R5 (22 kΩ). C5 (22 nF) then couples into the Presence stage's input, with R6 (100 kΩ) to VB.
@@ -59,6 +69,8 @@ I solved this network by nodal analysis (`tools/basspreamp-networks.py`). Its po
 | −10.4 dB | −10.2 dB | −14.1 dB | −19.0 dB | −24.6 dB | −26.0 dB |
 
 So the clipping stages are fed a bass-heavy signal, which is why the drive stays "thick" rather than fizzy.
+
+![Sheet 3: the pre-drive network](../schematics/basspreamp/basspreamp-3-pre-drive-network.svg)
 
 ## 4. Presence stage (reported values, inferred function)
 
@@ -81,6 +93,8 @@ Its gain is
 
 **Chosen:** the traced pot is linear, which crowds the audible change into the last part of the rotation. BassPreamp sweeps R_g log-uniformly from 103.3 kΩ to 3.3 kΩ, so equal steps of the control give roughly equal steps in dB. At 50 % this gives R_g ≈ 18.5 kΩ.
 
+![Sheet 4: the Presence stage IC2_C](../schematics/basspreamp/basspreamp-4-presence-stage.svg)
+
 ## 5. Drive stage (reported values, inferred function)
 
 IC2_D is a non-inverting stage:
@@ -96,6 +110,8 @@ G runs from **4.2 (12.5 dB)** to **101 (40 dB)**, and the extra gain rolls off a
 
 - **Reported [2]:** "The Drive control will bunch up at the very last part of its rotation." With a linear pot, G is only 7.2 at mid-rotation and climbs steeply in the last 20 %, which agrees.
 - **Chosen:** as for Presence, BassPreamp makes G log-uniform in the control: 4.2 at 0 %, 20.6 at 50 % and 101 at 100 %. A reviewer describes noon as the "fat tube" sound and full Drive as fuzzy [3], and this mapping puts audible breakup near noon.
+
+![Sheet 5: the Drive stage IC2_D](../schematics/basspreamp/basspreamp-5-drive-stage.svg)
 
 ## 6. Clipping (inferred and chosen)
 
@@ -130,6 +146,8 @@ Together these give the preamp path a bass hump around 100 Hz, a dip at 450–50
 
 All of these coefficients come from `tools/basspreamp-networks.py`, which takes ideal op-amps and the traced values and prints `pk.tf2a`/`pk.tf1a` sections. If a value changes, rerun it.
 
+![Sheet 7: divider and two Sallen-Key low-passes, then the bridged-T notch](../schematics/basspreamp/basspreamp-7-speaker-voicing.svg)
+
 ## 8. Blend, level and calibration
 
 - **Reported [2]:** the preamp path reaches the Blend pot (100 kΩ linear) through C16 (47 nF), and the pot's other end is tied straight to the input buffer. The pot wiper drives a follower, so the wiper voltage is
@@ -142,6 +160,10 @@ All of these coefficients come from `tools/basspreamp-networks.py`, which takes 
 - **Chosen:** the mixer's ×2.2 gain and the Level pot are replaced by the Level control in dB. 0 dB at Blend 0 with a flat EQ is unity gain.
 - **Chosen:** 1.0 digital full scale is treated as 1 V peak at the input, as in BassDrive. Every Drive setting depends on this, so it is the first thing to check by ear (README).
 
+The schematic draws the traced Blend network and mixer. The mixer's resistors and the Level pot's value are not in the notes, so they are chosen to give the traced ×2.2 gain.
+
+![Sheet 8: C16, the Blend pot, the follower IC1_C and the mixer IC1_B](../schematics/basspreamp/basspreamp-8-blend-and-level.svg)
+
 ## 9. The V2 EQ (documented specification, chosen shapes)
 
 The V1 schematic has an inverting Baxandall bass/treble stage (IC3_A) after the Level pot, with C18 (100 nF) coupling into it. The V2 adds a Mid control and the two shift switches, and its schematic is not public. BassPreamp therefore builds the EQ from the specification:
@@ -151,6 +173,10 @@ The V1 schematic has an inverting Baxandall bass/treble stage (IC3_A) after the 
 - **Treble:** a 3rd-order high shelf, ±12 dB, corner at **2.8 kHz**. This is inferred from the V1 Baxandall values: the treble capacitors are 10 nF, the treble leg is 3.3 kΩ and the bass-side resistors are 10 kΩ, which puts the turnovers at about 1.6 kHz and 4.8 kHz, with 2.8 kHz between them.
 - **Shift switches:** each switch value is smoothed and glides the corner frequency on a log scale (80 → 40 Hz, 500 Hz → 1 kHz) over a few tens of milliseconds, so flipping it does not click.
 - **Deliberate difference:** 0 dB is flat on all three bands. A real active EQ at noon is close to that, but not exactly. The V1's C18 coupling into the tone stack (a high-pass in the low hundreds of hertz, depending on the Level pot's position) is not modelled, because the V2 extends the bass down to 40 Hz and evidently does not cut there.
+
+With no V2 schematic, the schematic's EQ sheet is an analogue stand-in for the DSP's filters, every part chosen: graphic-EQ boost/cut stages, a series R-L leg for the Bass shelf (Bass Shift opens a switch to double the inductance), a series R-L-C leg for Mid (Mid Shift halves both L and C, keeping Q 0.7), and an R-C leg for the Treble shelf. Its script checks the frequencies, Q and ranges against the values above. Its shelves are first-order where the DSP's are third-order.
+
+![Sheet 9: the chosen stand-in for the V2 EQ](../schematics/basspreamp/basspreamp-9-eq.svg)
 
 ---
 
@@ -169,3 +195,4 @@ The V1 schematic has an inverting Baxandall bass/treble stage (IC3_A) after the 
 - The real Drive and Presence pot tapers, and whether the original also bunches up.
 - How much asymmetry (offset, rail mismatch) a typical unit's clipping has.
 - Whether the mixer stage's clipping at high Blend and Drive is part of the sound people expect.
+- The input high-pass. The traced C1 (22 nF) into R2 (1 MΩ) gives 7.2 Hz, but the DSP uses a 5 Hz DC blocker at the input. The difference is about 0.1 dB at 31 Hz, but the DSP should follow the trace or the notes should say why not.

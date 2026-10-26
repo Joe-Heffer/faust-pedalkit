@@ -9,12 +9,40 @@
   },
   "sheets": [
     [
-      "8ff94a34-916f-51d8-b34f-9197a04f87a8",
+      "f888e94a-2850-59e0-a9a1-75b7a82fbe55",
       "Root"
     ],
     [
-      "e2d73e67-2ced-5169-9c67-025472d7806c",
+      "26bbb653-5cec-5046-87fa-49e88af33f46",
+      "1 Supply and bias"
+    ],
+    [
+      "c7fe757f-07a9-561e-9624-0c1167ee2129",
+      "2 Input buffer"
+    ],
+    [
+      "7dde7cdc-f103-5fac-9de7-51f20adcf01c",
       "3 Pre-emphasis"
+    ],
+    [
+      "2bfc703b-ba24-59ef-a477-4c2a64a323e4",
+      "5 Clipping"
+    ],
+    [
+      "d8031b5e-497f-5876-a307-c30d5b49b797",
+      "6 Post-filtering"
+    ],
+    [
+      "d55c1f4d-ed5b-542c-a131-6be6409573ff",
+      "7 EQ and mid scoop"
+    ],
+    [
+      "5f6f6718-5901-50b4-8abe-e136d715b430",
+      "8 Balance"
+    ],
+    [
+      "749767d3-8e0c-5a04-99da-ef6e28ddbced",
+      "9 Level"
     ]
   ],
   "text_variables": {}
