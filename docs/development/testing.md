@@ -22,7 +22,7 @@ build/bassdrive/render <samplerate> [Label=value ...] < in.f32 > out.f32
 - Controls are set by their label, for example `Gain=80 Balance=100`. Any control not named keeps its declared default.
 - Before reading any input it runs two seconds of silence through the DSP, so the parameter smoothers settle on their targets.
 
-`build/<name>/render_1x` is the same DSP with `oversample4(` replaced by `oversample1(`. Comparing the two shows what the oversampling buys.
+`build/<name>/render_1x` is the same DSP with `oversample4(` replaced by `oversample1(` and `oversample4c(` by `oversample1c(`. Comparing the two shows what the oversampling buys.
 
 ## Python helpers
 
@@ -38,6 +38,10 @@ Each test script imports what it needs from `tests/lib/fxtest.py`. `tests/run.sh
 | `log_sweep(f0, f1, dur, amp_db=-12)` | An exponential sine sweep, plus its instantaneous frequency |
 | `transfer(x, y, nfft=16384)` | H1 transfer-function estimate (Welch-averaged cross-spectrum); returns `(f, H)` |
 | `harmonics(y, f0, n=10)` | Amplitudes of harmonics 1 to `n` over the last whole second. `f0` must be a whole number of hertz. |
+| `pluck(f0, dur, amp_db=-12, decay=0.5, n=8)` | A synthetic plucked note: harmonics 1 to `n` at 1/k amplitude, a 1 ms attack and an exponential decay. Use `n=1` to measure the harmonics an effect adds. |
+| `burst(f0, levels_db, durs)` | A tone stepping through `levels_db`, `durs` seconds each, with continuous phase (quiet, loud, quiet, say) |
+| `harmonics_over_time(y, f0, n=5, periods=4, hop=0.0025)` | Short-time DC and harmonics 1 to `n`; returns `(t, a)`, where `a[i, k]` is harmonic `k` (0 is DC) in the window centred at `t[i]` |
+| `harmonic_trajectory(f0, levels_db, n=7, **params)` | Steady-state harmonics of a sine at each input level: the cleanup curve |
 | `db(x)` | 20 log₁₀ \|x\|, floored at −240 dB |
 | `save_plot(fig, name)` | Save a matplotlib figure as `OUT/<name>.svg` |
 | `write_csv(name, header, rows)` | Save the data behind a plot as `OUT/<name>.csv` |
@@ -69,6 +73,8 @@ finish()
 | Frequency response at several settings | Checks the filters and EQ against the circuit notes |
 | Harmonic content | Checks the character of the nonlinearity against the reference measurements |
 | Aliasing, `RENDER` against `RENDER_1X` (if the effect oversamples) | Shows what the oversampling buys |
+
+Effects whose behaviour depends on time or playing level should also test it with the dynamic helpers: a cleanup curve, a quiet–loud–quiet burst and a pluck.
 
 ## Output formats
 
