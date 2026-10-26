@@ -3,7 +3,41 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/**"
+      - ".pre-commit-config.yaml"
+      - ".markdownlint-cli2.yaml"
+      - ".dockerignore"
+      - "Dockerfile"
+      - "Makefile"
+      - "pyproject.toml"
+      - "REUSE.toml"
+      - "LICENSE"
+      - "LICENSES/**"
+      - "**/*.md"
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
   pull_request:
+    paths:
+      - ".github/**"
+      - ".pre-commit-config.yaml"
+      - ".markdownlint-cli2.yaml"
+      - ".dockerignore"
+      - "Dockerfile"
+      - "Makefile"
+      - "pyproject.toml"
+      - "REUSE.toml"
+      - "LICENSE"
+      - "LICENSES/**"
+      - "**/*.md"
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
   workflow_dispatch:
 
 permissions:
