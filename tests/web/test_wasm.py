@@ -10,7 +10,9 @@ the demo page uses, and this script checks:
 * the peak stays at or below 0 dBFS with every control at its maximum, and at
   its minimum, on a full-scale input
 * the output matches the native renderer (build/<name>/render) at the
-  default, maximum and minimum settings, on a sine and a sweep
+  default, maximum and minimum settings, on a sine and a sweep, to within
+  MATCH_DB or, where the gain is high enough that float rounding alone moves
+  the native output by more than that, to within FLOAT_MARGIN_DB of that floor
 * the WebAssembly runs fast enough for an AudioWorklet
 
 The two builds come from different Faust compilers (the system Faust for the
@@ -36,6 +38,12 @@ RENDER_WASM = os.path.join(ROOT, "tools", "web", "render.mjs")
 # output's RMS. -60 dB is far below anything audible in an A/B, while still
 # catching a wrong control mapping, a missing stage or a sample-rate error.
 MATCH_DB = -60.0
+# Chosen: at high gain (BassPreamp with every control at maximum) a one-ulp
+# change to the input moves the native output by -50 to -60 dB on its own, so
+# two compilers' float rounding cannot be expected to agree better than that.
+# The limit is then this far above that measured floor. A wrong mapping, a
+# missing stage or a sample-rate error is still tens of dB above it.
+FLOAT_MARGIN_DB = 10.0
 # Chosen: silence must stay below this level (no DC offset, no noise source).
 SILENCE_DB = -120.0
 # Chosen: seconds of audio processed per second of compute, in Node. The
@@ -107,15 +115,28 @@ for name in EFFECTS:
     for setting, params in settings.items():
         for signal, x in signals.items():
             ref = render(x, binary=native, **params)
+            # The native build's own sensitivity to float rounding: the same
+            # input scaled by one ulp.
+            nudged = (np.asarray(x, dtype=np.float32) * np.float32(1 + 2**-23)).astype(np.float32)
+            floor = rms_db(render(nudged, binary=native, **params) - ref) - rms_db(ref)
+            limit = max(MATCH_DB, floor + FLOAT_MARGIN_DB)
             y, factor = render_wasm(name, x, **params)
             err = rms_db(y - ref) - rms_db(ref)
-            check(err <= MATCH_DB, f"{name}: {setting}, {signal}: wasm - native = {err:.1f} dB")
-            match_rows.append((name, setting, signal, err))
+            check(
+                err <= limit,
+                f"{name}: {setting}, {signal}: wasm - native = {err:.1f} dB "
+                f"(<= {limit:.1f}; float floor {floor:.1f})",
+            )
+            match_rows.append((name, setting, signal, err, floor))
             speed_rows.append((name, setting, signal, factor))
 
     slowest = min(f for n, *_, f in speed_rows if n == name)
     check(slowest >= MIN_REALTIME, f"{name}: runs at {slowest:.1f}x real time (>= {MIN_REALTIME}x)")
 
-write_csv("wasm_vs_native", ["effect", "setting", "signal", "difference_db"], match_rows)
+write_csv(
+    "wasm_vs_native",
+    ["effect", "setting", "signal", "difference_db", "float_floor_db"],
+    match_rows,
+)
 write_csv("realtime", ["effect", "setting", "signal", "realtime_factor"], speed_rows)
 finish()
