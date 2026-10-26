@@ -49,7 +49,9 @@ SETTINGS = {
 
 L = reported_latency()
 print(f"  reported latency {L} samples ({1000 * L / SR:.2f} ms at {SR} Hz)")
-check(0 <= L <= LATENCY_BUDGET, f"reported latency {L} samples within the budget of {LATENCY_BUDGET}")
+check(
+    0 <= L <= LATENCY_BUDGET, f"reported latency {L} samples within the budget of {LATENCY_BUDGET}"
+)
 
 rng = np.random.default_rng(3)
 x = rng.normal(0, 10 ** (-40 / 20), 4 * SR)
@@ -75,13 +77,16 @@ for name, params in SETTINGS.items():
         continue
     early = energy[:L].sum() / total
     peak = int(np.argmax(np.abs(h[: nfft // 2])))
-    check(early < EARLY_ENERGY, f"{name}: {100 * early:.4f} % of the energy arrives before {L} samples")
+    check(
+        early < EARLY_ENERGY,
+        f"{name}: {100 * early:.4f} % of the energy arrives before {L} samples",
+    )
     check(
         L <= peak <= L + PEAK_SLACK,
         f"{name}: strongest tap at {peak} samples ({peak - L:+d} from the report)",
     )
     hn = np.abs(h[lags]) / np.max(np.abs(h))
-    rows += [(name, int(k), float(v)) for k, v in zip(lags, hn)]
+    rows += [(name, int(k), float(v)) for k, v in zip(lags, hn, strict=True)]
     ax.plot(lags, 20 * np.log10(np.maximum(hn, 1e-6)), label=name)
 
 ax.axvline(L, color="k", ls="--", lw=1, label=f"reported latency ({L})")
@@ -92,5 +97,9 @@ ax.legend()
 fig.tight_layout()
 save_plot(fig, "latency")
 write_csv("latency", ("setting", "lag_samples", "magnitude_re_peak"), rows)
-write_csv("latency_report", ("reported_samples", "budget_samples", "sample_rate_hz"), [(L, LATENCY_BUDGET, SR)])
+write_csv(
+    "latency_report",
+    ("reported_samples", "budget_samples", "sample_rate_hz"),
+    [(L, LATENCY_BUDGET, SR)],
+)
 finish()

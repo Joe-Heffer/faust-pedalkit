@@ -52,7 +52,8 @@ for name, params in SETTINGS.items():
         rows.append((name, signal, ftz, 64, ns, rt, 100 / rt))
     check(
         rt_live >= MIN_REALTIME,
-        f"{name}: {rt_live:.0f}x real time on live signal, {100 / rt_live:.1f} % of a core at 48 kHz",
+        f"{name}: {rt_live:.0f}x real time on live signal, "
+        f"{100 / rt_live:.1f} % of a core at 48 kHz",
     )
     ratio = ns_tail / ns_live
     check(
