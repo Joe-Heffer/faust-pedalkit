@@ -33,11 +33,11 @@ function el(name, attrs = {}, parent = null) {
     return node;
 }
 
-const inPort = (block, port) => {
+const inputPort = (block, port) => {
     const n = BLOCKS[block.type].inputs.length;
     return { x: block.x, y: block.y + (H * (port + 1)) / (n + 1) };
 };
-const outPort = (block) => ({ x: block.x + W, y: block.y + H / 2 });
+const outputPort = (block) => ({ x: block.x + W, y: block.y + H / 2 });
 
 function wirePath(a, b) {
     const dx = Math.max(40, Math.abs(b.x - a.x) / 2);
@@ -70,8 +70,8 @@ export function createCanvas(svg, getGraph, { onSelect, onChange, onError }) {
         svg.replaceChildren();
         const wires = el("g", { class: "wires" }, svg);
         for (const w of graph.wires) {
-            const a = outPort(blockById(graph, w.from));
-            const b = inPort(blockById(graph, w.to), w.port);
+            const a = outputPort(blockById(graph, w.from));
+            const b = inputPort(blockById(graph, w.to), w.port);
             const d = wirePath(a, b);
             const selected = selection?.wire && selection.wire.from === w.from && selection.wire.to === w.to && selection.wire.port === w.port;
             const g = el("g", { class: `wire${selected ? " selected" : ""}`, "data-wire": JSON.stringify(w) }, wires);
@@ -79,7 +79,7 @@ export function createCanvas(svg, getGraph, { onSelect, onChange, onError }) {
             el("path", { d, class: "wire-line" }, g);
         }
         if (drag?.kind === "wire") {
-            const a = outPort(blockById(graph, drag.from));
+            const a = outputPort(blockById(graph, drag.from));
             el("path", { d: wirePath(a, drag.to), class: "wire-line pending" }, wires);
         }
 
@@ -99,14 +99,14 @@ export function createCanvas(svg, getGraph, { onSelect, onChange, onError }) {
             const sub = subtitle(block);
             if (sub) el("text", { x: W / 2, y: 41, class: "subtitle" }, g).textContent = sub;
             def.inputs.forEach((label, port) => {
-                const p = inPort(block, port);
+                const p = inputPort(block, port);
                 const pg = el("g", { class: "port in", "data-in": `${block.id}:${port}` }, g);
                 el("circle", { cx: p.x - block.x, cy: p.y - block.y, r: PORT_HIT, class: "port-hit" }, pg);
                 el("circle", { cx: p.x - block.x, cy: p.y - block.y, r: PORT_R }, pg);
                 if (def.inputs.length > 1) el("text", { x: 14, y: p.y - block.y + 4, class: "port-label" }, g).textContent = label;
             });
             if (def.outputs) {
-                const p = outPort(block);
+                const p = outputPort(block);
                 const pg = el("g", { class: "port out", "data-out": block.id }, g);
                 el("circle", { cx: p.x - block.x, cy: p.y - block.y, r: PORT_HIT, class: "port-hit" }, pg);
                 el("circle", { cx: p.x - block.x, cy: p.y - block.y, r: PORT_R }, pg);
