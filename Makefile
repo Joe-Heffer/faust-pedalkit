@@ -16,8 +16,8 @@
 #   make schematic-check    fail if a committed schematic differs from what its script generates
 #   make schematics   render each effect's KiCad schematic to SVG in build/schematics/<name>/
 #   make erc          run KiCad's electrical rules check on each effect's schematic
-#   make web          build the browser demo (WebAssembly and page) into build/web/
-#   make web-test     compare the browser build with the native renderer and time it
+#   make web          build the browser demo and effect designer into build/web/
+#   make web-test     compare the browser build with the native renderer, and test the designer
 #   make docs         build the documentation site into build/site (run `make test`, `make web` and `make schematics` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
@@ -234,15 +234,27 @@ erc:
 
 # The page in web/ lists the effects from effects.json and builds each one's
 # controls from its dsp-meta.json (the same description as `make describe`).
+# The effect designer (web/designer/, published as demo/designer/) compiles in
+# the browser, so it also gets libfaust and pedalkit.lib.
 web: $(foreach f,$(FX),$(WEB)/$(f)/dsp-module.wasm)
-	mkdir -p $(WEB)/faustwasm
+	mkdir -p $(WEB)/faustwasm $(WEB)/shared $(WEB)/designer/libfaust
 	cp web/index.html web/demo.js web/demo.css docs/assets/favicon.svg $(WEB)/
+	cp web/shared/*.js $(WEB)/shared/
+	cp web/designer/*.html web/designer/*.js web/designer/*.css src/lib/pedalkit.lib $(WEB)/designer/
 	cp $(FAUSTWASM)/dist/esm/index.js $(FAUSTWASM)/dist/esm/index.js.map $(FAUSTWASM)/COPYING.txt $(WEB)/faustwasm/
+	cp $(addprefix $(FAUSTWASM)/libfaust-wasm/libfaust-wasm.,js wasm data) $(FAUSTWASM)/COPYING.txt $(WEB)/designer/libfaust/
 	printf '[%s]\n' "$$(printf '"%s",' $(FX) | sed 's/,$$//')" > $(WEB)/effects.json
 
 # Compares the WebAssembly build with the native renderer, so it needs both.
+# Then checks the designer's code generator on tests/web/designer/*.json
+# (tests/web/test_designer.mjs), and compiles its committed example output
+# with the system Faust and the effect checklist's DSP checks.
+DESIGNER_EXAMPLES := $(wildcard tests/web/designer/*.dsp)
 web-test: web $(foreach f,$(FX),$(BUILD)/$(f)/render)
 	FX=web WEB_FX="$(FX)" NODE=$(NODE) PYTHONPATH=tests/lib python3 tests/web/test_wasm.py
+	$(NODE) --test tests/web/test_designer.mjs
+	for f in $(DESIGNER_EXAMPLES); do faust -I src/lib $(FAUSTFLAGS) $$f -o /dev/null || exit 1; done
+	python3 tools/check-effects.py --dsp-only $(DESIGNER_EXAMPLES)
 
 $(WEB_NODE): tools/web/package.json tools/web/package-lock.json
 	$(NPM) ci --prefix tools/web --no-audit --no-fund

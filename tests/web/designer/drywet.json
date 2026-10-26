@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "name": "Designer Dry Wet",
+  "description": "A waveshaper on one path, blended with the dry signal",
+  "blocks": [
+    { "id": "input", "type": "input", "title": "Input", "x": 40, "y": 160, "params": {} },
+    { "id": "output", "type": "output", "title": "Output", "x": 760, "y": 160, "params": {} },
+    { "id": "waveshaper1", "type": "waveshaper", "variant": "asym", "title": "Drive", "x": 300, "y": 240,
+      "params": { "drive": { "value": 0, "exposed": true }, "pos": { "value": 0, "exposed": false }, "neg": { "value": 0, "exposed": false } } },
+    { "id": "mix1", "type": "mix", "title": "Blend", "x": 560, "y": 160,
+      "params": { "balance": { "value": 50, "exposed": true } } }
+  ],
+  "wires": [
+    { "from": "input", "to": "mix1", "port": 0 },
+    { "from": "input", "to": "waveshaper1", "port": 0 },
+    { "from": "waveshaper1", "to": "mix1", "port": 1 },
+    { "from": "mix1", "to": "output", "port": 0 }
+  ]
+}

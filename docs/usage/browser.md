@@ -4,6 +4,8 @@
 
 The demo runs every effect in a web page, with nothing to install. It is the same Faust code as the LV2, VST3 and CLAP plugins, compiled to WebAssembly by [faustwasm](https://github.com/grame-cncm/faustwasm) and run in an [AudioWorklet](https://www.w3.org/TR/webaudio/#AudioWorklet), part of the W3C Web Audio standard. It works in current Firefox and Chromium-based browsers. A page address ending in `?fx=<name>`, such as `demo/index.html?fx=basspreamp`, opens with that effect selected.
 
+To build an effect of your own from blocks, try the [effect designer](designer.md), which uses the same audio sources and levels.
+
 ## Using it
 
 1. Choose an effect and a source:
@@ -22,7 +24,7 @@ The demo runs every effect in a web page, with nothing to install. It is the sam
 
 * `tools/web/package-lock.json` pins faustwasm (0.19.0, which bundles the Faust 2.90.0 compiler). `make web` installs it into `tools/web/node_modules/` with `npm ci`, so it needs Node.js and npm.
 * faustwasm's `faust2wasm.js` compiles each `src/<name>.dsp`, with `src/lib/` on the include path, into `build/web/<name>/dsp-module.wasm` and its description `dsp-meta.json`.
-* The page itself is `web/index.html`, `web/demo.js` and `web/demo.css`. It loads faustwasm's runtime (`faustwasm/index.js`), not the compiler, so the browser downloads about 250 kB of script and 20–30 kB of WebAssembly per effect.
+* The page itself is `web/index.html`, `web/demo.js` and `web/demo.css`, with the audio host, riffs and controls in `web/shared/`, which the [effect designer](designer.md) shares. It loads faustwasm's runtime (`faustwasm/index.js`), not the compiler, so the browser downloads about 250 kB of script and 20–30 kB of WebAssembly per effect.
 
 To try it locally, serve the folder over HTTP (AudioWorklet modules don't load from `file://`):
 

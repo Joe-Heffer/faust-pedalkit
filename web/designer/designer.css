@@ -1,0 +1,231 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Joe Heffer
+ * SPDX-License-Identifier: MIT
+ *
+ * Styles for the effect designer, on top of ../demo.css (colours, panels,
+ * controls).
+ */
+
+:root {
+  --block: #fff3e0;
+  --block-io: #eceff1;
+  --wire: #8d6e63;
+  --code-bg: #f3f3f3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --block: #3e2f2a;
+    --block-io: #333845;
+    --wire: #bcaaa4;
+    --code-bg: #1a1d24;
+  }
+}
+
+header,
+main,
+footer {
+  max-width: 1280px;
+}
+
+.panel.wide {
+  grid-column: 1 / -1;
+}
+
+input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  padding: 4px 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  color: var(--muted);
+}
+
+.palette {
+  display: contents;
+}
+
+.toolbar button,
+.toolbar .button {
+  margin-top: 0;
+  padding: 4px 12px;
+}
+
+/* A <label> that wraps a hidden file input, styled as a secondary button. */
+.button.secondary {
+  display: inline-block;
+  font: inherit;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.button.secondary:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1280 / 480;
+  margin: 12px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  touch-action: none;
+  user-select: none;
+}
+
+.canvas:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.block rect {
+  fill: var(--block);
+  stroke: var(--border);
+  stroke-width: 2;
+  cursor: grab;
+}
+
+.block-input rect,
+.block-output rect {
+  fill: var(--block-io);
+}
+
+.block.selected rect {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.block text {
+  fill: var(--text);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.block .title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.block .subtitle {
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.block .port-label {
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.port circle {
+  fill: var(--panel);
+  stroke: var(--wire);
+  stroke-width: 2;
+  cursor: crosshair;
+}
+
+.port .port-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.port:hover circle:not(.port-hit) {
+  fill: var(--accent);
+}
+
+.wire-line {
+  fill: none;
+  stroke: var(--wire);
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.wire-line.pending {
+  stroke-dasharray: 6 4;
+}
+
+.wire.selected .wire-line {
+  stroke: var(--accent);
+  stroke-width: 4;
+}
+
+.wire-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  cursor: pointer;
+}
+
+.warnings {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.param {
+  margin-bottom: 12px;
+}
+
+.param .expose {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+dialog {
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+dialog pre {
+  max-height: 60vh;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  background: var(--code-bg);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  /* Taller canvas on a phone, scrolled sideways inside its panel. */
+  .canvas {
+    width: 200%;
+    max-width: none;
+  }
+
+  .panel.wide {
+    overflow-x: auto;
+  }
+}
