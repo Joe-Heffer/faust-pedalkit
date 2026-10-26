@@ -36,9 +36,35 @@ LATENCY_BUDGET = 128
 # after the reported latency (measured); a missing 4x oversampler would add 32.
 PEAK_SLACK = 24
 
-# Chosen: the oversampler's windowed-sinc pre-ringing puts at most 4e-5 of
-# the energy before its centre (measured); an unaligned dry path puts far more.
+# Chosen: an unaligned dry path puts far more than this before the report
+# (half the energy at equal level, 1e-2 at 20 dB down), the oversampler's own
+# pre-ringing far less once band-limited (below).
 EARLY_ENERGY = 1e-3
+
+# Chosen: the early energy is measured below EARLY_BAND_HZ, through a causal
+# Butterworth low-pass of order EARLY_BAND_ORDER. The oversampler's linear-phase
+# decimator is -2.3 dB at 20 kHz and -16 dB at 22 kHz, and rings symmetrically
+# there: with full-band noise and nothing after it to darken the top octave
+# (BassGrit's Filter at 0), 5 % of the energy arrives before its centre. Below
+# 16 kHz it is flat, and that ringing falls to 1e-8 (calculated from its taps).
+# A causal filter only delays energy, so it cannot hide an early dry path.
+EARLY_BAND_HZ = 16000
+EARLY_BAND_ORDER = 8
+
+
+def butterworth_lowpass(f, fc, order):
+    """Response at frequencies f of a causal Butterworth low-pass (bilinear, prewarped)."""
+    zi = np.exp(-2j * np.pi * f / SR)
+    k = np.tan(np.pi * fc / SR)
+    resp = np.ones_like(zi)
+    for i in range(order // 2):
+        q = 1 / (2 * np.cos(np.pi * (2 * i + 1) / (2 * order)))
+        n = 1 / (1 + k / q + k * k)
+        a1 = 2 * (k * k - 1) * n
+        a2 = (1 - k / q + k * k) * n
+        resp *= k * k * n * (1 + zi) ** 2 / (1 + a1 * zi + a2 * zi * zi)
+    return resp
+
 
 ctl = controls()
 SETTINGS = {
@@ -69,8 +95,10 @@ for name, params in SETTINGS.items():
         X = np.fft.rfft(win * x[i : i + nfft])
         sxy += np.fft.rfft(win * y[i : i + nfft]) * np.conj(X)
         sxx += np.abs(X) ** 2
-    h = np.fft.irfft(sxy / np.maximum(sxx, 1e-30), nfft)
-    energy = h**2
+    hf = sxy / np.maximum(sxx, 1e-30)
+    h = np.fft.irfft(hf, nfft)
+    band = butterworth_lowpass(np.fft.rfftfreq(nfft, 1 / SR), EARLY_BAND_HZ, EARLY_BAND_ORDER)
+    energy = np.fft.irfft(hf * band, nfft) ** 2
     total = energy[: nfft // 2].sum()
     if total <= 0 or not np.isfinite(total):
         check(False, f"{name}: no measurable impulse response")
@@ -79,7 +107,8 @@ for name, params in SETTINGS.items():
     peak = int(np.argmax(np.abs(h[: nfft // 2])))
     check(
         early < EARLY_ENERGY,
-        f"{name}: {100 * early:.4f} % of the energy arrives before {L} samples",
+        f"{name}: {100 * early:.4f} % of the energy below {EARLY_BAND_HZ // 1000} kHz"
+        f" arrives before {L} samples",
     )
     check(
         L <= peak <= L + PEAK_SLACK,

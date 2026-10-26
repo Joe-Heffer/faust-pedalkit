@@ -21,12 +21,13 @@ Studying classic hardware is part of the method rather than the goal. Clean-room
 - **Circuit-inspired:** a real circuit deliberately taken somewhere it couldn't go.
 - **Modelled:** a measured, sourced model of one device, written up in circuit notes.
 
-Two of the three effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
+Two of the four effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
 
 | Effect | Kind | Description | Notes |
 |---|---|---|---|
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
+| **BassGrit** (`src/bassgrit.dsp`) | Circuit-inspired | Hard-clipping op-amp distortion for bass (Distortion, Filter, Level, Low Blend, Crossover) with a 4th-order split that keeps the low band clean | [circuit notes](docs/bassgrit/circuit-notes.md), [design notes](docs/bassgrit/design-notes.md) |
 | **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend and a Bloom (bias shift) control that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
 > [!NOTE]
@@ -232,6 +233,18 @@ All three hosts below find plugins in `~/.lv2` once `make install` has run. For 
 | Bloom | 0 to 100 % | 0 % | Bias shift: hard playing pushes the diodes off centre, adding second harmonic that builds up over tens of milliseconds and fades after the note. 0 is the circuit as published. |
 
 MidHump ships four factory presets, loudness-matched on a −12 dBFS guitar line: **Edge of Breakup** (Drive 10, Tone 40), **Mid Hump** (the defaults), **Lead** (Drive 100, Tone 65) and **Bass Grind** (Drive 60, Tone 40, Blend 100). They live in `src/midhump.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/midhump/index.md). The values behind it are in the [circuit notes](docs/midhump/circuit-notes.md) and [design notes](docs/midhump/design-notes.md).
+
+## BassGrit controls
+
+| Control | Range | Default | What it does |
+|---|---|---|---|
+| Distortion | 0 to 100 % | 50 % | Gain of the op-amp stage (audio taper); higher settings also lower its bandwidth |
+| Filter | 0 to 100 % | 30 % | Low-pass after the diodes, 22.6 kHz down to 334 Hz; turn up to darken |
+| Level | −40 to +12 dB | 0 dB | Output level |
+| Low Blend | 0 to 100 % | 70 % | Clean signal below the Crossover. 100 % is flat at Distortion 0. |
+| Crossover | 40 to 400 Hz | 120 Hz | Below this the signal bypasses the clipper |
+
+BassGrit ships six factory presets, loudness-matched on a −12 dBFS bass line: **Edge of Grit** (Distortion 20), **Mid Grit** (the defaults, Level −5.5), **Full Grit** (Distortion 100, Low Blend 50), **Clean Sub** (Crossover 200, Low Blend 100), **Dark Growl** (Filter 80) and **Five-String** (Crossover 70). They live in `src/bassgrit.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/bassgrit/index.md). The values behind it are in the [circuit notes](docs/bassgrit/circuit-notes.md) and [design notes](docs/bassgrit/design-notes.md).
 
 ## BassDrive controls
 

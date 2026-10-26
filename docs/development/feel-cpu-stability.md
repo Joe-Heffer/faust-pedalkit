@@ -13,7 +13,7 @@ This page sets out the rules for each, the budgets an effect has to meet, and wh
 | Concern | Check | Limit | Runs in |
 |---|---|---|---|
 | Latency is small | `tests/common/test_latency.py` | reported latency ≤ 128 samples at 48 kHz | `make test` |
-| Latency is reported honestly | `tests/common/test_latency.py` | < 0.1 % of the impulse response's energy before the reported latency, strongest tap ≤ 24 samples after it | `make test` |
+| Latency is reported honestly | `tests/common/test_latency.py` | < 0.1 % of the impulse response's energy below 16 kHz before the reported latency, strongest tap ≤ 24 samples after it | `make test` |
 | The host compensates it | lv2lint, pluginval, clap-validator | latency port, `getLatencySamples()`, latency extension | `make lint pluginval clap-validate` |
 | Low CPU per instance | `tests/common/test_cpu.py` | ≥ 20 times real time on noise, in 64-sample blocks | `make test` |
 | No subnormal slow-down on silence | `tests/common/test_cpu.py` | a decaying tail costs ≤ 3 times live signal, without flush-to-zero | `make test` |
@@ -44,7 +44,7 @@ The limits are chosen values, explained next to each constant in the test. Each 
 * **Spend oversampling where it is heard.** Put every nonlinearity inside `pk.oversample4(f)`, so the harmonics it generates don't fold back as inharmonic fizz. The 4x rate is what lets an effect stay bright without aliasing: don't low-pass the output to hide aliasing instead, which is what makes a plug-in sound dull. The per-effect aliasing test (`RENDER` against `RENDER_1X`) shows what the oversampling buys.
 * **One oversampler per run of nonlinearities.** Waveshapers that follow each other with no filter between them can share one call, `pk.oversample4(shapeA : shapeB)`, for one 32-sample delay instead of two. A filter between two stages forces two calls, because `f` must be memoryless. That is why BassPreamp has 64 samples.
 * **Report the latency from the same constant that aligns the dry path.** BassPreamp defines `latencySamples = 2 * pk.os4Latency` once and uses it both for the clean path's delay and for the `Latency` bargraph, so the two cannot drift apart. Do the same when you add a stage.
-* **Align every parallel path.** A dry, clean or side path that meets an oversampled path is delayed by the same amount, or the blend comb-filters and the attack smears. `test_latency.py` fails if more than 0.1 % of the energy arrives before the reported latency, which is what an unaligned path looks like.
+* **Align every parallel path.** A dry, clean or side path that meets an oversampled path is delayed by the same amount, or the blend comb-filters and the attack smears. `test_latency.py` fails if more than 0.1 % of the energy below 16 kHz arrives before the reported latency, which is what an unaligned path looks like. It leaves out the top octave, where the oversampler's own linear-phase decimator rings symmetrically about its centre; an effect with nothing after the oversampler to darken it (BassGrit with Filter at 0) would otherwise show 1 to 5 % of its energy early with every path aligned.
 * **No look-ahead without a reason in the notes.** A limiter or compressor with look-ahead, or a linear-phase EQ, adds its delay to the budget. It must be reported, and the notes must say why the player gains more than they lose.
 
 ### Checking it by ear

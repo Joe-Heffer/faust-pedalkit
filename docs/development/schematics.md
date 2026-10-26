@@ -11,6 +11,7 @@ The schematics so far:
 | [BassDrive](../bassdrive/circuit-notes.md) | 8 | No public schematic of the reference pedal; mostly inferred and chosen |
 | [BassPreamp](../basspreamp/circuit-notes.md) | 8 | A public trace of the earlier version, with its designators; a chosen stand-in for the later version's EQ |
 | [MidHump](../midhump/circuit-notes.md) | 6 | Published analyses of the reference circuit, plus MidHump's Blend and its modelled tone stage |
+| [BassGrit](../bassgrit/circuit-notes.md) | 7 | A public parts list and schematic, plus BassGrit's band split (an analogue stand-in) and Low Blend |
 
 ## Generated from a script
 

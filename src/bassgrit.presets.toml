@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Factory presets for BassGrit. tools/presets.py builds this file into the
+# LV2 bundle (presets.ttl) and into the VST3 and CLAP plugins (presets.h), and
+# tests/bassgrit/test_presets.py renders each one.
+#
+# Keys under `controls` are the UI labels from src/bassgrit.dsp. Every preset
+# sets every control, because an LV2 host leaves unlisted controls where they
+# were.
+#
+# The control settings are chosen starting points, not measurements of the
+# reference pedal, and nobody has listened to them. Level is chosen per preset
+# so that a -12 dBFS plucked bass line (low B to G2) comes out within about
+# 1 dB of "Edge of Grit" (measured by test_presets.py), so switching presets
+# doesn't jump in loudness.
+
+[[preset]]
+name = "Edge of Grit"
+comment = "Low Distortion with a dark-ish Filter: a little bite on top of a full low end."
+[preset.controls]
+Distortion = 20
+Filter = 25
+Level = 0
+"Low Blend" = 70
+Crossover = 120
+
+[[preset]]
+name = "Mid Grit"
+comment = "The plugin's default settings, with Level turned down to match the other presets."
+[preset.controls]
+Distortion = 50
+Filter = 30
+Level = -5.5
+"Low Blend" = 70
+Crossover = 120
+
+[[preset]]
+name = "Full Grit"
+comment = "Full Distortion, with the lows half clean. Aliasing is highest here (see the effect page)."
+[preset.controls]
+Distortion = 100
+Filter = 40
+Level = -8.2
+"Low Blend" = 50
+Crossover = 120
+
+[[preset]]
+name = "Clean Sub"
+comment = "High Distortion above a 200 Hz split, with the full clean low band: 31 Hz to 55 Hz fundamentals stay within about 1 dB of the unclipped level."
+[preset.controls]
+Distortion = 70
+Filter = 30
+Level = -6.3
+"Low Blend" = 100
+Crossover = 200
+
+[[preset]]
+name = "Dark Growl"
+comment = "High Distortion with the Filter turned well down, for a dull, woolly growl."
+[preset.controls]
+Distortion = 80
+Filter = 80
+Level = -6.6
+"Low Blend" = 60
+Crossover = 100
+
+[[preset]]
+name = "Five-String"
+comment = "Lower 70 Hz split so a low B (31 Hz) and its first harmonic stay clean."
+[preset.controls]
+Distortion = 60
+Filter = 30
+Level = -6.9
+"Low Blend" = 80
+Crossover = 70
