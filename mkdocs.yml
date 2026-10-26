@@ -31,6 +31,8 @@ site_dir: build/site
 theme:
   name: material
   language: en
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
   icon:
     repo: fontawesome/brands/github
   palette:
@@ -122,5 +124,6 @@ nav:
       - Schematics: development/schematics.md
       - Linting and CI: development/ci.md
       - Releasing: development/releasing.md
+      - Logo: development/logo.md
   - Where this project sits: ecosystem.md
   - About: about.md
