@@ -21,7 +21,26 @@ A hard-clipping distortion for bass. It borrows the sound of a classic op-amp di
 | Low Blend | 0 to 100 % | 70 % | Clean signal below the Crossover. 100 % makes the response flat at Distortion 0. |
 | Crossover | 40 to 400 Hz | 120 Hz | Below this the signal bypasses the clipper (4th-order Linkwitz-Riley) |
 
-Every control is smoothed. The plugin also has a read-only *Latency* output for the host. There are no factory presets yet.
+Every control is smoothed. The plugin also has a read-only *Latency* output for the host. The LV2, VST3 and CLAP plugins ship with [six factory presets](#presets).
+
+## Presets
+
+The LV2, VST3 and CLAP plugins all ship with the same factory presets. They are starting points chosen by measurement, not by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line (low B to G2) comes out within 0.05 dB of "Edge of Grit" (K-weighted), so switching presets doesn't jump in loudness.
+
+| Preset | Distortion | Filter | Level | Low Blend | Crossover | Idea |
+|---|---|---|---|---|---|---|
+| Edge of Grit | 20 | 25 | 0 | 70 | 120 | A little bite on top of a full low end |
+| Mid Grit | 50 | 30 | −5.5 | 70 | 120 | The default settings, with Level turned down to match the others |
+| Full Grit | 100 | 40 | −8.2 | 50 | 120 | Full Distortion with the lows half clean (the most aliasing) |
+| Clean Sub | 70 | 30 | −6.3 | 100 | 200 | Driven highs over a clean low band: 31 Hz to 55 Hz fundamentals stay within about 1 dB of the unclipped level |
+| Dark Growl | 80 | 80 | −6.6 | 60 | 100 | High Distortion with the Filter well down, for a dull, woolly growl |
+| Five-String | 60 | 30 | −6.9 | 80 | 70 | A 70 Hz split so a low B (31 Hz) stays clean |
+
+Levels are in dB, the rest in %. The presets live in [`src/bassgrit.presets.toml`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/bassgrit.presets.toml). Nobody has listened to them. The clipper adds a lot of fundamental at the default Crossover (about +3 dB at 55 Hz at Distortion 50, +11 dB at Distortion 100), so the louder presets "fill in" the lowest octave by clipping it. Only the higher Crossover settings keep it clean.
+
+[![Long-term third-octave spectrum of a plucked bass line through each preset](../measurements/bassgrit/presets_spectrum.svg)](../measurements/bassgrit/presets_spectrum.svg "Open the full-size plot")
+
+Data: [`presets_spectrum.csv`](../measurements/bassgrit/presets_spectrum.csv) (`preset, band_hz, level_db`) and [`presets_levels.csv`](../measurements/bassgrit/presets_levels.csv) (`preset, loudness_rel_db, peak_dbfs, square_peak_dbfs`).
 
 ## Signal path
 
@@ -35,7 +54,13 @@ in → DC blocker (5 Hz)
 → sum → × 1.2 → Level → safety limiter (≤ −0.1 dBFS) → out
 ```
 
-The schematic is not drawn yet; see [known limitations](#known-limitations).
+The [schematic](../development/schematics.md) redraws this as analogue stages, one sheet per section of the [circuit notes](circuit-notes.md), plus the band split of the [design notes](design-notes.md). It draws the model: the DC blocker stands in for the pedal's input network, the Filter capacitor is 4.7 nF, and the band split and Low Blend are stand-ins with no circuit behind them. The root sheet:
+
+![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/bassgrit/bassgrit.svg)
+
+The gain stage (sheet 4), where every value is reported from a public parts list and schematic:
+
+![Sheet 4: the gain stage](../schematics/bassgrit/bassgrit-4-gain-stage.svg)
 
 ## Measured behaviour
 
@@ -89,8 +114,9 @@ These values are chosen or inferred, and nothing has been listened to. The const
 
 ## Known limitations
 
-- **Component values are unchecked.** The [circuit notes](circuit-notes.md) were written without access to a schematic. Several values are recalled, not sourced.
-- **No schematic yet.** KiCad was not available when this effect was written.
+- **Gain-bandwidth product is inferred.** The component values and wiring are reported from a public parts list and schematic (source 6 of the [circuit notes](circuit-notes.md)), but the LM308's GBW with its 30 pF compensation capacitor (`GBW`, 1 MHz) is an order of magnitude only, and the ElectroSmash analysis could not be reached.
+- **Not modelled:** the pedal's 34 Hz coupling high-pass (C7 with R6) while the diodes conduct, the input buffer, and the LM308's rail and slew limits.
+- **The schematic draws the model, not the pedal.** The band split and Low Blend have no circuit behind them, so they are standard analogue stand-ins, all chosen.
 - **Not a circuit simulation.** The diodes are a static knee, and the op-amp's rail and slew limits are not modelled.
 - **Full Distortion is not alias-clean above about 500 Hz.**
 - **At Distortion 100 the lowest octave is not fully clean:** the clipper's gain from 60 Hz leaves a lift of only 3.4 dB from Low Blend at 30 to 60 Hz.

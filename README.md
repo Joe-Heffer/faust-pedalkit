@@ -243,7 +243,7 @@ MidHump ships four factory presets, loudness-matched on a −12 dBFS guitar line
 | Low Blend | 0 to 100 % | 70 % | Clean signal below the Crossover. 100 % is flat at Distortion 0. |
 | Crossover | 40 to 400 Hz | 120 Hz | Below this the signal bypasses the clipper |
 
-BassGrit has no factory presets yet. Measurements and what to tune by ear are on [its page](docs/bassgrit/index.md). The values behind it are in the [circuit notes](docs/bassgrit/circuit-notes.md) (unchecked against a schematic) and [design notes](docs/bassgrit/design-notes.md).
+BassGrit ships six factory presets, loudness-matched on a −12 dBFS bass line: **Edge of Grit** (Distortion 20), **Mid Grit** (the defaults, Level −5.5), **Full Grit** (Distortion 100, Low Blend 50), **Clean Sub** (Crossover 200, Low Blend 100), **Dark Growl** (Filter 80) and **Five-String** (Crossover 70). They live in `src/bassgrit.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/bassgrit/index.md). The values behind it are in the [circuit notes](docs/bassgrit/circuit-notes.md) and [design notes](docs/bassgrit/design-notes.md).
 
 ## BassDrive controls
 

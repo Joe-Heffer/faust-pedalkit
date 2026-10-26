@@ -33,6 +33,10 @@ Measurable description:
 | Clean low band, delayed by `pk.os4Latency` | Same pattern as BassDrive and MidHump |
 | Output safety limiter | Reused (`pk.safety`) |
 
+The band split has no circuit behind it, so the schematic draws a standard analogue stand-in (sheet 8: four unity-gain Sallen-Key sections, all chosen):
+
+![Sheet 8: the band split](../schematics/bassgrit/bassgrit-8-band-split.svg)
+
 Nothing here is general enough to move into `pedalkit.lib` yet. MidHump and BassGrit now both use the "input plus branch" structure, so a shared `opampBranch` helper is a candidate if a third effect needs it.
 
 ## 4. Constants

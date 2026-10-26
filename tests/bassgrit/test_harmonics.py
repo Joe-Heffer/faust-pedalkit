@@ -52,7 +52,9 @@ for ax, f0 in zip(axes[:2], (110, 220), strict=True):
         )
         if d == 100:
             ratio = db(even / max(odd, 1e-12))
-            check(ratio < -30, f"{f0} Hz Distortion 100: even/odd {ratio:+.1f} dB (< -30, symmetric)")
+            check(
+                ratio < -30, f"{f0} Hz Distortion 100: even/odd {ratio:+.1f} dB (< -30, symmetric)"
+            )
     ax.set_title(f"Harmonics of {f0} Hz, -12 dBFS in, Filter 30%")
     ax.set_xlabel("harmonic number")
     ax.set_ylabel("level relative to fundamental (dB)")

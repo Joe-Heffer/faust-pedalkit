@@ -4,7 +4,19 @@
 
 import numpy as np
 
-from fxtest import SR, check, db, finish, harmonics, plt, render, save_plot, sine, transfer, write_csv
+from fxtest import (
+    SR,
+    check,
+    db,
+    finish,
+    harmonics,
+    plt,
+    render,
+    save_plot,
+    sine,
+    transfer,
+    write_csv,
+)
 
 print("test_targets")
 rng = np.random.default_rng(11)
@@ -27,7 +39,10 @@ y = render(small, Distortion=0, Filter=0, **{BL: 100})
 f, H = transfer(small, y)
 band = (f > 30) & (f < 8000)
 dev = np.abs(db(H[band]) - OUT_TRIM_DB)
-check(np.max(dev) < 1.0, f"1. Distortion 0 is flat within {np.max(dev):.2f} dB of outTrim, 30 Hz-8 kHz (< 1)")
+check(
+    np.max(dev) < 1.0,
+    f"1. Distortion 0 is flat within {np.max(dev):.2f} dB of outTrim, 30 Hz-8 kHz (< 1)",
+)
 rows.append(("flat_deviation_db", np.max(dev)))
 
 # 2. The fundamental of a low note stays in the clean band: 41 Hz gain at
@@ -42,6 +57,7 @@ check(abs(low_shift) < 3, f"2. 41 Hz moves {low_shift:+.1f} dB from Distortion 0
 check(mid_shift > 25, f"2. 1 kHz rises {mid_shift:+.1f} dB from Distortion 0 to 50 (> 25)")
 rows += [("low_shift_db", low_shift), ("mid_shift_db", mid_shift)]
 
+
 # 3. The split is what keeps a low note clean: 41 Hz at -12 dBFS, Distortion 50,
 #    has at least 20 dB less harmonic distortion at Crossover 120 Hz than at 40 Hz.
 def thd(xover):
@@ -51,7 +67,10 @@ def thd(xover):
 
 
 t120, t40 = thd(120), thd(40)
-check(t40 - t120 >= 20, f"3. 41 Hz THD {t120:.1f} dB at 120 Hz vs {t40:.1f} dB at 40 Hz (>= 20 dB better)")
+check(
+    t40 - t120 >= 20,
+    f"3. 41 Hz THD {t120:.1f} dB at 120 Hz vs {t40:.1f} dB at 40 Hz (>= 20 dB better)",
+)
 rows += [("thd_41hz_crossover120_db", t120), ("thd_41hz_crossover40_db", t40)]
 
 # 4. Small-signal gain at 1 kHz runs from about 0 dB at Distortion 0 to above
@@ -59,14 +78,21 @@ rows += [("thd_41hz_crossover120_db", t120), ("thd_41hz_crossover40_db", t40)]
 y100 = render(small, Distortion=100, Filter=0, **{BL: 100})
 _, H100 = transfer(small, y100)
 g0, g100 = gain_at(f, H0, 1000), gain_at(f, H100, 1000)
-check(g0 < 3 and g100 > 45, f"4. 1 kHz gain {g0:.1f} dB at Distortion 0 to {g100:.1f} dB at 100 (< 3, > 45)")
+check(
+    g0 < 3 and g100 > 45,
+    f"4. 1 kHz gain {g0:.1f} dB at Distortion 0 to {g100:.1f} dB at 100 (< 3, > 45)",
+)
 rows += [("gain_1k_d0_db", g0), ("gain_1k_d100_db", g100)]
 
 # 5. The gain-bandwidth pole: at Distortion 100 the response has fallen at least
 #    6 dB from its 1 kHz value by 5 kHz, and at Distortion 50 by less.
 d100 = gain_at(f, H100, 5000) - gain_at(f, H100, 1000)
 d50 = gain_at(f, H50, 5000) - gain_at(f, H50, 1000)
-check(d100 < -6 and d50 > d100 + 3, f"5. 5 kHz relative to 1 kHz: {d100:+.1f} dB at Distortion 100, {d50:+.1f} dB at 50 (< -6 and 3 dB apart)")
+check(
+    d100 < -6 and d50 > d100 + 3,
+    f"5. 5 kHz relative to 1 kHz: {d100:+.1f} dB at Distortion 100, "
+    f"{d50:+.1f} dB at 50 (< -6 and 3 dB apart)",
+)
 rows += [("roll_5k_d100_db", d100), ("roll_5k_d50_db", d50)]
 
 # 6. Filter: the response at Filter 100 over Filter 0 follows the analytic
@@ -81,7 +107,10 @@ fc0, fc1 = 1 / (2 * np.pi * Rs * Cf), 1 / (2 * np.pi * (Rs + 100e3) * Cf)
 expect = np.sqrt((1 + (fb / fc0) ** 2) / (1 + (fb / fc1) ** 2))
 meas = np.abs(HF1[(f > 100) & (f < 5000)] / HF0[(f > 100) & (f < 5000)])
 err = float(np.max(np.abs(db(meas / expect))))
-check(err < 0.7, f"6. Filter 100/Filter 0 ratio within {err:.2f} dB of analytic, corner {fc1:.0f} Hz (< 0.7)")
+check(
+    err < 0.7,
+    f"6. Filter 100/Filter 0 ratio within {err:.2f} dB of analytic, corner {fc1:.0f} Hz (< 0.7)",
+)
 rows.append(("filter_ratio_error_db", err))
 
 # 7. Low Blend restores the low band at playing level: at -20 dBFS and
@@ -95,7 +124,9 @@ for d in (50, 100):
     low = (fl > 30) & (fl < 60)
     rise = float(np.mean(db(L1[low])) - np.mean(db(L0[low])))
     if d == 50:
-        check(rise >= 6, f"7. Low Blend 100 lifts 30-60 Hz by {rise:+.1f} dB at Distortion 50 (>= 6)")
+        check(
+            rise >= 6, f"7. Low Blend 100 lifts 30-60 Hz by {rise:+.1f} dB at Distortion 50 (>= 6)"
+        )
     else:
         print(f"  7. (reported) lift at Distortion 100: {rise:+.1f} dB")
     rows.append((f"blend_lift_d{d}_db", rise))
@@ -108,7 +139,10 @@ for lv in levels:
     hk = harmonics(render(sine(1000, 2, lv), Distortion=25, Filter=0), 1000, 1)
     amps.append(float(db(hk[0])))
 steps = [b - a for a, b in zip(amps, amps[1:], strict=False)]
-check(all(s > 0 for s in steps) and steps[-1] < 6, f"8. 10 dB input steps give {[round(s, 1) for s in steps]} dB at 1 kHz (all > 0, last < 6)")
+check(
+    all(s > 0 for s in steps) and steps[-1] < 6,
+    f"8. 10 dB input steps give {[round(s, 1) for s in steps]} dB at 1 kHz (all > 0, last < 6)",
+)
 rows.append(("compression_last_step_db", steps[-1]))
 
 fig, ax = plt.subplots(figsize=(7, 4.5), constrained_layout=True)

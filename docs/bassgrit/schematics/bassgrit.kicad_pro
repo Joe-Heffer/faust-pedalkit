@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "filename": "bassgrit.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "1e10b52f-0fad-5b40-9248-8732b6c5610f",
+      "Root"
+    ],
+    [
+      "751a906f-e8be-547e-ae41-5176a6da54b0",
+      "1 Supply and bias"
+    ],
+    [
+      "a6869261-1cdd-52b0-912e-fe28b5f008ef",
+      "3 Input coupling"
+    ],
+    [
+      "2980f236-0513-53a8-9c8c-6ca27a871bd1",
+      "4 Gain stage"
+    ],
+    [
+      "310d2c43-e902-5451-9d30-816a0222d9a0",
+      "5 Diodes"
+    ],
+    [
+      "ad40d4b4-84da-56d9-8b46-86f813f53fed",
+      "6 Filter"
+    ],
+    [
+      "96f6adec-10a8-567d-bd0c-f84adc2fe075",
+      "7 Level and Low Blend"
+    ],
+    [
+      "980f8b32-963d-5fae-a6f3-aaf5fa6ed979",
+      "8 Band split"
+    ]
+  ],
+  "text_variables": {}
+}

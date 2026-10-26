@@ -40,7 +40,7 @@ pk = library("pedalkit.lib");
 
 dist  = hslider("[0]Distortion [unit:%] [tooltip:Gain of the op-amp stage]",
                 50, 0, 100, 0.1) / 100 : si.smoo;
-filt  = hslider("[1]Filter [unit:%] [tooltip:0 = bright, 100 = dark (as on the pedal it follows)]",
+filt  = hslider("[1]Filter [unit:%] [tooltip:0 = bright, 100 = dark, as on the pedal it follows]",
                 30, 0, 100, 0.1) / 100 : si.smoo;
 level = hslider("[2]Level [unit:dB] [tooltip:Output level]",
                 0, -40, 12, 0.1) : si.smoo;
@@ -53,14 +53,14 @@ xover = hslider("[4]Crossover [unit:Hz] [tooltip:Below this the signal bypasses 
 // Constants (confidence of each is in the notes: reported, inferred or chosen).
 //============================================================================
 
-// Gain stage (reported): non-inverting, gain 1 + Zf/Zg. The grounded side is
+// Gain stage (reported, circuit notes [6]): non-inverting, gain 1 + Zf/Zg. The grounded side is
 // two RC legs in parallel; the feedback side is a pot in parallel with a cap.
 RA       = 47;        // leg A resistor
 CA       = 2.2e-6;    // leg A capacitor, corner about 1.54 kHz
 RB       = 560;       // leg B resistor
 CB       = 4.7e-6;    // leg B capacitor, corner about 60 Hz
-Rpot     = 100e3;     // Distortion pot
-Cf       = 100e-12;   // feedback capacitor
+Rpot     = 100e3;     // Distortion pot (reported [6]: A100K)
+Cf       = 100e-12;   // feedback capacitor (reported [6]: C5)
 // Gain-bandwidth product of the op-amp with its compensation capacitor
 // (inferred: of the order of 1 MHz; the real part varies between samples).
 GBW      = 1e6;
@@ -77,12 +77,12 @@ gainHF   = 1 + Rf / (RA * RB / (RA + RB));
 fcFb     = min(1 / (2 * ma.PI * max(Rf, 1) * Cf), 0.45 * ma.SR);
 fcGbw    = min(GBW / gainHF, 0.45 * ma.SR);
 
-// Diode pair after a series resistor (reported: silicon switching diodes).
+// Diode pair after a series resistor (reported [6]: 1N914 diodes, 1 kOhm R6).
 // kneeClip is a hard but not perfect knee; Vd is where it limits (chosen).
 Vd       = 0.6;
 nKnee    = 4;         // knee hardness (chosen: harder than tanh, softer than a clamp)
 
-// Filter (reported corners, chosen capacitor): series 1.5 kOhm + pot into a
+// Filter (reported corners [6], chosen capacitor): series 1.5 kOhm + pot into a
 // capacitor to ground. The pedal uses 3.3 nF (475 Hz to 32 kHz); 4.7 nF moves
 // the range down to about 340 Hz to 22 kHz (chosen, for bass).
 Rs       = 1.5e3;
