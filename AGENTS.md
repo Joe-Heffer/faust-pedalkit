@@ -32,6 +32,7 @@ Prefer the first two when you have the choice. When you build a model, say what 
      - the block diagram, and which blocks are new and which are reused (from `pedalkit.lib` or another effect)
      - each block's constants, with the confidence level and intent of each
      - the measurable targets that will show the idea works (a harmonic profile, a response shape, a modulation depth)
+     - dynamics and feel: how it responds to playing strength and over the life of a note, as targets the tests can check (`docs/development/designing-for-feel.md`)
      - prior art and inspirations, with links, as a numbered source list
      - open questions, especially the ones only listening can answer
    - **Modelled effects, or the borrowed part of a circuit-inspired one:** write `docs/<name>/circuit-notes.md`, using `docs/bassdrive/circuit-notes.md` as the template:
@@ -48,7 +49,7 @@ Prefer the first two when you have the choice. When you build a model, say what 
    - If the effect adds latency (e.g. via `pk.oversample4`), report it: attach `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` fed with the delay, as `src/bassdrive.dsp` does.
    - Sliders: `hslider("[n]Label [unit:dB] [tooltip:...]", default, min, max, step) : si.smoo`. Every control gets a unit, a sensible range and default, and smoothing. The `[n]` prefix fixes the order. Test scripts address sliders by their label, e.g. `Gain=80`.
    - Put the constants (circuit values and design choices alike) at the top as named values, each with a comment saying where it came from or what it is for.
-   - Put every nonlinearity inside `pk.oversample4(f)`. `f` **must be memoryless** (a pure waveshaper), because it is applied to four parallel phase streams. Filters belong outside it. For behaviour with memory (a bias shift, sag), compute a smooth control at the base rate and pass it in with `pk.oversample4c(f)`.
+   - Put every nonlinearity inside `pk.oversample4(f)`. `f` **must be memoryless** (a pure waveshaper), because it is applied to four parallel phase streams. Filters belong outside it. For behaviour with memory (a bias shift, sag), compute a smooth control at the base rate and pass it in with `pk.oversample4c(f)`; see `docs/development/designing-for-feel.md`.
    - Any dry or parallel path that meets an oversampled path must be delayed by `@(pk.os4Latency)`, or the blend will comb-filter.
    - Use `fi.dcblockerat(5)` (5 Hz), not `fi.dcblocker` (about 35 Hz), on anything meant for bass.
    - End `process` with `pk.safety(0.989)` so no sample can exceed 0 dBFS.

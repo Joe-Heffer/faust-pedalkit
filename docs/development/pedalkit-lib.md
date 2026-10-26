@@ -106,7 +106,7 @@ Soft tanh clipping above zero (an LED, say) and a harder knee below zero (a tran
 
 ## Dynamic state
 
-These are for behaviour that depends on what was played a moment ago. Each one is either a base-rate control with memory or a memoryless shaper that takes a control, for use with `oversample4c`.
+[Designing for feel](designing-for-feel.md) explains what these are for. Each one is either a base-rate control with memory or a memoryless shaper that takes a control, for use with `oversample4c`.
 
 ### `biased(f)`
 

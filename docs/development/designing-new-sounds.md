@@ -22,6 +22,7 @@ Some directions that suit Faust and the tools here. They are prompts, not a road
 - **Recombine.** Put blocks that never share a box in one signal path: a speaker voicing inside a feedback loop, a blend that crossfades between two different drive characters, a filter between two oversampled clippers.
 - **Split and treat.** Divide the signal by frequency, by envelope or by harmonic content, and process each part differently: clean lows with folded highs, transient-only fuzz, distortion that only acts on sustain.
 - **Make the control the instrument.** Design around one expressive control that moves several parameters along a path chosen by ear, instead of a row of independent knobs.
+- **Design for feel.** Give the effect state that follows the playing, such as a bias that shifts on hard picking or a headroom that sags, and make its time constants part of the design. See [Designing for feel](designing-for-feel.md).
 - **Start from a measurement.** Pick a target you can plot, such as a harmonic profile, an intermodulation pattern or a response that changes with level, and work backwards to a structure that produces it.
 
 ## Writing design notes
@@ -33,7 +34,8 @@ Some directions that suit Faust and the tools here. They are prompts, not a road
 3. **Block diagram.** Which blocks are new, which come from `pedalkit.lib`, and which are taken from another effect in the repository.
 4. **Constants.** Each one with its confidence level and its intent. In an original design most values are *chosen*, which is fine, as long as the notes say what each one is for and how you picked it.
 5. **Measurable targets.** What the tests will check to show the idea works, beyond the safety tests every effect has: for example "H2 rises above H3 as Drive passes noon", or "the notch tracks the fundamental within a semitone".
-6. **Open questions.** Especially those only a listener can answer.
+6. **Dynamics and feel.** How the effect responds to playing strength and over the life of a note: the cleanup curve, what changes between the attack and the sustain, what a loud passage leaves behind. State these as targets too. [Designing for feel](designing-for-feel.md) lists the mechanisms and the measurement for each.
+7. **Open questions.** Especially those only a listener can answer.
 
 ## Confidence levels for design choices
 
