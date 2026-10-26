@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Joe Heffer
 # SPDX-License-Identifier: MIT
 #
-# The Dockerfile copies nothing (the repository is bind-mounted at run time),
-# so send no build context.
+# The images copy almost nothing (the repository is bind-mounted at run
+# time), so send no build context except the MkDocs pins Dockerfile.docs
+# installs.
 *
+!tools/docs-requirements.txt

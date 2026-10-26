@@ -2,8 +2,11 @@
 # SPDX-License-Identifier: MIT
 
 # Builds the documentation site (mkdocs.yml) and publishes it to GitHub Pages.
-# The effect pages embed the current test plots, so the tests run first, and
-# the browser demo (make web) is built, checked and published as demo/.
+# The effect pages embed the current test plots and the rendered schematics,
+# so the tests, the schematic checks and the rendering run first, and the
+# browser demo (make web) is built, checked and published as demo/. All of it
+# runs in the docs image (Dockerfile.docs), which adds KiCad, Node.js and
+# MkDocs to the toolchain.
 # Pull requests build the site to catch broken links; only main deploys.
 # Needs Settings → Pages → Source set to "GitHub Actions".
 
@@ -23,34 +26,30 @@ concurrency:
   # Never cancel a deployment part-way through.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  DOCKERFILE: Dockerfile.docs
+  IMAGE: pedalkit-docs
+
 jobs:
   build:
     name: Build site
     runs-on: ubuntu-latest
-    container: archlinux:base-devel
-    env:
-      # See ci.yml: faust2lv2 and the renderers need the real include path.
-      FAUSTINC: /usr/include/faust
     steps:
-      - name: Install toolchain
-        run: |
-          pacman -Syu --noconfirm --needed \
-            faust python python-numpy python-matplotlib nodejs npm
-          faust --version
-          node --version
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Build docs image
+        run: make image
       - name: Offline tests (plots and CSV data for the effect pages)
-        run: make test
+        run: make container RUN=test
       - name: Browser demo (WebAssembly build, checked against the native renderers)
-        run: make web web-test
-      - name: Install MkDocs
-        run: |
-          python -m venv /opt/docs
-          /opt/docs/bin/pip install -r tools/docs-requirements.txt
+        run: make container RUN="web web-test"
+      - name: Schematic electrical rules check
+        run: make container RUN=erc
+      - name: Render schematics
+        run: make container RUN=schematics
       - name: Build site
-        run: make docs MKDOCS=/opt/docs/bin/mkdocs
+        run: make container RUN=docs
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5

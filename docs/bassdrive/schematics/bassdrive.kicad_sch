@@ -1,0 +1,25 @@
+(kicad_sch
+  (version 20231120)
+  (generator "eeschema")
+  (generator_version "8.0")
+  (uuid "8ff94a34-916f-51d8-b34f-9197a04f87a8")
+  (paper "A4")
+  (title_block
+    (title "BassDrive")
+    (date "2026-10-26")
+    (rev "0.1")
+    (company "Redrawn from public sources; see circuit notes")
+    (comment 1 "Licence: CC-BY-4.0")
+    (comment 2 "Reference hardware, named for identification only: Boss ODB-3")
+    (comment 3 "Dashed outline: inferred or chosen part (Confidence and Source fields under each part)")
+  )
+  (lib_symbols
+
+  )
+  (sheet (at 101.6 71.12) (size 50.8 20.32) (fields_autoplaced yes) (stroke (width 0.1524) (type solid)) (fill (color 0 0 0 0.0000)) (uuid "e2d73e67-2ced-5169-9c67-025472d7806c") (property "Sheetname" "3 Pre-emphasis" (at 101.6 70.41 0) (effects (font (size 1.27 1.27)) (justify left bottom))) (property "Sheetfile" "3-pre-emphasis.kicad_sch" (at 101.6 92.03 0) (effects (font (size 1.27 1.27)) (justify left top))) (pin "IN" input (at 101.6 81.28 180) (effects (font (size 1.27 1.27)) (justify left)) (uuid "989a3571-fae9-5e5f-a5d3-977c21554d8d")) (pin "OUT" output (at 152.4 81.28 0) (effects (font (size 1.27 1.27)) (justify right)) (uuid "4f8eeab5-f135-51a2-8cf5-2ac2eed59a73")) (instances (project "bassdrive" (path "/8ff94a34-916f-51d8-b34f-9197a04f87a8" (page "2")))))
+  (no_connect (at 101.6 81.28) (uuid "7bd08230-cbf6-52ab-8d4d-f540c1a35960"))
+  (no_connect (at 152.4 81.28) (uuid "4254bebb-9d47-56a2-9fdf-9f3f79fa1ee2"))
+  (text "BassDrive reference circuit" (exclude_from_sim no) (at 76.2 45.72 0) (effects (font (size 2.54 2.54)) (justify left bottom)) (uuid "08f5c6f0-84e4-5926-a97a-20cad29ac7a3"))
+  (text "One sub-sheet per stage, numbered and named as in docs/bassdrive/circuit-notes.md.\nDrawn so far: 3 Pre-emphasis. The other stages are still to be drawn, so its pins are marked no-connect." (exclude_from_sim no) (at 76.2 55.88 0) (effects (font (size 1.27 1.27)) (justify left bottom)) (uuid "0244bd13-6900-5d33-ad53-c4eb697dec24"))
+  (sheet_instances (path "/" (page "1")))
+)

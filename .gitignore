@@ -5,3 +5,10 @@ __pycache__/
 !.claude/skills/
 .venv/
 tools/web/node_modules/
+# KiCad's local settings, backups and caches (the .kicad_sch and .kicad_pro
+# files are committed).
+*.kicad_prl
+*-backups/
+fp-info-cache
+_autosave-*
+\#auto_saved_files\#

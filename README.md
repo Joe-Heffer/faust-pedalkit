@@ -125,9 +125,11 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
+make schematics           # KiCad schematics to SVG in build/schematics/<name>/ (needs kicad-cli)
+make erc                  # KiCad's electrical rules check on each schematic
 make web                  # browser demo into build/web/ (needs Node.js and npm)
 make web-test             # compare the browser build with the native renderer
-make docs                 # documentation site into build/site/ (after make test web; see below)
+make docs                 # documentation site into build/site/ (after make test web schematics; see below)
 make standalone           # build/<name>/<name> (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
@@ -186,12 +188,12 @@ GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds eve
 
 ### Documentation site
 
-The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, embeds the plots and CSV data from `make test`, and publishes the browser demo from `make web` as `demo/`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
+The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, embeds the plots and CSV data from `make test` and the schematic sheets from `make schematics`, and publishes the browser demo from `make web` as `demo/`. `.github/workflows/docs.yml` builds it in the docs image (`Dockerfile.docs`, which adds KiCad, Node.js and MkDocs) and rebuilds and deploys it on every push to `main`. To build it locally:
 
 ```sh
 python -m venv .venv && .venv/bin/pip install -r tools/docs-requirements.txt
-make test web docs MKDOCS=.venv/bin/mkdocs    # build/site/
-make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000/
+make test web schematics docs MKDOCS=.venv/bin/mkdocs  # build/site/ (schematics need kicad-cli)
+make docs-serve MKDOCS=.venv/bin/mkdocs                 # preview at http://127.0.0.1:8000/
 ```
 
 ## Loading in a host

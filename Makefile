@@ -12,9 +12,11 @@
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make dist         pack each effect's LV2, VST3 and CLAP plugins into a release tarball in build/dist/
+#   make schematics   render each effect's KiCad schematic to SVG in build/schematics/<name>/
+#   make erc          run KiCad's electrical rules check on each effect's schematic
 #   make web          build the browser demo (WebAssembly and page) into build/web/
 #   make web-test     compare the browser build with the native renderer and time it
-#   make docs         build the documentation site into build/site (run `make test` and `make web` first)
+#   make docs         build the documentation site into build/site (run `make test`, `make web` and `make schematics` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
 #   make format       fix Python lint and formatting with ruff
@@ -69,6 +71,7 @@ LDFLAGS    ?=
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
+KICAD_CLI  ?= kicad-cli
 NODE       ?= node
 NPM        ?= npm
 PRE_COMMIT ?= pre-commit
@@ -101,7 +104,7 @@ else
 CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
 endif
 
-.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist web web-test docs docs-serve check format \
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe schematics erc dist web web-test docs docs-serve check format \
         install install-vst3 install-clap uninstall clean distclean help \
         image container
 .SECONDARY:
@@ -153,6 +156,50 @@ test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x $(BUILD)/$(
 
 describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
 
+# Schematics are optional: an effect has one if docs/<name>/schematics/<name>.kicad_sch
+# exists, and the others are skipped. kicad-cli writes one SVG per sheet,
+# named after the project and the sheet; the names are lower-cased with
+# spaces turned into hyphens so the docs can link them.
+# Generated SVGs and ERC reports stay in build/schematics/ and are never
+# committed. See docs/development/schematics.md.
+SCHEMATIC_FX = $(foreach f,$(FX),$(if $(wildcard docs/$(f)/schematics/$(f).kicad_sch),$(f)))
+
+define need-kicad
+@command -v $(KICAD_CLI) >/dev/null || { \
+    echo "$(KICAD_CLI) not found. Install KiCad (Arch: pacman -S kicad kicad-library;"; \
+    echo "Debian/Ubuntu: apt install kicad) or run this target in the docs image:"; \
+    echo "  make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN=\"$@\""; \
+    exit 1; }
+endef
+
+schematics:
+	$(if $(SCHEMATIC_FX),$(need-kicad))
+	@status=0; for f in $(SCHEMATIC_FX); do \
+	    echo "== schematic $$f"; \
+	    mkdir -p $(BUILD)/schematics/$$f; rm -f $(BUILD)/schematics/$$f/*.svg; \
+	    $(KICAD_CLI) sch export svg \
+	        --output $(BUILD)/schematics/$$f docs/$$f/schematics/$$f.kicad_sch || status=1; \
+	    for s in $(BUILD)/schematics/$$f/*.svg; do \
+	        n=$$(basename "$$s" | tr 'A-Z ' 'a-z-'); \
+	        [ "$$n" = "$$(basename "$$s")" ] || mv "$$s" "$(BUILD)/schematics/$$f/$$n"; \
+	    done; \
+	    ls $(BUILD)/schematics/$$f; \
+	done; exit $$status
+
+# ERC fails only on errors (unconnected pins, undriven inputs, conflicting
+# outputs). Warnings, such as a stock library missing from a fresh KiCad
+# configuration, go to erc-all.rpt for reading.
+erc:
+	$(if $(SCHEMATIC_FX),$(need-kicad))
+	@status=0; for f in $(SCHEMATIC_FX); do \
+	    echo "== erc $$f"; \
+	    d=$(BUILD)/schematics/$$f; sch=docs/$$f/schematics/$$f.kicad_sch; \
+	    mkdir -p $$d; \
+	    $(KICAD_CLI) sch erc --severity-all --output $$d/erc-all.rpt $$sch >/dev/null; \
+	    $(KICAD_CLI) sch erc --severity-error --exit-code-violations --output $$d/erc.rpt $$sch \
+	        || { cat $$d/erc.rpt; status=1; }; \
+	done; exit $$status
+
 # The page in web/ lists the effects from effects.json and builds each one's
 # controls from its dsp-meta.json (the same description as `make describe`).
 web: $(foreach f,$(FX),$(WEB)/$(f)/dsp-module.wasm)
@@ -172,8 +219,10 @@ $(WEB)/%/dsp-module.wasm: src/%.dsp $(LIBS) $(WEB_NODE)
 	mkdir -p $(@D)
 	$(NODE) $(FAUSTWASM)/scripts/faust2wasm.js $< $(@D) -I src/lib -no-template
 
-# The site embeds the plots and CSV data from tests/out/ and the browser demo
-# from build/web/, so run `make test web` first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
+# The site embeds the plots and CSV data from tests/out/, the schematics from
+# build/schematics/ and the browser demo from build/web/, so run
+# `make test web schematics` first (see tools/mkdocs_hooks.py).
+# Tools: pip install -r tools/docs-requirements.txt
 docs:
 	$(MKDOCS) build --strict
 

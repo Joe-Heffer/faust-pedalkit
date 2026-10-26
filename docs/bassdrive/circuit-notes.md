@@ -61,6 +61,10 @@ The stage gain is then 1 + (Rf / R31) · HP₁(f). Below about 1.5 kHz the signa
 
 **Uncertain:** I haven't confirmed the position of R31 and C10 against a schematic. The interpretation fits every report, and it is the standard topology.
 
+The sheet below draws this stage and the feedback network of section 4 as BassDrive models them. Dashed outlines mark the inferred and chosen parts, and the `X` designators mark parts no source mentions (see [Schematics](../development/schematics.md)).
+
+![Stage 1 redrawn: non-inverting gain stage with the R31 and C10 shunt leg and C8 across the Gain pot](../schematics/bassdrive/bassdrive-3-pre-emphasis.svg)
+
 ## 4. Feedback low-pass: C8 and the Gain pot
 
 **Inferred:** C8 (300 pF) sits across the feedback resistance (the Gain pot plus any series resistor). This limits HF gain with a corner of 1 / (2π · Rf · C8), which falls as Gain rises.

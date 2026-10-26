@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+#
+# Documentation toolchain: everything `make test web web-test erc schematics docs`
+# needs.
+# .github/workflows/docs.yml builds the site in this image. It is separate
+# from the build and test image (Dockerfile) because KiCad and its
+# libraries are large and nothing else needs them.
+#
+#   make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN="test web erc schematics docs"
+#
+# The base image digest and ARCH_SNAPSHOT are the same as in Dockerfile, so
+# both images run the same Faust. Move them together.
+
+FROM archlinux:base-devel@sha256:3cbf69d2d5958d6a294f3722c5668e6187c4df8e00fa27f72352f0bf83e495e1
+
+ARG ARCH_SNAPSHOT=2026/10/23
+
+# faust, numpy and matplotlib run the tests whose plots the effect pages
+# embed. nodejs and npm build and check the browser demo (make web, make
+# web-test). kicad provides kicad-cli, which renders and checks the schematics;
+# kicad-library provides the stock symbols, for editing a schematic in this
+# image. MkDocs comes from PyPI at the versions in tools/docs-requirements.txt.
+# Retries as in Dockerfile: the archive is the only mirror.
+COPY tools/docs-requirements.txt /tmp/docs-requirements.txt
+RUN echo "Server = https://archive.archlinux.org/repos/${ARCH_SNAPSHOT}/\$repo/os/\$arch" \
+        > /etc/pacman.d/mirrorlist \
+ && for attempt in 1 2 3; do \
+        pacman -Syu --noconfirm --needed \
+            faust python python-numpy python-matplotlib nodejs npm \
+            kicad kicad-library \
+        && break; \
+        [ "$attempt" = 3 ] && exit 1; \
+        echo "pacman failed (attempt $attempt of 3), retrying in 30 s"; \
+        sleep 30; \
+    done \
+ && pacman -Scc --noconfirm \
+ && python -m venv --system-site-packages /opt/docs \
+ && /opt/docs/bin/pip install --no-cache-dir -r /tmp/docs-requirements.txt \
+ && rm /tmp/docs-requirements.txt \
+ && faust --version \
+ && node --version \
+ && kicad-cli version
+
+# See Dockerfile for FAUSTINC and HOME. MkDocs is on PATH, so `make docs`
+# needs no MKDOCS=. That puts the venv's python3 first for the tests too,
+# which is why the venv sees the system numpy and matplotlib.
+ENV FAUSTINC=/usr/include/faust \
+    HOME=/tmp \
+    PATH=/opt/docs/bin:$PATH
+
+WORKDIR /src
