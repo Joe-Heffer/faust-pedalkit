@@ -107,7 +107,7 @@ make check     # pre-commit run --all-files
 make format    # fixes Python lint and formatting if ruff complains
 ```
 
-`make check` runs ruff, shellcheck, markdownlint, codespell (including British English), `reuse`, `no-trademarks` and `faust-compile`.
+`make check` runs ruff, shellcheck, markdownlint, codespell (including British English), `reuse`, `no-trademarks`, `effect-checklist` (`tools/check-effects.py`: declares, controls, latency, notes, docs pages and minimum tests) and `faust-compile`.
 
 Then open a draft PR from a branch, following `.github/pull_request_template.md`: tick or justify every checklist item and fill in "What to listen for". Never push to `main` or force-push.
 

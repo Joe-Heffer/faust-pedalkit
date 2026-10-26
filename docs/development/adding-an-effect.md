@@ -93,7 +93,7 @@ make clap clap-validate FX=<name>
 make check                       # pre-commit run --all-files
 ```
 
-Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results.
+Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). Run it on its own with `python3 tools/check-effects.py <name>`.
 
 ## 5. Document it
 
