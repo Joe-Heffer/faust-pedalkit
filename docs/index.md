@@ -16,6 +16,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 |---|---|---|
 | **BassDrive** | Bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal | [controls and measurements](bassdrive/index.md) · [circuit notes](bassdrive/circuit-notes.md) |
 | **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) |
+| **MidHump** | Mid-hump overdrive with Drive, Tone, Level and an optional full-range clean Blend | [controls](midhump/index.md) · [circuit notes](midhump/circuit-notes.md) · [design notes](midhump/design-notes.md) |
 
 ## Quick start
 

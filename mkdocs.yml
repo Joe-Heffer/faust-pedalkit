@@ -102,6 +102,11 @@ nav:
           - basspreamp/index.md
           - Circuit notes: basspreamp/circuit-notes.md
           - Changelog: basspreamp/changelog.md
+      - MidHump:
+          - midhump/index.md
+          - Circuit notes: midhump/circuit-notes.md
+          - Design notes: midhump/design-notes.md
+          - Changelog: midhump/changelog.md
   - Development:
       - development/index.md
       - How it works: development/how-it-works.md
