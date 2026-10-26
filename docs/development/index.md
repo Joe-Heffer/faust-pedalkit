@@ -4,6 +4,7 @@ This section is for anyone, human or coding agent, adding an effect or changing 
 
 - [How it works](how-it-works.md): what DSP and Faust are, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. Start here if you are new to either.
 - [Designing new sounds](designing-new-sounds.md): the project's aim, the three kinds of effect, and how to write design notes for an original one.
+- [Designing for feel](designing-for-feel.md): the mechanisms behind how an effect responds to the playing, how to build them in Faust and how to measure them.
 - [Adding an effect](adding-an-effect.md): from notes to DSP, tests and docs.
 - [Shared library](pedalkit-lib.md): the oversampler, clippers and safety limiter in `pedalkit.lib`.
 - [Tests and measurements](testing.md): the render harness, the Python helpers and what every effect must check.

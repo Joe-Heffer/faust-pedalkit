@@ -11,7 +11,8 @@
 # The control settings are chosen starting points, not measurements of the
 # reference pedal. Level is chosen per preset so that a -12 dBFS plucked guitar
 # line comes out within about 1 dB of "Edge of Breakup" (measured by
-# test_presets.py), so switching presets doesn't jump in loudness.
+# test_presets.py), so switching presets doesn't jump in loudness. Bloom is 0
+# in every preset, so the presets are the same as before it was added.
 
 [[preset]]
 name = "Edge of Breakup"
@@ -21,6 +22,7 @@ Drive = 10
 Tone = 40
 Level = 0
 Blend = 0
+Bloom = 0
 
 [[preset]]
 name = "Mid Hump"
@@ -30,6 +32,7 @@ Drive = 50
 Tone = 50
 Level = -2
 Blend = 0
+Bloom = 0
 
 [[preset]]
 name = "Lead"
@@ -39,6 +42,7 @@ Drive = 100
 Tone = 65
 Level = -6.4
 Blend = 0
+Bloom = 0
 
 [[preset]]
 name = "Bass Grind"
@@ -48,3 +52,4 @@ Drive = 60
 Tone = 40
 Level = -3.6
 Blend = 100
+Bloom = 0

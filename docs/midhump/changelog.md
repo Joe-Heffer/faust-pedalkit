@@ -4,6 +4,10 @@ Notable changes to MidHump. The format follows [Keep a Changelog](https://keepac
 
 ## [Unreleased]
 
+### Added
+
+- Bloom control (appended after Blend; at the default of 0 % existing settings and presets render as before, to within float rounding at about −122 dBFS): a bias shift on the diode clipper. Loud playing charges an offset that moves the diodes off centre, adding second harmonic that builds up over about 20 ms to 35 ms and fades within a second after the note.
+
 ### Fixed
 
 - CPU use no longer climbs after the input falls silent. Filter state that decays below the smallest normal float is now flushed to zero (Faust's `-ftz 1`) in every format. Before, the LV2 plug-in, in a host that leaves the FPU's flush-to-zero off, spent 33 times as much CPU on a decaying tail as on live signal. The VST3 and CLAP plug-ins already flushed subnormals and are unchanged. The browser demo is built with the same flag.
