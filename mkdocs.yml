@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MIT
 # Documentation site, published to GitHub Pages by .github/workflows/docs.yml.
 #
-#   make test docs     build the site into build/site/ (strict: warnings fail)
+#   make test schematics docs   build the site into build/site/ (strict: warnings fail)
 #   make docs-serve    live preview at http://127.0.0.1:8000/
 #
 # Install the tools with `pip install -r tools/docs-requirements.txt`.
 # tools/mkdocs_hooks.py publishes the plots and CSV data from tests/out/ under
-# measurements/<name>/, so effect pages can show the current measurements.
+# measurements/<name>/, so effect pages can show the current measurements, and
+# the schematic sheets from build/schematics/ under schematics/<name>/.
 #
 # No `!!python/name:` YAML tags here, so the check-yaml hook can parse it.
 
@@ -107,6 +108,7 @@ nav:
       - Adding an effect: development/adding-an-effect.md
       - Shared library: development/pedalkit-lib.md
       - Tests and measurements: development/testing.md
+      - Schematics: development/schematics.md
       - Linting and CI: development/ci.md
       - Releasing: development/releasing.md
   - About: about.md

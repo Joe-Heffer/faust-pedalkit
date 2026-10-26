@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "filename": "bassdrive.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "8ff94a34-916f-51d8-b34f-9197a04f87a8",
+      "Root"
+    ],
+    [
+      "e2d73e67-2ced-5169-9c67-025472d7806c",
+      "3 Pre-emphasis"
+    ]
+  ],
+  "text_variables": {}
+}
