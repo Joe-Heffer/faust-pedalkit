@@ -1,5 +1,7 @@
 # Faust Pedal Kit
 
+![Pedal Kit logo: a pedal with a sine wave going in and a clipped wave coming out](assets/logo-wordmark.svg){ width="360" }
+
 A workshop for designing new guitar and bass effects: new sounds, and new kinds of effect that a box of components couldn't easily be. The effects are written in [Faust](https://faust.grame.fr/), built as native Linux [LV2](https://lv2plug.in/) and VST3 plugins, and checked by offline measurement tests.
 
 Each effect is one Faust file. It comes with notes that say where every value came from or what it is for, and with tests that render signals through the compiled DSP and check the results numerically: silence, peak level, frequency response, harmonics and aliasing.

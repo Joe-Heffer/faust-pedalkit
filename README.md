@@ -1,5 +1,7 @@
 # Faust Pedal Kit
 
+<img src="docs/assets/logo-wordmark.svg" alt="Pedal Kit logo: a pedal with a sine wave going in and a clipped wave coming out" width="360">
+
 [![CI](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Joe-Heffer/faust-pedalkit/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/Joe-Heffer/faust-pedalkit?include_prereleases&sort=semver)](https://github.com/Joe-Heffer/faust-pedalkit/releases)
 
