@@ -2,6 +2,8 @@
 
 Faust Pedal Kit is a workshop for designing new guitar and bass effects in Faust, with clean-room models of classic pedals as a source of building blocks. It is maintained by Joe Heffer on [GitHub](https://github.com/Joe-Heffer/faust-pedalkit). Bug reports, questions and contributions go to the [issue tracker](https://github.com/Joe-Heffer/faust-pedalkit/issues).
 
+For how this project relates to similar open-source work, see [Where this project sits](ecosystem.md).
+
 ## Licence
 
 - **Code** (the Faust DSP, build tools and tests) is [MIT](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/LICENSE).
