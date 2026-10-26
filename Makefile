@@ -12,7 +12,9 @@
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make dist         pack each effect's LV2, VST3 and CLAP plugins into a release tarball in build/dist/
-#   make docs         build the documentation site into build/site (run `make test` first)
+#   make web          build the browser demo (WebAssembly and page) into build/web/
+#   make web-test     compare the browser build with the native renderer and time it
+#   make docs         build the documentation site into build/site (run `make test` and `make web` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
 #   make format       fix Python lint and formatting with ruff
@@ -21,7 +23,7 @@
 #   make install-clap copy the CLAP plugins into ~/.clap
 #   make uninstall    remove them from ~/.lv2, ~/.vst3 and ~/.clap
 #   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
-#   make distclean    remove build/ and tests/out/ entirely
+#   make distclean    remove build/, tests/out/ and tools/web/node_modules/ entirely
 #   make help         list these targets and the effects
 #   make image        build the toolchain image from the Dockerfile (or DOCKERFILE)
 #   make container    run the RUN targets in that image (default RUN="lv2 lint test")
@@ -67,6 +69,8 @@ LDFLAGS    ?=
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
+NODE       ?= node
+NPM        ?= npm
 PRE_COMMIT ?= pre-commit
 
 # Release tarballs (make dist): one per effect, named from the effect's own
@@ -74,6 +78,13 @@ PRE_COMMIT ?= pre-commit
 fxversion   = $(shell sed -n 's/^ *declare *version *"\([^"]*\)".*/\1/p' src/$(1).dsp)
 DIST       := $(BUILD)/dist
 distname    = $(1)-$(call fxversion,$(1))-linux-$(shell uname -m)
+
+# Browser demo (make web): faustwasm, pinned in tools/web/package-lock.json,
+# compiles each effect to WebAssembly and provides the AudioWorklet runtime
+# that the page in web/ loads. The result is a static site in build/web/.
+WEB        := $(BUILD)/web
+WEB_NODE   := tools/web/node_modules/.package-lock.json
+FAUSTWASM  := tools/web/node_modules/@grame/faustwasm
 
 # Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
 # `run` options go in CONTAINER_FLAGS.
@@ -90,7 +101,7 @@ else
 CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
 endif
 
-.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist docs docs-serve check format \
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist web web-test docs docs-serve check format \
         install install-vst3 install-clap uninstall clean distclean help \
         image container
 .SECONDARY:
@@ -132,8 +143,27 @@ test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x)
 
 describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
 
-# The site embeds the plots and CSV data from tests/out/, so run `make test`
-# first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
+# The page in web/ lists the effects from effects.json and builds each one's
+# controls from its dsp-meta.json (the same description as `make describe`).
+web: $(foreach f,$(FX),$(WEB)/$(f)/dsp-module.wasm)
+	mkdir -p $(WEB)/faustwasm
+	cp web/index.html web/demo.js web/demo.css $(WEB)/
+	cp $(FAUSTWASM)/dist/esm/index.js $(FAUSTWASM)/dist/esm/index.js.map $(FAUSTWASM)/COPYING.txt $(WEB)/faustwasm/
+	printf '[%s]\n' "$$(printf '"%s",' $(FX) | sed 's/,$$//')" > $(WEB)/effects.json
+
+# Compares the WebAssembly build with the native renderer, so it needs both.
+web-test: web $(foreach f,$(FX),$(BUILD)/$(f)/render)
+	FX=web WEB_FX="$(FX)" NODE=$(NODE) PYTHONPATH=tests/lib python3 tests/web/test_wasm.py
+
+$(WEB_NODE): tools/web/package.json tools/web/package-lock.json
+	$(NPM) ci --prefix tools/web --no-audit --no-fund
+
+$(WEB)/%/dsp-module.wasm: src/%.dsp $(LIBS) $(WEB_NODE)
+	mkdir -p $(@D)
+	$(NODE) $(FAUSTWASM)/scripts/faust2wasm.js $< $(@D) -I src/lib -no-template
+
+# The site embeds the plots and CSV data from tests/out/ and the browser demo
+# from build/web/, so run `make test web` first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
 docs:
 	$(MKDOCS) build --strict
 
@@ -279,7 +309,7 @@ clean:
 	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk -exec rm -rf {} +
 
 distclean:
-	rm -rf $(BUILD) tests/out
+	rm -rf $(BUILD) tests/out tools/web/node_modules
 
 help:
 	@sed -n 's/^#   make /make /p' $(firstword $(MAKEFILE_LIST))

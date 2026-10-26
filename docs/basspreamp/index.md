@@ -10,6 +10,7 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Channels | Mono in, mono out |
 | Latency | 64 samples (1.3 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md) |
+| Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 | Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
 
 ## Controls
