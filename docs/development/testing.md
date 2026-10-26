@@ -74,7 +74,7 @@ finish()
 | Harmonic content | Checks the character of the nonlinearity against the reference measurements |
 | Aliasing, `RENDER` against `RENDER_1X` (if the effect oversamples) | Shows what the oversampling buys |
 
-Effects whose behaviour depends on time or playing level should also test it with the dynamic helpers: a cleanup curve, a quiet–loud–quiet burst and a pluck. `tests/midhump/test_dynamics.py` is a worked example.
+Effects whose behaviour depends on time or playing level should also test it with the dynamic helpers: a cleanup curve, a quiet–loud–quiet burst and a pluck. [Designing for feel](designing-for-feel.md) covers which measurement shows which mechanism, and `tests/midhump/test_dynamics.py` is a worked example.
 
 ## Output formats
 

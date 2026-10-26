@@ -11,7 +11,7 @@ This repository is a workshop for new guitar and bass effects written in Faust. 
 
 ## Before you start
 
-1. Read `AGENTS.md` (hard rules) and `docs/development/designing-new-sounds.md`.
+1. Read `AGENTS.md` (hard rules), `docs/development/designing-new-sounds.md` and, for anything with a nonlinearity or a level-dependent control, `docs/development/designing-for-feel.md`.
 2. Pick the kind of effect. Prefer the first two:
    - **Original**: a sonic idea with no reference device. Needs `docs/<name>/design-notes.md`.
    - **Circuit-inspired**: starts from a real circuit and departs from it. Needs design notes, plus circuit notes for the borrowed part.
