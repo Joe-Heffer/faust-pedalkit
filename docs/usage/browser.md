@@ -7,7 +7,7 @@ The demo runs every effect in a web page, with nothing to install. It is the sam
 ## Using it
 
 1. Choose an effect and a source:
-    * **Test riff:** a short bass line synthesised in the page, so you hear something straight away.
+    * **Test riff:** a short bass line synthesised in the page, so you hear something straight away. Choose a **Riff**: root and octave, a walking line, a disco octave pulse, slow sustained notes, a synth bass with a sub octave, or a staccato funk line. They are original patterns, with tempo, decay and sub level chosen to exercise different behaviour (attack transients, sustain, low-end tracking).
     * **Audio file:** any file your browser can decode, looped. A dry DI recording of a bass works best. The file stays on your computer.
     * **Microphone or audio interface:** live input. The browser asks for permission, and the page turns off echo cancellation, noise suppression and automatic gain so the effect gets the raw signal. Use headphones to avoid feedback.
 2. Press **Start**. Browsers only allow audio after a click, so nothing plays until then.
