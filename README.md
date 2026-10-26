@@ -10,6 +10,9 @@ A workshop for designing new guitar and bass effects in Faust: new sounds, and n
 
 [Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2, a VST3 and a CLAP plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
 
+> [!TIP]
+> New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
+
 Studying classic hardware is part of the method rather than the goal. Clean-room models of well-known pedals show how they get their character, calibrate the measurement tools against something known, and supply tested building blocks (clippers, analogue filter sections, voicings) for original designs to reuse, bend and recombine. Each effect is one of:
 
 - **Original:** a sonic idea with no single reference device, written up in design notes.
@@ -24,10 +27,8 @@ Two of the three effects so far are models. Original and circuit-inspired effect
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 | **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
-To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
-
-> [!TIP]
-> New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
+> [!NOTE]
+> To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
 
 ## Install
 
