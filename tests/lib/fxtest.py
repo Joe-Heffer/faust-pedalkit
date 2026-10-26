@@ -12,6 +12,7 @@ numbers behind them as CSV (write_csv) and audio as WAV (write_wav).
 """
 
 import csv
+import json
 import os
 import subprocess
 import sys
@@ -31,18 +32,84 @@ RENDER = os.path.join(ROOT, "build", FX, "render")
 RENDER_1X = os.path.join(ROOT, "build", FX, "render_1x")
 OUT = os.path.join(ROOT, "tests", "out", FX)
 PRESETS = os.path.join(ROOT, "src", f"{FX}.presets.toml")
+CONTROLS = os.path.join(ROOT, "build", FX, "controls.json")
 os.makedirs(OUT, exist_ok=True)
 
 _failures = []
 
 
-def render(x, binary=RENDER, sr=SR, **params):
-    """Process signal x at sample rate sr, overriding sliders by label."""
+def render(x, binary=RENDER, sr=SR, events=(), block=None, **params):
+    """Process signal x at sample rate sr, overriding sliders by label.
+
+    events is a sequence of (label, value, seconds): each control change is
+    applied at that point of x, at its exact sample, as host automation is.
+    block sets the processing block size (the harness default is 256).
+    """
     args = [binary, str(sr)] + [f"{k}={v}" for k, v in params.items()]
+    args += [f"{k}={v}@{t}" for k, v, t in events]
+    if block:
+        args += ["--block", str(block)]
     res = subprocess.run(
         args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
     )
     return np.frombuffer(res.stdout, dtype=np.float32).astype(np.float64)
+
+
+def reported_latency(binary=RENDER, sr=SR):
+    """The latency in samples that the effect reports to hosts (0 if none)."""
+    res = subprocess.run([binary, str(sr), "--latency"], capture_output=True, check=True)
+    return int(res.stdout.decode().strip())
+
+
+def bench(x, binary=RENDER, sr=SR, block=64, ftz=False, **params):
+    """Time the DSP on x; returns (ns per sample, times faster than real time).
+
+    The figure is for one instance on one core, best of five passes, and
+    excludes process start-up and I/O. ftz flushes subnormals to zero, as the
+    VST3 and CLAP wrappers do; without it the DSP runs as an LV2 host that
+    leaves the FPU alone would run it.
+    """
+    args = [binary, str(sr), "--bench", "--block", str(block)]
+    args += ["--ftz"] if ftz else []
+    args += [f"{k}={v}" for k, v in params.items()]
+    res = subprocess.run(
+        args, input=np.asarray(x, dtype=np.float32).tobytes(), capture_output=True, check=True
+    )
+    ns, factor = res.stdout.decode().split()
+    return float(ns), float(factor)
+
+
+def controls():
+    """The effect's input controls in parameter order, from faust -json.
+
+    Each is a dict with label, type (hslider, vslider, nentry, checkbox or
+    button), init, min, max and step; checkboxes and buttons run from 0 to 1.
+    """
+
+    def walk(items):
+        for item in items:
+            if "items" in item:
+                yield from walk(item["items"])
+            else:
+                yield item
+
+    with open(CONTROLS) as f:
+        ui = json.load(f)["ui"]
+    out = []
+    for c in walk(ui):
+        if c["type"] in ("hbargraph", "vbargraph"):
+            continue
+        out.append(
+            dict(
+                label=c["label"],
+                type=c["type"],
+                init=float(c.get("init", 0)),
+                min=float(c.get("min", 0)),
+                max=float(c.get("max", 1)),
+                step=float(c.get("step", 1)),
+            )
+        )
+    return out
 
 
 def db(x, floor=1e-12):

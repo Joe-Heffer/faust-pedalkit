@@ -53,7 +53,8 @@ Gate: every constant you intend to use appears in the notes with a confidence le
 - Constants go at the top as named values, each with a source or intent comment.
 - Every nonlinearity goes inside `pk.oversample4(f)`. `f` must be **memoryless**; filters go outside.
 - Any dry or parallel path that meets an oversampled path gets `@(pk.os4Latency)`, or the blend comb-filters.
-- Report latency with the `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` pattern and `attach(_, latency)`.
+- Report latency with the `hbargraph("Latency [unit:samples] [lv2:reportsLatency] [lv2:integer]", 0, 256)` pattern and `attach(_, latency)`, fed from the same named constant that delays the dry path. The budget is 128 samples; waveshapers with no filter between them share one `pk.oversample4`.
+- Smooth switches as well as sliders: crossfade or glide, never jump.
 - Use `fi.dcblockerat(5)`, not `fi.dcblocker`, for anything meant for bass.
 - End `process` with `pk.safety(0.989)`.
 - Reusable DSP belongs in `src/lib/pedalkit.lib`, documented in `AGENTS.md` and `docs/development/pedalkit-lib.md`. Don't change an existing signature without updating every effect that uses it and running `make test` for all of them.
@@ -75,7 +76,9 @@ Minimum set:
 
 Save every plot with `save_plot(fig, name)` (SVG) and the numbers behind it with `write_csv(name, header, rows)` in long format. Write listening renders with `write_wav`.
 
-Gate: `make lv2 lint test FX=<name>` passes. Open the SVGs in `tests/out/<name>/` and read them before reporting.
+`tests/common/` runs for every effect with no extra code: latency report and budget (`test_latency.py`), zipper on every control (`test_zipper.py`), CPU per instance and on decaying tails (`test_cpu.py`), and recovery after a hot input (`test_recovery.py`). Fix the effect when one fails; the limits and the reasons for them are in `docs/development/feel-cpu-stability.md`. To time a change, use `bench(x, **params)` and compare `cpu.csv` with `main`.
+
+Gate: `make lv2 lint test FX=<name>` passes. Open the SVGs in `tests/out/<name>/` (including `latency.svg` and `zipper.svg`) and read them before reporting.
 
 ### 4. Other formats
 
@@ -123,7 +126,11 @@ Then open a draft PR from a branch, following `.github/pull_request_template.md`
 | `libLLVM.so.NN` error from Faust | Partial system upgrade. The fix is `sudo pacman -Syu`, so ask the user |
 | Faust "undefined symbol" | Faust is too old for a library function such as `fi.dcblockerat`. See the README |
 | Docs build fails under `--strict` | Broken link or missing `nav` entry. Run `make test` before `make docs` so the measurements exist |
-| Saved projects of a released effect load wrong values | Controls were reordered or the `.dsp` renamed. The VST3 class ID, CLAP ID and parameter order derive from them, so neither is allowed after release |
+| Saved projects of a released effect load wrong values | Controls were reordered or the `.dsp` renamed. The VST3 class ID, CLAP ID and parameter order derive from them, so neither is allowed after release. The `params-stable` hook catches a moved, renamed or retyped control |
+| `test_zipper.py` fails on a control | It has no `si.smoo`, or the smoothed value passes through something with steps (`int`, `ba.if`, a table) afterwards |
+| `test_latency.py`: energy before the reported latency | A dry or parallel path skips `@(pk.os4Latency)`, or the bargraph reports more than the path delays |
+| `test_latency.py`: strongest tap too late | The bargraph leaves out an oversampler stage. Feed it and the dry-path delay from one constant |
+| `test_cpu.py`: the tail costs more than live signal | Subnormal state. Check the build still passes `FAUSTFLAGS` (`-ftz 1`) to Faust |
 
 ## Reporting back
 

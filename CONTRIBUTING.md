@@ -27,7 +27,7 @@ The full wording is in [AGENTS.md § Hard rules](AGENTS.md#hard-rules). In short
    pre-commit run --all-files
    ```
 
-   Read the plots in `tests/out/<name>/`, not just the pass/fail lines.
+   Read the plots in `tests/out/<name>/`, not just the pass/fail lines. `make test` also runs the checks in `tests/common/` on every effect: latency, zipper noise, CPU use and recovery. [Playing feel, CPU and stability](docs/development/feel-cpu-stability.md) explains them.
 4. Open a pull request. The template has the checklist, so fill in every item or say why it doesn't apply. CI runs the same build, lint and tests.
 
 ## Contributions without code

@@ -101,6 +101,16 @@ repos:
         entry: tools/check-schematics.py
         files: ^(docs/[^/]+/(circuit-notes\.md|schematics/)|tools/schematics/)
         pass_filenames: false
+      # Released effects keep their controls' labels, types and order, so
+      # saved projects and presets recall correctly (tools/check-params.py).
+      # Compares with each effect's latest release tag; the CI lint job
+      # fetches the tags.
+      - id: params-stable
+        name: released controls keep their order
+        language: python
+        entry: tools/check-params.py
+        files: ^src/.*\.dsp$
+        pass_filenames: false
       # Every effect has what AGENTS.md's new-effect checklist requires:
       # declares, unit and smoothing on each control, latency reporting with
       # oversample4, pk.safety, notes, docs pages and rows, and the minimum
