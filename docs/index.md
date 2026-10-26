@@ -8,6 +8,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 
 [Install and build](install.md){ .md-button .md-button--primary }
 [Browse the effects](effects/index.md){ .md-button }
+[Try them in your browser](demo/index.html){ .md-button }
 
 ## Effects
 
@@ -32,6 +33,8 @@ jalv urn:pedalkit/bassdrive
 The plugins install into `~/.lv2`, where Ardour, REAPER, Carla and other LV2 hosts find them. See [Loading in a host](usage/hosts.md) and the [REAPER guide](usage/reaper.md).
 
 ## How the effects are made
+
+New to DSP or Faust? [How it works](development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements.
 
 **Ideas first, models as a means.** An effect is *original* (a sonic idea with no single reference device), *circuit-inspired* (a real circuit taken somewhere it couldn't go), or *modelled* (a measured, sourced model of one device). Original effects are documented in design notes, models in circuit notes.
 

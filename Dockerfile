@@ -27,11 +27,20 @@ ARG CLAP_VALIDATOR_URL=https://github.com/free-audio/clap-validator/releases/dow
 # git and cmake build VST3 bundles against the VST3 SDK; alsa-lib,
 # fontconfig and freetype2 are pluginval's runtime libraries. The
 # clap-validator release zip wraps a tarball holding the single binary.
+# The archive is the only server in the mirror list, so pacman has nothing to
+# fall back on when a download stalls; up to three attempts, 30 s apart, ride
+# that out, and packages already fetched stay in the cache between attempts.
 RUN echo "Server = https://archive.archlinux.org/repos/${ARCH_SNAPSHOT}/\$repo/os/\$arch" \
         > /etc/pacman.d/mirrorlist \
- && pacman -Syu --noconfirm --needed \
-        faust lv2 lv2lint boost python python-numpy python-matplotlib \
-        cmake git unzip alsa-lib fontconfig freetype2 \
+ && for attempt in 1 2 3; do \
+        pacman -Syu --noconfirm --needed \
+            faust lv2 lv2lint boost python python-numpy python-matplotlib \
+            cmake git unzip alsa-lib fontconfig freetype2 \
+        && break; \
+        [ "$attempt" = 3 ] && exit 1; \
+        echo "pacman failed (attempt $attempt of 3), retrying in 30 s"; \
+        sleep 30; \
+    done \
  && pacman -Scc --noconfirm \
  && curl -sSfL -o /tmp/pluginval.zip \
         "https://github.com/Tracktion/pluginval/releases/download/${PLUGINVAL_VERSION}/pluginval_Linux.zip" \

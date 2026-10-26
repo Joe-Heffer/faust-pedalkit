@@ -10,6 +10,7 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Channels | Mono in, mono out |
 | Latency | 64 samples (1.3 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md) |
+| Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 | Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
 
 ## Controls
@@ -50,7 +51,7 @@ Set your interface gain so that your loudest notes peak around −12 dBFS before
 
 ## Presets
 
-The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+The LV2, VST3 and CLAP plugins all ship with the same factory presets, which hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). VST3 hosts see them as the plugin's program list, and CLAP hosts through preset discovery. They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
 
 | Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
 |---|---|---|---|---|---|---|---|---|---|

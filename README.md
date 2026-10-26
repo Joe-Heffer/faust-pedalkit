@@ -23,6 +23,10 @@ Two of the three effects so far are models. Original and circuit-inspired effect
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 | **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend that the original circuit lacks. Untested first draft | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
+To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
+
+New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
+
 ## Install
 
 Each effect is released on its own. Download its tarball from the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases) (tagged `<name>-v<version>`), unpack it and run its installer:
@@ -39,14 +43,14 @@ Then rescan plugins in your DAW. `./install.sh --help` lists the options, includ
 
 ```text
 src/<name>.dsp              one file per effect
-src/<name>.presets.toml     optional factory presets, built into the LV2 bundle
+src/<name>.presets.toml     optional factory presets, built into the LV2, VST3 and CLAP plugins
 src/lib/pedalkit.lib        shared blocks: 4x oversampler, clippers, analogue filter sections, output safety limiter
 docs/<name>/design-notes.md   an original effect's idea, inspirations, design choices and targets
 docs/<name>/circuit-notes.md  a modelled circuit's research, sources and modelling decisions
 tests/lib/                  render harness (Faust architecture) and Python helpers
 tests/<name>/test_*.py      offline tests for one effect
 tools/fix-ttl.py            adds LV2 metadata that faust2lv2 cannot write (licence URI, version, class)
-tools/make-presets.py       turns src/<name>.presets.toml into LV2 presets in the bundle
+tools/presets.py            turns src/<name>.presets.toml into LV2 presets and a header for VST3 and CLAP
 tools/basspreamp-networks.py  derives BassPreamp's fixed filter networks from component values (numpy)
 tools/vst3/                 VST3 architecture (Faust) and CMake project for the VST3 SDK
 tools/vst3-meta.py          writes each VST3 plugin's name, version, category and class ID
@@ -120,7 +124,9 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
-make docs                 # documentation site into build/site/ (after make test; see below)
+make web                  # browser demo into build/web/ (needs Node.js and npm)
+make web-test             # compare the browser build with the native renderer
+make docs                 # documentation site into build/site/ (after make test web; see below)
 make standalone           # build/<name>/<name> (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
@@ -179,11 +185,11 @@ GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds eve
 
 ### Documentation site
 
-The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, and embeds the plots and CSV data from `make test`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
+The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, embeds the plots and CSV data from `make test`, and publishes the browser demo from `make web` as `demo/`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
 
 ```sh
 python -m venv .venv && .venv/bin/pip install -r tools/docs-requirements.txt
-make test docs MKDOCS=.venv/bin/mkdocs        # build/site/
+make test web docs MKDOCS=.venv/bin/mkdocs    # build/site/
 make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000/
 ```
 
@@ -291,7 +297,7 @@ Every control is smoothed, including the switches: the shifts glide the band fre
 
 ### BassPreamp: presets
 
-The bundle ships with factory presets, which LV2 hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
+The LV2, VST3 and CLAP plugins all ship with the same factory presets, which hosts list in their preset menu (REAPER's preset box, Ardour's and Carla's preset lists, or `jalv`'s `presets` command). VST3 hosts see them as the plugin's program list, and CLAP hosts through preset discovery. They are starting points, chosen by measurement rather than by ear. Each one sets every control, and Level is set so that a −12 dBFS plucked bass line comes out within 0.25 dB of "Clean DI" (K-weighted), so switching presets doesn't jump in loudness.
 
 | Preset | Level | Blend | Drive | Presence | Bass | Mid | Treble | Shifts | Idea |
 |---|---|---|---|---|---|---|---|---|---|

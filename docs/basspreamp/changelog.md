@@ -4,6 +4,10 @@ Notable changes to BassPreamp. The format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Added
+
+- Factory presets in the VST3 plugin (as its program list) and the CLAP plugin (through preset discovery), the same seven as in LV2.
+
 ## [0.1.0]
 
 First release: Linux x86_64 plugins in LV2, VST3 and CLAP formats, with an `install.sh` that installs them into `~/.lv2`, `~/.vst3` and `~/.clap`.

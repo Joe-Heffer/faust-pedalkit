@@ -30,9 +30,12 @@ for bundle in "$VST3DIR"/*.vst3; do
     pluginval --strictness-level 10 --skip-gui-tests --validate-in-process \
         --validate "$bundle" || status=1
 done
+# clap-validator's preset-discovery-crawl and -load tests deadlock on any
+# container of two or more presets, so they are skipped as in `make
+# clap-validate`, where tools/clap/check-presets.cpp covers the presets.
 for plugin in "$CLAPDIR"/*.clap; do
     echo "== clap-validator $(basename "$plugin")"
-    clap-validator validate --only-failed "$plugin" || status=1
+    clap-validator validate --only-failed -x 'preset-discovery-(crawl|load)' "$plugin" || status=1
 done
 
 echo "== install.sh --uninstall"

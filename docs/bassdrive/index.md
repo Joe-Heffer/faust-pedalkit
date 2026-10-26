@@ -10,6 +10,7 @@ A bass overdrive with a clean/driven blend and a two-band EQ, modelled on a clas
 | Channels | Mono in, mono out |
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md) |
+| Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 
 ## Controls
 

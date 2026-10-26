@@ -90,6 +90,7 @@ nav:
   - Usage:
       - Loading in a host: usage/hosts.md
       - Using the effects in REAPER: usage/reaper.md
+      - Trying the effects in a browser: usage/browser.md
   - Effects:
       - effects/index.md
       - BassDrive:
@@ -107,6 +108,7 @@ nav:
           - Changelog: midhump/changelog.md
   - Development:
       - development/index.md
+      - How it works: development/how-it-works.md
       - Designing new sounds: development/designing-new-sounds.md
       - Adding an effect: development/adding-an-effect.md
       - Shared library: development/pedalkit-lib.md

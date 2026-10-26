@@ -12,7 +12,9 @@
 #   make test         build the offline renderers and run tests/<name>/
 #   make describe     write each effect's JSON description and SVG block diagram
 #   make dist         pack each effect's LV2, VST3 and CLAP plugins into a release tarball in build/dist/
-#   make docs         build the documentation site into build/site (run `make test` first)
+#   make web          build the browser demo (WebAssembly and page) into build/web/
+#   make web-test     compare the browser build with the native renderer and time it
+#   make docs         build the documentation site into build/site (run `make test` and `make web` first)
 #   make docs-serve   preview the documentation site at http://127.0.0.1:8000/
 #   make check        run every pre-commit hook on every file (as CI does)
 #   make format       fix Python lint and formatting with ruff
@@ -21,7 +23,7 @@
 #   make install-clap copy the CLAP plugins into ~/.clap
 #   make uninstall    remove them from ~/.lv2, ~/.vst3 and ~/.clap
 #   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
-#   make distclean    remove build/ and tests/out/ entirely
+#   make distclean    remove build/, tests/out/ and tools/web/node_modules/ entirely
 #   make help         list these targets and the effects
 #   make image        build the toolchain image from the Dockerfile (or DOCKERFILE)
 #   make container    run the RUN targets in that image (default RUN="lv2 lint test")
@@ -67,6 +69,8 @@ LDFLAGS    ?=
 FAUST_INC  := $(shell faust --includedir 2>/dev/null)
 ARCH       := tests/lib/render-arch.cpp
 MKDOCS     ?= mkdocs
+NODE       ?= node
+NPM        ?= npm
 PRE_COMMIT ?= pre-commit
 
 # Release tarballs (make dist): one per effect, named from the effect's own
@@ -74,6 +78,13 @@ PRE_COMMIT ?= pre-commit
 fxversion   = $(shell sed -n 's/^ *declare *version *"\([^"]*\)".*/\1/p' src/$(1).dsp)
 DIST       := $(BUILD)/dist
 distname    = $(1)-$(call fxversion,$(1))-linux-$(shell uname -m)
+
+# Browser demo (make web): faustwasm, pinned in tools/web/package-lock.json,
+# compiles each effect to WebAssembly and provides the AudioWorklet runtime
+# that the page in web/ loads. The result is a static site in build/web/.
+WEB        := $(BUILD)/web
+WEB_NODE   := tools/web/node_modules/.package-lock.json
+FAUSTWASM  := tools/web/node_modules/@grame/faustwasm
 
 # Toolchain image (see Dockerfile). CONTAINER may be docker or podman; extra
 # `run` options go in CONTAINER_FLAGS.
@@ -90,7 +101,7 @@ else
 CONTAINER_USER  := --user $(shell id -u):$(shell id -g)
 endif
 
-.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist docs docs-serve check format \
+.PHONY: all lv2 vst3 clap standalone lint pluginval clap-validate test describe dist web web-test docs docs-serve check format \
         install install-vst3 install-clap uninstall clean distclean help \
         image container
 .SECONDARY:
@@ -121,19 +132,48 @@ pluginval: vst3
 	        --validate $(BUILD)/$$f.vst3 || status=1; \
 	done; exit $$status
 
-clap-validate: clap
+# clap-validator 0.4.1 (and its main branch as of July 2026) deadlocks in
+# preset-discovery-crawl and preset-discovery-load on any container of two or
+# more presets: its metadata receiver's begin_preset() locks its result and
+# then calls flush_preset(), which locks it again. So those two tests are
+# skipped, and tools/clap/check-presets.cpp, built against each effect's
+# presets.h, crawls and loads the presets instead.
+CLAP_VALIDATOR_SKIP := -x 'preset-discovery-(crawl|load)'
+
+clap-validate: clap $(foreach f,$(FX),$(BUILD)/$(f)/clap/check-presets)
 	@status=0; for f in $(FX); do \
 	    echo "== clap-validator $$f"; \
-	    $(CLAP_VALIDATOR) validate --only-failed $(BUILD)/$$f.clap || status=1; \
+	    $(CLAP_VALIDATOR) validate --only-failed $(CLAP_VALIDATOR_SKIP) $(BUILD)/$$f.clap || status=1; \
+	    echo "== check-presets $$f"; \
+	    $(BUILD)/$$f/clap/check-presets $(BUILD)/$$f.clap || status=1; \
 	done; exit $$status
 
-test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x)
+test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x $(BUILD)/$(f)/controls.json)
 	@status=0; for f in $(FX); do bash tests/run.sh $$f || status=1; done; exit $$status
 
 describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
 
-# The site embeds the plots and CSV data from tests/out/, so run `make test`
-# first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
+# The page in web/ lists the effects from effects.json and builds each one's
+# controls from its dsp-meta.json (the same description as `make describe`).
+web: $(foreach f,$(FX),$(WEB)/$(f)/dsp-module.wasm)
+	mkdir -p $(WEB)/faustwasm
+	cp web/index.html web/demo.js web/demo.css $(WEB)/
+	cp $(FAUSTWASM)/dist/esm/index.js $(FAUSTWASM)/dist/esm/index.js.map $(FAUSTWASM)/COPYING.txt $(WEB)/faustwasm/
+	printf '[%s]\n' "$$(printf '"%s",' $(FX) | sed 's/,$$//')" > $(WEB)/effects.json
+
+# Compares the WebAssembly build with the native renderer, so it needs both.
+web-test: web $(foreach f,$(FX),$(BUILD)/$(f)/render)
+	FX=web WEB_FX="$(FX)" NODE=$(NODE) PYTHONPATH=tests/lib python3 tests/web/test_wasm.py
+
+$(WEB_NODE): tools/web/package.json tools/web/package-lock.json
+	$(NPM) ci --prefix tools/web --no-audit --no-fund
+
+$(WEB)/%/dsp-module.wasm: src/%.dsp $(LIBS) $(WEB_NODE)
+	mkdir -p $(@D)
+	$(NODE) $(FAUSTWASM)/scripts/faust2wasm.js $< $(@D) -I src/lib -no-template
+
+# The site embeds the plots and CSV data from tests/out/ and the browser demo
+# from build/web/, so run `make test web` first (see tools/mkdocs_hooks.py). Tools: pip install -r tools/docs-requirements.txt
 docs:
 	$(MKDOCS) build --strict
 
@@ -193,16 +233,28 @@ $(BUILD)/%/stage.stamp: src/%.dsp $(LIBS)
 	cp $< $(LIBS) $(@D)/
 	touch $@
 
-# Factory presets are optional: src/<name>.presets.toml, if present, is added
-# to the bundle as LV2 presets by tools/make-presets.py.
+# The effect's controls in parameter order (faust -json), which
+# tools/presets.py checks the presets against for every format.
+$(BUILD)/%/controls.json: src/%.dsp $(LIBS)
+	rm -rf $(@D)/json && mkdir -p $(@D)/json
+	faust -I src/lib -json -O $(@D)/json -o $*.cpp $<
+	mv $(@D)/json/$*.dsp.json $@
+	rm -rf $(@D)/json
+
+# Factory presets are optional: src/<name>.presets.toml, if present, is built
+# into every format by tools/presets.py: LV2 presets in the bundle here, and
+# presets.h for the VST3 and CLAP architectures below ("-" when there is none).
+presets-src = $(or $(wildcard src/$(1).presets.toml),-)
 .SECONDEXPANSION:
-$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp tools/fix-ttl.py tools/make-presets.py $$(wildcard src/$$*.presets.toml)
+$(BUILD)/%.lv2/manifest.ttl: $(BUILD)/%/stage.stamp $(BUILD)/%/controls.json tools/fix-ttl.py tools/presets.py \
+                             $$(wildcard src/$$*.presets.toml)
 	cd $(BUILD)/$* && $(if $(LDFLAGS),CXXFLAGS="$(LDFLAGS)") faust2lv2 -nomidicc -uri-prefix $(URI_PREFIX) $*.dsp
 	rm -rf $(BUILD)/$*.lv2
 	mv $(BUILD)/$*/$*.lv2 $(BUILD)/
 	python3 tools/fix-ttl.py src/$*.dsp $(BUILD)/$*.lv2/$*.ttl
 	if [ -f src/$*.presets.toml ]; then \
-	    python3 tools/make-presets.py src/$*.presets.toml $(BUILD)/$*.lv2 $(URI_PREFIX)/$*; \
+	    python3 tools/presets.py lv2 src/$*.presets.toml $(BUILD)/$*/controls.json \
+	        $(BUILD)/$*.lv2 $(URI_PREFIX)/$*; \
 	fi
 
 # VST3: faust compiles the effect into the architecture in tools/vst3/,
@@ -217,10 +269,12 @@ $(VST3_SDK)/CMakeLists.txt:
 	    base pluginterfaces public.sdk cmake
 
 $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt \
-                       tools/vst3-meta.py tools/dspmeta.py | $(VST3_SDK)/CMakeLists.txt
+                       tools/vst3-meta.py tools/dspmeta.py tools/presets.py $(BUILD)/%/controls.json \
+                       $$(wildcard src/$$*.presets.toml) | $(VST3_SDK)/CMakeLists.txt
 	mkdir -p $(@D)/vst3
 	faust -I src/lib -a $(VST3_ARCH) -o $(@D)/vst3/$*.cpp $<
 	python3 tools/vst3-meta.py $< $* $(@D)/vst3/plugin_meta.h
+	python3 tools/presets.py header $(call presets-src,$*) $(@D)/controls.json $(@D)/vst3/presets.h
 	cmake -S tools/vst3 -B $(@D)/vst3/build -DCMAKE_BUILD_TYPE=Release \
 	    -DFX_NAME=$* -DFX_VERSION=$(call fxversion,$*) \
 	    -DFX_GEN_DIR=$(abspath $(@D)/vst3) -DFAUST_INC=$(FAUST_INC) \
@@ -240,14 +294,20 @@ $(CLAP_SDK)/include/clap/clap.h:
 	git -c advice.detachedHead=false clone --quiet --depth 1 --branch $(CLAP_TAG) \
 	    https://github.com/free-audio/clap $(CLAP_SDK)
 
-$(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta.py \
-                 | $(CLAP_SDK)/include/clap/clap.h
+$(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta.py tools/presets.py \
+                 $(BUILD)/%/controls.json $$(wildcard src/$$*.presets.toml) | $(CLAP_SDK)/include/clap/clap.h
 	mkdir -p $(BUILD)/$*/clap
 	faust -I src/lib -a $(CLAP_ARCH) -o $(BUILD)/$*/clap/$*.cpp $<
 	python3 tools/clap-meta.py $< $* $(BUILD)/$*/clap/plugin_meta.h
+	python3 tools/presets.py header $(call presets-src,$*) $(BUILD)/$*/controls.json $(BUILD)/$*/clap/presets.h
 	$(CXX) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
 	    -I$(BUILD)/$*/clap -I$(FAUST_INC) -I$(CLAP_SDK)/include \
 	    $(BUILD)/$*/clap/$*.cpp $(LDFLAGS) -o $@
+
+# A minimal host that checks the plug-in's presets against the presets.h it
+# was built from (see clap-validate).
+$(BUILD)/%/clap/check-presets: tools/clap/check-presets.cpp $(BUILD)/%.clap
+	$(CXX) $(CXXFLAGS) -I$(BUILD)/$*/clap -I$(CLAP_SDK)/include $< -ldl -o $@
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $*.dsp || faust2jack $*.dsp)
@@ -279,7 +339,7 @@ clean:
 	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk -exec rm -rf {} +
 
 distclean:
-	rm -rf $(BUILD) tests/out
+	rm -rf $(BUILD) tests/out tools/web/node_modules
 
 help:
 	@sed -n 's/^#   make /make /p' $(firstword $(MAKEFILE_LIST))

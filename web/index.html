@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+SPDX-FileCopyrightText: 2026 Joe Heffer
+SPDX-License-Identifier: MIT
+
+Browser demo: plays the effects built by `make web` through the Web Audio
+API. Each effect is a faustwasm AudioWorklet node; demo.js builds its
+controls from the effect's dsp-meta.json.
+-->
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedal Kit Demo</title>
+  <meta name="description" content="Try the Faust Pedal Kit effects in the browser, with no install.">
+  <link rel="stylesheet" href="demo.css">
+  <script type="module" src="demo.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Faust Pedal Kit <span>browser demo</span></h1>
+    <p>The same Faust code as the LV2, VST3 and CLAP plugins, compiled to
+      WebAssembly and run in your browser. Use headphones with a microphone
+      or instrument input to avoid feedback.</p>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="setup-heading">
+      <h2 id="setup-heading">Setup</h2>
+      <div class="row">
+        <label for="effect">Effect</label>
+        <select id="effect" disabled></select>
+      </div>
+      <p id="effect-description" class="hint"></p>
+      <div class="row">
+        <label for="source">Source</label>
+        <select id="source">
+          <option value="riff">Test riff (synthesised bass)</option>
+          <option value="file">Audio file…</option>
+          <option value="mic">Microphone or audio interface</option>
+        </select>
+      </div>
+      <div class="row" id="file-row" hidden>
+        <label for="file">File</label>
+        <input id="file" type="file" accept="audio/*">
+      </div>
+      <div class="row" id="device-row" hidden>
+        <label for="device">Input</label>
+        <select id="device"></select>
+      </div>
+      <div class="buttons">
+        <button id="start" type="button" disabled>Start</button>
+        <label class="toggle"><input id="bypass" type="checkbox"> Bypass</label>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
+    </section>
+
+    <section class="panel" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">Controls</h2>
+      <div id="controls" class="controls"></div>
+      <dl id="readouts" class="readouts"></dl>
+      <button id="reset" type="button" class="secondary">Reset to defaults</button>
+    </section>
+
+    <section class="panel" aria-labelledby="levels-heading">
+      <h2 id="levels-heading">Levels</h2>
+      <div class="control">
+        <label for="input-trim">Input trim <output id="input-trim-value">0.0 dB</output></label>
+        <input id="input-trim" type="range" min="-24" max="12" step="0.5" value="0">
+      </div>
+      <div class="control">
+        <label for="output-trim">Output trim <output id="output-trim-value">0.0 dB</output></label>
+        <input id="output-trim" type="range" min="-24" max="6" step="0.5" value="0">
+      </div>
+      <div class="meter-label">Output peak <output id="peak-value">−∞ dBFS</output></div>
+      <meter id="peak" min="-60" max="0" low="-12" high="-3" optimum="-18" value="-60"></meter>
+    </section>
+  </main>
+
+  <footer>
+    <p><a href="../">Documentation</a> ·
+      <a href="../usage/browser/">About this demo</a> ·
+      <a href="https://github.com/Joe-Heffer/faust-pedalkit">Source</a></p>
+    <p>Effects and page: MIT. Audio runtime:
+      <a href="https://github.com/grame-cncm/faustwasm">faustwasm</a>,
+      <a href="faustwasm/COPYING.txt">LGPL-3.0</a>, served unmodified.</p>
+  </footer>
+</body>
+</html>
