@@ -102,6 +102,7 @@ nav:
           - Changelog: basspreamp/changelog.md
   - Development:
       - development/index.md
+      - How it works: development/how-it-works.md
       - Designing new sounds: development/designing-new-sounds.md
       - Adding an effect: development/adding-an-effect.md
       - Shared library: development/pedalkit-lib.md
