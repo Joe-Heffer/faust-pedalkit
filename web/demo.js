@@ -397,8 +397,13 @@ function stopSource() {
 async function listDevices() {
     const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
     const selected = ui.device.value;
+    // Before permission is granted the browser may list no inputs, or inputs
+    // without labels, so always offer the default input as well.
     ui.device.replaceChildren(
-        ...devices.map((d, i) => new Option(d.label || `Input ${i + 1}`, d.deviceId, false, d.deviceId === selected)),
+        new Option("Default input", "", false, !selected),
+        ...devices
+            .filter((d) => d.deviceId && d.deviceId !== "default")
+            .map((d, i) => new Option(d.label || `Input ${i + 1}`, d.deviceId, false, d.deviceId === selected)),
     );
 }
 
@@ -498,12 +503,14 @@ async function restartSource() {
 
 ui.start.addEventListener("click", () => (running ? stop() : start()));
 ui.effect.addEventListener("change", selectEffect);
-for (const [key, riff] of Object.entries(RIFFS)) ui.riff.add(new Option(riff.label, key));
+ui.riff.replaceChildren(...Object.entries(RIFFS).map(([key, riff]) => new Option(riff.label, key, key === "root", key === "root")));
+listDevices().catch(() => ui.device.replaceChildren(new Option("Default input", "")));
 ui.riff.addEventListener("change", restartSource);
 ui.source.addEventListener("change", () => {
     ui.riffRow.hidden = ui.source.value !== "riff";
     ui.fileRow.hidden = ui.source.value !== "file";
     ui.deviceRow.hidden = ui.source.value !== "mic";
+    if (ui.source.value === "mic") listDevices().catch(() => {});
     restartSource();
 });
 ui.file.addEventListener("change", () => {
@@ -511,6 +518,7 @@ ui.file.addEventListener("change", () => {
     restartSource();
 });
 ui.device.addEventListener("change", restartSource);
+navigator.mediaDevices?.addEventListener("devicechange", () => listDevices().catch(() => {}));
 ui.bypass.addEventListener("change", () => {
     if (!graph) return;
     const t = ctx.currentTime;

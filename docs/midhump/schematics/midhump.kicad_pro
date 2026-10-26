@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "filename": "midhump.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "010b1af2-27f5-575e-abfa-b6299131c297",
+      "Root"
+    ],
+    [
+      "932eec4f-0ba9-5424-882e-71e6657522a4",
+      "1 Supply and bias"
+    ],
+    [
+      "f0e2de94-9e22-5fbd-9cee-f6bc27210de6",
+      "3 Input coupling"
+    ],
+    [
+      "72bff5cf-cccf-54ba-9b5d-386d6772c327",
+      "4 Clipping stage"
+    ],
+    [
+      "236d1873-a154-5642-abd4-963975ab7b4a",
+      "6 Passive low-pass"
+    ],
+    [
+      "2e93466c-1adf-5f33-a5b6-5567d2d3e284",
+      "7 Tone stage"
+    ],
+    [
+      "6ec05990-8c59-574c-ab1d-61c80f32b90a",
+      "8 Level and calibration"
+    ]
+  ],
+  "text_variables": {}
+}

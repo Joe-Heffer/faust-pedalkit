@@ -50,6 +50,10 @@ in → input high-pass (15.6 Hz)
 → sum → Level → safety limiter (≤ −0.1 dBFS) → out
 ```
 
+The [schematic](../development/schematics.md) redraws this as analogue stages, one sheet per section of the [circuit notes](circuit-notes.md). It draws the model, including Blend and the modelled tone shelf, rather than the pedal exactly.
+
+![MidHump schematic, root sheet: one block per stage](../schematics/midhump/midhump.svg)
+
 ## Measured behaviour
 
 These figures come from `make test` at 48 kHz. The plots below are regenerated each time the site is published. Click a plot to open it full size; the CSV data behind each one is linked underneath.

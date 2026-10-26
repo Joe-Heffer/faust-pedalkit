@@ -40,6 +40,10 @@ in → DC blocker (5 Hz)
 → Level → safety limiter (≤ −0.1 dBFS) → out
 ```
 
+The [schematic](../development/schematics.md) redraws this as analogue stages, one sheet per section of the [circuit notes](circuit-notes.md). No public schematic of the reference pedal was found, so it is the modelled circuit, not a trace of the pedal.
+
+![BassDrive schematic, root sheet: one block per stage](../schematics/bassdrive/bassdrive.svg)
+
 - **Stage 1** is a non-inverting gain stage with a series RC shunt (3.3 kΩ and 33 nF, a corner at about 1.46 kHz). Bass notes pass at roughly unity while the upper register is driven hard, which gives the pedal's "treble layer over the clean tone" character.
 - **The clipper** has a soft tanh knee at +1.7 V (a red LED) and a harder knee at −0.8 V (a biased transistor stage running out of headroom). The distortion is light and odd-order at low Gain and leans even-order by noon, as the reference measurements report.
 - **The clean path** is only delayed by the oversampler's latency, so the blend doesn't comb-filter.

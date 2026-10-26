@@ -97,7 +97,7 @@ Write `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the temp
 - Add rows to the effect tables in `docs/index.md` and `docs/effects/index.md`.
 - Write `docs/<name>/changelog.md` with a `## [0.1.0]` section. The release workflow refuses a tag without one.
 - Add the pages to `nav` in `mkdocs.yml`, under *Effects*.
-- Optional: draw the borrowed circuit in KiCad as `docs/<name>/schematics/<name>.kicad_sch`, one sub-sheet per stage, following `docs/development/schematics.md`, and run `make erc schematics FX=<name>`.
+- Required whenever there are circuit notes: write `tools/schematics/<name>.py` (start from the closest existing script) to generate the modelled circuit's KiCad schematic, one sub-sheet per section of the notes, following `docs/development/schematics.md`. Run `make schematic-sources erc schematics FX=<name>`, read every sheet, never hand-edit the `.kicad_sch`, and embed the sheets in the circuit notes and the effect page.
 - Run `make test web schematics docs` (needs `pip install -r tools/docs-requirements.txt`; pass `MKDOCS=<path>` if it lives in a virtualenv). It builds with `--strict`, so fix every warning.
 
 ### 7. Check and open the PR

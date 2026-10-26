@@ -4,6 +4,8 @@ These notes summarise what public sources say about the Boss ODB-3 bass overdriv
 
 No proprietary plugin or firmware was inspected. Everything below comes from the sources listed at the end, plus standard circuit analysis.
 
+Each section with component values has a sheet of the [KiCad schematic](../development/schematics.md), redrawn from these notes. No public schematic of the pedal was found, so the schematic is the circuit BassDrive implements, not a trace of the pedal, and most of its parts are inferred or chosen. Dashed outlines mark those parts, and designators with an `X` (RX1, UX2 …) mark parts no source names.
+
 Confidence levels used throughout:
 
 - **Documented**: stated by the manufacturer.
@@ -27,6 +29,10 @@ The manufacturer's page [1] lists:
 
 Specifications: nominal input −20 dBu, input impedance 1 MΩ, output impedance 1 kΩ, buffered bypass, 9 V supply [1].
 
+The schematic's first sheet holds the 9 V supply and a half-supply bias rail, VB, for the single-supply stages. Neither is described by a source, so both are chosen.
+
+![Sheet 1: the 9 V supply and the bias rail VB](../schematics/bassdrive/bassdrive-1-supply-and-bias.svg)
+
 Retailer copy says the pedal can also be used as a plain two-band EQ [3]. **Inferred:** the EQ therefore sits *after* the clean/driven blend and acts on both signals. BassDrive follows this.
 
 ## 2. Overall topology
@@ -42,6 +48,14 @@ in → buffer ─┬─────────────── clean ──�
              │                                     ├─ BALANCE ─ EQ (low/high) ─ LEVEL ─ out
              └─ stage 1 (gain, pre-emphasis) ─ stage 2 (LED clip) ─ post filter ┘
 ```
+
+The schematic's root sheet is this block diagram, with one sub-sheet per stage:
+
+![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/bassdrive/bassdrive.svg)
+
+The input buffer is drawn with the documented 1 MΩ input impedance [1] as its bias resistor, and a coupling capacitor chosen for the DSP's 5 Hz DC blocker. That one of the pedal's op-amps [5] buffers the input is inferred.
+
+![Sheet 2: input coupling and buffer](../schematics/bassdrive/bassdrive-2-input-buffer.svg)
 
 ## 3. Pre-emphasis (stage 1): R31 and C10
 
@@ -61,9 +75,9 @@ The stage gain is then 1 + (Rf / R31) · HP₁(f). Below about 1.5 kHz the signa
 
 **Uncertain:** I haven't confirmed the position of R31 and C10 against a schematic. The interpretation fits every report, and it is the standard topology.
 
-The sheet below draws this stage and the feedback network of section 4 as BassDrive models them. Dashed outlines mark the inferred and chosen parts, and the `X` designators mark parts no source mentions (see [Schematics](../development/schematics.md)).
+The sheet below draws this stage and the feedback network of section 4 as BassDrive models them.
 
-![Stage 1 redrawn: non-inverting gain stage with the R31 and C10 shunt leg and C8 across the Gain pot](../schematics/bassdrive/bassdrive-3-pre-emphasis.svg)
+![Sheet 3: non-inverting gain stage with the R31 and C10 shunt leg and C8 across the Gain pot](../schematics/bassdrive/bassdrive-3-pre-emphasis.svg)
 
 ## 4. Feedback low-pass: C8 and the Gain pot
 
@@ -107,9 +121,15 @@ Measured on single sines at −12 dBFS (driven path only):
 
 At maximum Gain, both sides clip hard and the odd harmonics take over again. The reference describes that setting as "sawtooth-like", which suggests more even content than I get. This is the main harmonic mismatch I know of.
 
+The schematic draws stage 2 as an op-amp with the fixed gain of 3, then D2 and D3 as a shunt to VB, then a silicon diode, DX1, that clips the negative side first. DX1 stands in for the biased discrete stage; its knee, about −0.6 V where the DSP uses −0.8 V, is only indicative.
+
+![Sheet 5: stage 2 gain, the LED pair and the one-sided clip](../schematics/bassdrive/bassdrive-5-clipping.svg)
+
 ## 6. Post-filtering
 
 **Chosen:** a 2nd-order low-pass at 5 kHz on the driven path, then a 5 Hz DC blocker to remove the offset created by the asymmetric clipper. The real post-filter is not documented. 5 kHz keeps the fizz above the treble band in check while leaving the High control (below) something to act on. Below 11.1 kHz sample rate the corner is held at 0.45 × the sample rate, because a corner at or above Nyquist makes the digital filter unstable.
+
+![Sheet 6: the 5 Hz DC blocker and a 5 kHz Sallen-Key low-pass](../schematics/bassdrive/bassdrive-6-post-filtering.svg)
 
 ## 7. The EQ and the fixed mid scoop
 
@@ -131,6 +151,10 @@ A reviewer also notes that the High control does most of the useful work [3].
 
 **Deliberate difference:** on the real pedal, noon on High is already about +10 dB. For a plugin, a calibrated "0 dB is flat" scale is more useful. If you want the original's voicing, set Treble to about +10 dB.
 
+The EQ's circuit is not public and the DSP uses digital filters, so the schematic draws a standard analogue stand-in, every part chosen: graphic-EQ boost/cut bands for Bass and Treble (flat with the pot centred, full boost or cut at the ends), a series RLC shunt for the scoop, and an RC low-pass at 12 kHz. Its script checks that the values give the DSP's centre frequencies, Q factors and ranges. The inductors would be gyrators in practice. The treble shelf here is first-order where the DSP's is third-order.
+
+![Sheet 7: Bass band, fixed mid scoop, Treble shelf and the 12 kHz cap](../schematics/bassdrive/bassdrive-7-eq-and-mid-scoop.svg)
+
 ## 8. Balance
 
 **Documented:** a dry/overdriven blend [1].
@@ -143,9 +167,17 @@ A reviewer also notes that the High control does most of the useful work [3].
 
 **Measured side effect:** at a 50/50 blend the two paths still cancel at one frequency in the upper treble. There, the driven path's phase lag (C8 plus the post-filter) reaches 180° while its level equals the clean path. The notch sits around 5.8 kHz at full Gain and 7.7 kHz at noon. Moving the post-filter only shifts it. A real summing blend with this topology would behave the same way, so I've kept it, but it is worth listening for.
 
+A pot between two low-impedance sources, read by a follower, gives exactly this crossfade, so that is what the schematic draws, with a divider for `drvTrim`:
+
+![Sheet 8: the drvTrim divider and the Balance pot into a follower](../schematics/bassdrive/bassdrive-8-balance.svg)
+
 ## 9. Levels and calibration
 
 **Chosen:** 1.0 digital full scale is treated as 1 V peak at the circuit input. A DI'd bass peaking around −12 dBFS then sits near the pedal's nominal −20 dBu (about 0.11 V peak) plus some headroom. This is what makes the LED threshold land in a sensible place.
+
+**Chosen:** Level runs from −40 dB to +12 dB. The schematic draws it as a volume pot followed by a fixed +12 dB stage, with the documented 1 kΩ output impedance [1] as a series resistor:
+
+![Sheet 9: Level pot, +12 dB make-up stage and the 1 kΩ output resistor](../schematics/bassdrive/bassdrive-9-level.svg)
 
 ---
 
@@ -165,3 +197,4 @@ A reviewer also notes that the High control does most of the useful work [3].
 - Stage 2's fixed gain, and whether it is really the stage with the asymmetry.
 - The exact post-clip filtering.
 - Whether the mid scoop comes from the blend's phase interaction, a dedicated network, or both.
+- Where the LEDs sit. The schematic draws them as a shunt after stage 2 (inferred); in the feedback loop of a gain stage they would clip the stage's gain rather than its output, with a softer knee. The memoryless DSP model can't tell the two apart, but a circuit-level model would.

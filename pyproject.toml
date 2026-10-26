@@ -8,10 +8,17 @@ target-version = "py311"
 # pycodestyle, pyflakes, isort, pyupgrade, bugbear, numpy-specific rules.
 select = ["E", "W", "F", "I", "UP", "B", "NPY"]
 
+[tool.ruff.lint.per-file-ignores]
+# The schematic scripts hold each sheet's note as one string per printed
+# line, so a line of code is as long as the line on the sheet;
+# kicadsch.Sheet.note() limits that length instead.
+"tools/schematics/*.py" = ["E501"]
+
 [tool.ruff.lint.isort]
 # Test scripts import the shared helpers from tests/lib/ via PYTHONPATH; the
-# scripts in tools/ import tools/dspmeta.py from their own directory.
-known-first-party = ["fxtest", "dspmeta"]
+# scripts in tools/ import tools/dspmeta.py from their own directory and the
+# schematic scripts import kicadsch and stages from tools/schematics/.
+known-first-party = ["fxtest", "dspmeta", "kicadsch", "stages"]
 
 [tool.codespell]
 skip = "./build,./tests/out,./.git,./.claude,./.venv"

@@ -44,6 +44,8 @@ jobs:
         run: make container RUN=test
       - name: Browser demo (WebAssembly build, checked against the native renderers)
         run: make container RUN="web web-test"
+      - name: Schematics match their generator scripts
+        run: make container RUN=schematic-check
       - name: Schematic electrical rules check
         run: make container RUN=erc
       - name: Render schematics

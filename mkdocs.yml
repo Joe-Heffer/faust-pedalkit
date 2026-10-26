@@ -120,4 +120,5 @@ nav:
       - Linting and CI: development/ci.md
       - Releasing: development/releasing.md
       - Logo: development/logo.md
+  - Where this project sits: ecosystem.md
   - About: about.md

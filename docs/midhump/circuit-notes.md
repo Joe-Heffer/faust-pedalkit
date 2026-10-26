@@ -14,6 +14,8 @@ Confidence levels used throughout:
 - **Inferred**: my own reasoning from the reported facts.
 - **Chosen**: a free modelling choice where no source gives a value.
 
+Each section with component values has a sheet of the [KiCad schematic](../development/schematics.md), redrawn from these notes. It is the circuit MidHump implements: where the model departs from the published circuit (the tone stage, Blend, the Level range), the sheet draws the model and says so. Dashed outlines mark inferred and chosen parts, and designators with an `X` (RX3, UX1 …) mark parts the notes do not name.
+
 ---
 
 ## 1. Controls and interface
@@ -29,6 +31,10 @@ in → input buffer → clipping stage ┬→ 723 Hz passive low-pass → active
 
 Input and output buffers are not modelled (**chosen**). They are emitter followers whose job is impedance matching, so a digital model has no use for them.
 
+The schematic's root sheet is this block diagram plus Blend, with one sub-sheet per stage. Sheet 1 holds a 9 V supply and a bias rail, both chosen, so the op-amp stages can be wired.
+
+![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/midhump/midhump.svg)
+
 ## 3. Input coupling
 
 **Inferred:** a 20 nF coupling capacitor into a 510 kΩ bias resistor gives a high-pass at
@@ -36,6 +42,8 @@ Input and output buffers are not modelled (**chosen**). They are emitter followe
   f = 1 / (2π · 510 kΩ · 20 nF) ≈ **15.6 Hz**
 
 The 510 kΩ bias resistor is **reported** [2], which says it sets almost all of the input impedance. The capacitor value is recalled from the standard schematic, not sourced. [2] also says the buffer feeds the clipping stage through a 1 µF capacitor, "large enough" to pass the bass, so that coupling is not modelled. The effect on bass is small (−0.4 dB at 41 Hz). It is the `fcIn` constant in `src/midhump.dsp`.
+
+![Sheet 3: input coupling](../schematics/midhump/midhump-3-input-coupling.svg)
 
 ## 4. Clipping stage
 
@@ -69,9 +77,13 @@ Below 720 Hz the second term vanishes, so the stage passes bass at unity gain an
 
 **Known approximation:** in the circuit, C4 and the diodes act together on the feedback node, so the low-pass acts on the clipped signal as well. In this model the low-pass comes before the clipper. At high Drive that leaves more high-frequency energy in the clipped waveform than the pedal has, and the 723 Hz passive filter that follows hides most of it.
 
+![Sheet 4: the clipping stage with the diodes across its feedback](../schematics/midhump/midhump-4-clipping-stage.svg)
+
 ## 6. Passive low-pass
 
 **Reported [1], [2]:** R7 = 1 kΩ and C5 = 220 nF form a first-order low-pass at **723 Hz** after the clipping stage. It removes the harsh upper harmonics. MidHump uses `fi.lowpass(1, 723)`.
+
+![Sheet 6: R7 and C5](../schematics/midhump/midhump-6-passive-low-pass.svg)
 
 ## 7. Tone stage
 
@@ -94,9 +106,17 @@ Below 720 Hz the second term vanishes, so the stage passes bass at unity gain an
 
 This is **chosen** (the law) and **inferred** (the corners). It is not a circuit solution and, as above, it does not match [2]. Replacing it with the real network is the first item under [open questions](#open-questions).
 
+The schematic draws the shelf **as implemented**, not [2]'s network: a non-inverting stage whose ground leg is the reported 220 Ω and 220 nF (the fixed 3.29 kHz pole) and whose feedback is a 0 to 780 Ω Tone control that moves the zero from 3.29 kHz to 723 Hz, followed by the 5 Hz DC blocker.
+
+![Sheet 7: the tone stage as modelled](../schematics/midhump/midhump-7-tone-stage.svg)
+
 ## 8. Level and calibration
 
 **Chosen:** Level is a plain gain in dB (−40 dB to +12 dB, default 0 dB), where the pedal has a passive volume pot and an output buffer. 1.0 digital full scale is treated as 1 V peak at the circuit input. At −12 dBFS the signal is 0.25 V peak. [2] puts a typical picked note at 30 mV to 100 mV, so the −12 dBFS test level is a hot pickup, and −30 dBFS to −20 dBFS is closer to an average one. The pedal's volume control is a 100 kΩ audio pot [2].
+
+The schematic's last sheet adds Blend (see the [design notes](design-notes.md)): an inverting summer takes the driven path at ×3.9 (+11.8 dB of make-up for the +12 dB Level range) and the clean path at Blend × 1.95, half the driven gain (`cleanTrim`). The pedal's 100 kΩ audio volume pot [2] and an inverting buffer that restores the polarity follow. All but the pot are chosen.
+
+![Sheet 8: Blend summer, Level pot and output buffer](../schematics/midhump/midhump-8-level-and-calibration.svg)
 
 ## 9. Summary of constants
 
@@ -131,3 +151,5 @@ This is **chosen** (the law) and **inferred** (the corners). It is not a circuit
 - Whether to move the C4 low-pass after the clipper, as in the circuit, at the cost of a filter inside the oversampled path.
 - The diode knee. Yeh's numerical solution would settle the shape of the soft clipper.
 - How the Drive pot is tapered in the pedals people play. A linear pot would change every noon figure above.
+- The citation for the 220 Ω and 220 nF pair in section 7, "[1], [5]". Source [5] is the op-amp article; the tone-stage analysis is [6]. The schematic follows the notes as written until this is checked.
+- Whether C5 returns to ground or to the bias rail. The schematic takes the bias rail; at audio frequencies they are the same.
