@@ -20,6 +20,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Dockerfile.release stays on the oldest Debian that has what the build
+      # needs, so that the shipped plugins load on older distributions.
+      # Debian 13 (glibc 2.41) builds plugins that need GLIBC_2.38 and fail
+      # the Ubuntu 22.04 check. Digest updates within debian:12 still arrive.
+      - dependency-name: "debian"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "npm"
     directory: "/tools/web"
