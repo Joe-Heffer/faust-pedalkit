@@ -22,6 +22,8 @@ The two effects so far are models. Original and circuit-inspired effects are whe
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 
+To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
+
 New to DSP or Faust? [How it works](docs/development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. [Adding an effect](docs/development/adding-an-effect.md) is the step-by-step workflow.
 
 ## Install
@@ -121,7 +123,9 @@ make lv2                  # build/<name>.lv2 for every effect
 make lint                 # lv2lint on every bundle (passes; only an author e-mail warning)
 make test                 # renders, checks, and writes SVG plots and CSV data to tests/out/
 make describe             # build/<name>/<name>.dsp.json (controls) and block-diagram SVGs
-make docs                 # documentation site into build/site/ (after make test; see below)
+make web                  # browser demo into build/web/ (needs Node.js and npm)
+make web-test             # compare the browser build with the native renderer
+make docs                 # documentation site into build/site/ (after make test web; see below)
 make standalone           # build/<name>/<name> (JACK, Qt GUI)
 make install              # copies bundles to ~/.lv2
 make vst3                 # build/bassdrive.vst3 (fetches the VST3 SDK on first use)
@@ -180,11 +184,11 @@ GitHub Actions (`.github/workflows/ci.yml`) runs the same hooks, then builds eve
 
 ### Documentation site
 
-The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, and embeds the plots and CSV data from `make test`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
+The site at <https://joe-heffer.github.io/faust-pedalkit/> is built from `docs/` with [MkDocs](https://www.mkdocs.org/) and the Material theme, embeds the plots and CSV data from `make test`, and publishes the browser demo from `make web` as `demo/`. `.github/workflows/docs.yml` rebuilds and deploys it on every push to `main`. To build it locally:
 
 ```sh
 python -m venv .venv && .venv/bin/pip install -r tools/docs-requirements.txt
-make test docs MKDOCS=.venv/bin/mkdocs        # build/site/
+make test web docs MKDOCS=.venv/bin/mkdocs    # build/site/
 make docs-serve MKDOCS=.venv/bin/mkdocs       # preview at http://127.0.0.1:8000/
 ```
 

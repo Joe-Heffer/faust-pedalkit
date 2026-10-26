@@ -90,6 +90,7 @@ nav:
   - Usage:
       - Loading in a host: usage/hosts.md
       - Using the effects in REAPER: usage/reaper.md
+      - Trying the effects in a browser: usage/browser.md
   - Effects:
       - effects/index.md
       - BassDrive:

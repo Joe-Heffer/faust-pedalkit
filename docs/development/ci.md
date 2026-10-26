@@ -47,8 +47,9 @@ Runs on every push to `main` and every pull request:
 Builds this site and publishes it to GitHub Pages:
 
 1. In an Arch Linux container, build the test renderers and run `make test`, so the effect pages show the current measurements.
-2. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page or missing measurement fails the build.
-3. On `main` only, deploy `build/site/` to GitHub Pages. Pull requests build the site but don't deploy it.
+2. Build the [browser demo](../usage/browser.md) with `make web` and check it against the native renderers with `make web-test`.
+3. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page, missing measurement or missing demo fails the build.
+4. On `main` only, deploy `build/site/` to GitHub Pages. Pull requests build the site but don't deploy it.
 
 ## Building this site locally
 
@@ -62,10 +63,10 @@ python -m venv .venv
 Then:
 
 ```sh
-make test docs MKDOCS=.venv/bin/mkdocs         # build into build/site/
+make test web docs MKDOCS=.venv/bin/mkdocs     # build into build/site/
 make docs-serve MKDOCS=.venv/bin/mkdocs        # live preview at http://127.0.0.1:8000/
 ```
 
 Leave out `MKDOCS=…` if `mkdocs` is already on your `PATH`.
 
-The pages are the Markdown files under `docs/`, and `mkdocs.yml` sets the navigation. `tools/mkdocs_hooks.py` adds the SVG and CSV files from `tests/out/<name>/` to the site as `measurements/<name>/`, which is why the tests must run first. The measurements are never committed.
+The pages are the Markdown files under `docs/`, and `mkdocs.yml` sets the navigation. `tools/mkdocs_hooks.py` adds the SVG and CSV files from `tests/out/<name>/` to the site as `measurements/<name>/`, which is why the tests must run first. It also adds the browser demo from `build/web/` as `demo/`, so `make web` (which needs Node.js and npm) must run first too. The measurements and the demo are never committed.

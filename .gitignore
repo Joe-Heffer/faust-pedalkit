@@ -4,3 +4,4 @@ __pycache__/
 .claude/*
 !.claude/skills/
 .venv/
+tools/web/node_modules/

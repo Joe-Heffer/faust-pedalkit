@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 # Builds the documentation site (mkdocs.yml) and publishes it to GitHub Pages.
-# The effect pages embed the current test plots, so the tests run first.
+# The effect pages embed the current test plots, so the tests run first, and
+# the browser demo (make web) is built, checked and published as demo/.
 # Pull requests build the site to catch broken links; only main deploys.
 # Needs Settings → Pages → Source set to "GitHub Actions".
 
@@ -34,13 +35,16 @@ jobs:
       - name: Install toolchain
         run: |
           pacman -Syu --noconfirm --needed \
-            faust python python-numpy python-matplotlib
+            faust python python-numpy python-matplotlib nodejs npm
           faust --version
+          node --version
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Offline tests (plots and CSV data for the effect pages)
         run: make test
+      - name: Browser demo (WebAssembly build, checked against the native renderers)
+        run: make web web-test
       - name: Install MkDocs
         run: |
           python -m venv /opt/docs

@@ -1,0 +1,10 @@
+{
+  "name": "pedalkit-web",
+  "private": true,
+  "description": "Pinned toolchain for the browser demo: faustwasm compiles each effect to WebAssembly and provides the AudioWorklet runtime.",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@grame/faustwasm": "0.19.0"
+  }
+}

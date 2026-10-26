@@ -8,6 +8,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 
 [Install and build](install.md){ .md-button .md-button--primary }
 [Browse the effects](effects/index.md){ .md-button }
+[Try them in your browser](demo/index.html){ .md-button }
 
 ## Effects
 
