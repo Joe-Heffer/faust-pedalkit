@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT
 # Documentation site, published to GitHub Pages by .github/workflows/docs.yml.
 #
-#   make test schematics docs   build the site into build/site/ (strict: warnings fail)
-#   make docs-serve    live preview at http://127.0.0.1:8000/
+#   make test web schematics docs   build the site into build/site/ (strict: warnings fail)
+#   make docs-serve                 live preview at http://127.0.0.1:8000/
 #
 # Install the tools with `pip install -r tools/docs-requirements.txt`.
 # tools/mkdocs_hooks.py publishes the plots and CSV data from tests/out/ under
@@ -91,6 +91,7 @@ nav:
   - Usage:
       - Loading in a host: usage/hosts.md
       - Using the effects in REAPER: usage/reaper.md
+      - Trying the effects in a browser: usage/browser.md
   - Effects:
       - effects/index.md
       - BassDrive:

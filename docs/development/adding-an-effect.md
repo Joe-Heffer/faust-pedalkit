@@ -101,7 +101,7 @@ Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit fa
 - Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
 - Add `docs/<name>/changelog.md`, modelled on [the BassDrive changelog](../bassdrive/changelog.md), with a `## [0.1.0]` section. Every effect starts at version 0.1.0 and is released on its own (see [Releasing](releasing.md)).
 - Add the effect page, its notes and its changelog to `nav` in `mkdocs.yml`, under *Effects*.
-- Build the site with `make test schematics docs` (install the tools with `pip install -r tools/docs-requirements.txt`) and check that it has no warnings. The build is strict, so every warning fails it.
+- Build the site with `make test web schematics docs` (install the tools with `pip install -r tools/docs-requirements.txt`) and check that it has no warnings. The build is strict, so every warning fails it.
 
 ## Schematic (optional)
 

@@ -1,10 +1,11 @@
 # Dependabot version updates.
 # Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 #
-# Tracks the actions used in .github/workflows and the base image digests in
+# Tracks the actions used in .github/workflows, the base image digests in
 # the Dockerfiles at the top level (Dockerfile, Dockerfile.docs and
-# Dockerfile.release). The Arch packages in the Arch images are pinned by
-# ARCH_SNAPSHOT, which is bumped by hand. There is no Python manifest:
+# Dockerfile.release) and the browser demo's npm toolchain (faustwasm, pinned
+# in tools/web/package-lock.json). The Arch packages in the Arch images are
+# pinned by ARCH_SNAPSHOT, which is bumped by hand. There is no Python manifest:
 # numpy and matplotlib come from system packages, and pyproject.toml only
 # holds tool configuration. Pre-commit hook revisions are not covered by
 # Dependabot; use `pre-commit autoupdate` for those.
@@ -18,5 +19,10 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/tools/web"
     schedule:
       interval: "weekly"

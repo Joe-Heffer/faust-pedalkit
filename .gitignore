@@ -4,6 +4,7 @@ __pycache__/
 .claude/*
 !.claude/skills/
 .venv/
+tools/web/node_modules/
 # KiCad's local settings, backups and caches (the .kicad_sch and .kicad_pro
 # files are committed).
 *.kicad_prl

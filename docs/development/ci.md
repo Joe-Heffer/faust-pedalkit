@@ -46,10 +46,11 @@ Runs on every push to `main` and every pull request:
 
 Builds this site and publishes it to GitHub Pages:
 
-1. Build the docs image (`Dockerfile.docs`: the Faust toolchain plus KiCad and MkDocs) and, in it, run `make test`, so the effect pages show the current measurements.
-2. Run `make erc` and `make schematics`, which check each effect's KiCad schematic and render it to SVG (see [Schematics](schematics.md)).
-3. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page or missing measurement fails the build.
-4. On `main` only, deploy `build/site/` to GitHub Pages. Pull requests build the site but don't deploy it.
+1. Build the docs image (`Dockerfile.docs`: the Faust toolchain plus KiCad, Node.js and MkDocs) and, in it, run `make test`, so the effect pages show the current measurements.
+2. Build the [browser demo](../usage/browser.md) with `make web` and check it against the native renderers with `make web-test`.
+3. Run `make erc` and `make schematics`, which check each effect's KiCad schematic and render it to SVG (see [Schematics](schematics.md)).
+4. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page, missing measurement or missing demo fails the build.
+5. On `main` only, deploy `build/site/` to GitHub Pages. Pull requests build the site but don't deploy it.
 
 ## Building this site locally
 
@@ -63,16 +64,16 @@ python -m venv .venv
 Then:
 
 ```sh
-make test schematics docs MKDOCS=.venv/bin/mkdocs  # build into build/site/
-make docs-serve MKDOCS=.venv/bin/mkdocs             # live preview at http://127.0.0.1:8000/
+make test web schematics docs MKDOCS=.venv/bin/mkdocs  # build into build/site/
+make docs-serve MKDOCS=.venv/bin/mkdocs                 # live preview at http://127.0.0.1:8000/
 ```
 
 Leave out `MKDOCS=…` if `mkdocs` is already on your `PATH`. `make schematics` needs KiCad's `kicad-cli`.
 
-The pages are the Markdown files under `docs/`, and `mkdocs.yml` sets the navigation. `tools/mkdocs_hooks.py` adds the SVG and CSV files from `tests/out/<name>/` to the site as `measurements/<name>/`, which is why the tests must run first. It adds the schematic sheets from `build/schematics/<name>/` as `schematics/<name>/` in the same way. Without `make schematics`, a page that embeds a sheet fails the strict build on its broken link. The measurements and sheets are never committed.
+The pages are the Markdown files under `docs/`, and `mkdocs.yml` sets the navigation. `tools/mkdocs_hooks.py` adds the SVG and CSV files from `tests/out/<name>/` to the site as `measurements/<name>/`, which is why the tests must run first. It adds the schematic sheets from `build/schematics/<name>/` as `schematics/<name>/` in the same way. Without `make schematics`, a page that embeds a sheet fails the strict build on its broken link. It also adds the browser demo from `build/web/` as `demo/`, so `make web` (which needs Node.js and npm) must run first too. The measurements, sheets and demo are never committed.
 
-Or build everything in the docs image, which has KiCad and MkDocs installed:
+Or build everything in the docs image, which has KiCad, Node.js and MkDocs installed:
 
 ```sh
-make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN="test erc schematics docs"
+make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN="test web erc schematics docs"
 ```

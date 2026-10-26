@@ -60,15 +60,15 @@ The reference product name may appear only to identify the hardware, as in the c
 
 ## Building
 
-KiCad is large, so it lives in its own image, `Dockerfile.docs`, together with Faust and MkDocs. The docs workflow builds the site in it.
+KiCad is large, so it lives in its own image, `Dockerfile.docs`, together with Faust, Node.js and MkDocs. The docs workflow builds the site in it.
 
 ```sh
-make erc                    # KiCad's electrical rules check on each schematic
-make schematics             # one SVG per sheet into build/schematics/<name>/
-make test schematics docs   # the whole site, schematics included
+make erc                       # KiCad's electrical rules check on each schematic
+make schematics                # one SVG per sheet into build/schematics/<name>/
+make test web schematics docs  # the whole site, schematics included
 
 # the same in the docs image
-make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN="test erc schematics docs"
+make container DOCKERFILE=Dockerfile.docs IMAGE=pedalkit-docs RUN="test web erc schematics docs"
 ```
 
 Both targets take `FX=<name>`. Effects without a schematic are skipped, and the targets fail with an install hint if `kicad-cli` is missing (Arch: `pacman -S kicad kicad-library`).

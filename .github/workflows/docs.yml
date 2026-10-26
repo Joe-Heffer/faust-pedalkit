@@ -3,8 +3,10 @@
 
 # Builds the documentation site (mkdocs.yml) and publishes it to GitHub Pages.
 # The effect pages embed the current test plots and the rendered schematics,
-# so the tests, the schematic checks and the rendering run first, all in the
-# docs image (Dockerfile.docs), which adds KiCad and MkDocs to the toolchain.
+# so the tests, the schematic checks and the rendering run first, and the
+# browser demo (make web) is built, checked and published as demo/. All of it
+# runs in the docs image (Dockerfile.docs), which adds KiCad, Node.js and
+# MkDocs to the toolchain.
 # Pull requests build the site to catch broken links; only main deploys.
 # Needs Settings → Pages → Source set to "GitHub Actions".
 
@@ -40,6 +42,8 @@ jobs:
         run: make image
       - name: Offline tests (plots and CSV data for the effect pages)
         run: make container RUN=test
+      - name: Browser demo (WebAssembly build, checked against the native renderers)
+        run: make container RUN="web web-test"
       - name: Schematic electrical rules check
         run: make container RUN=erc
       - name: Render schematics

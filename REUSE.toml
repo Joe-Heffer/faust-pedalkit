@@ -19,6 +19,8 @@ path = [
   ".github/**",
   ".claude/skills/**",
   "pyproject.toml",
+  "tools/web/package.json",
+  "tools/web/package-lock.json",
   "tools/en-gb.codespell",
 ]
 SPDX-FileCopyrightText = "2026 Joe Heffer"
