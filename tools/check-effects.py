@@ -4,6 +4,7 @@
 """Fail if an effect is missing anything the new-effect checklist requires.
 
 Usage: check-effects.py [--root DIR] [NAME...]
+       check-effects.py --dsp-only FILE...
 
 For every src/<name>.dsp (or only the NAMEs given), checks the parts of the
 checklist in AGENTS.md ("Adding a new effect") that can be checked without
@@ -21,6 +22,10 @@ compiling anything:
   test_peak.py, test_freqresp.py, test_harmonics.py), an aliasing comparison
   against RENDER_1X when the effect oversamples, test_presets.py when it has
   presets, and a finish() call in every script
+
+With --dsp-only, only the DSP checks run, on the given .dsp files wherever
+they are. The effect designer's generated examples (tests/web/designer/) use
+this: a downloaded design has no notes, docs or tests yet.
 
 Whether the effect compiles, passes its tests and has a schematic is checked
 elsewhere (faust-compile, make test, schematics-present). Used by the
@@ -68,37 +73,38 @@ def declares(code):
     return dict(re.findall(r'^\s*declare\s+(\w+)\s+"([^"]*)"\s*;', code, re.M))
 
 
-def check_dsp(fx, dsp):
+def check_dsp(fx, dsp, where=None):
+    where = where or f"src/{fx}.dsp"
     problems = []
     code = strip_comments(dsp.read_text())
 
     decl = declares(code)
     for key in REQUIRED_DECLARES:
         if not decl.get(key):
-            problems.append(f'src/{fx}.dsp: no `declare {key} "...";`')
+            problems.append(f'{where}: no `declare {key} "...";`')
     version = decl.get("version")
     if version and not re.fullmatch(r"\d+\.\d+\.\d+", version):
-        problems.append(f"src/{fx}.dsp: version {version!r} is not major.minor.micro")
+        problems.append(f"{where}: version {version!r} is not major.minor.micro")
 
     for m in re.finditer(r"\b(" + "|".join(SMOOTHED_CONTROLS) + r')\s*\(\s*"([^"]*)"', code):
         kind, label = m.groups()
         name = re.sub(r"\[[^]]*\]", "", label).strip()
         if kind in RANGED_CONTROLS and "[unit:" not in label:
-            problems.append(f"src/{fx}.dsp: control {name!r} has no [unit:...]")
+            problems.append(f"{where}: control {name!r} has no [unit:...]")
         end = code.find(";", m.end())
         if "si.smoo" not in code[m.end() : end if end >= 0 else None]:
-            problems.append(f"src/{fx}.dsp: control {name!r} is not smoothed with si.smoo")
+            problems.append(f"{where}: control {name!r} is not smoothed with si.smoo")
 
     if "oversample4" in code and not re.search(
         r'hbargraph\s*\(\s*"Latency\b[^"]*\[lv2:reportsLatency\]', code
     ):
         problems.append(
-            f"src/{fx}.dsp: uses oversample4 but reports no latency "
+            f"{where}: uses oversample4 but reports no latency "
             '(attach hbargraph("Latency [unit:samples] [lv2:reportsLatency] '
             '[lv2:integer]", 0, 256))'
         )
     if not re.search(r"\bpk\.safety\s*\(", code):
-        problems.append(f"src/{fx}.dsp: output does not go through pk.safety")
+        problems.append(f"{where}: output does not go through pk.safety")
     return problems, decl.get("version"), "oversample4" in code
 
 
@@ -153,9 +159,22 @@ def check_tests(root, fx, oversamples):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--root", type=Path, default=ROOT, help="repository root")
-    ap.add_argument("names", nargs="*", help="effects to check (default: all)")
+    ap.add_argument(
+        "--dsp-only", action="store_true", help="only the DSP checks, on .dsp file paths"
+    )
+    ap.add_argument(
+        "names", nargs="*", help="effects to check (default: all), or files with --dsp-only"
+    )
     args = ap.parse_args()
     root = args.root
+
+    if args.dsp_only:
+        problems = []
+        for path in map(Path, args.names):
+            problems += check_dsp(path.stem, path, where=str(path))[0]
+        for p in problems:
+            print(p)
+        return 1 if problems else 0
 
     effects = args.names or sorted(p.stem for p in (root / "src").glob("*.dsp"))
     problems = []

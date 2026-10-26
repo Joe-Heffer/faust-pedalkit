@@ -21,6 +21,7 @@ path = [
   "pyproject.toml",
   "tools/web/package.json",
   "tools/web/package-lock.json",
+  "tests/web/designer/*.json",
   "tools/en-gb.codespell",
 ]
 SPDX-FileCopyrightText = "2026 Joe Heffer"

@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "name": "Designer Chain",
+  "description": "Gain, waveshaper and low-pass in series",
+  "blocks": [
+    { "id": "input", "type": "input", "title": "Input", "x": 40, "y": 140, "params": {} },
+    { "id": "output", "type": "output", "title": "Output", "x": 760, "y": 140, "params": {} },
+    { "id": "gain1", "type": "gain", "title": "Gain 1", "x": 180, "y": 140,
+      "params": { "gain": { "value": 6, "exposed": false } } },
+    { "id": "waveshaper1", "type": "waveshaper", "variant": "soft", "title": "Drive", "x": 340, "y": 140,
+      "params": { "drive": { "value": 18, "exposed": true }, "ceiling": { "value": -3, "exposed": false } } },
+    { "id": "filter1", "type": "filter", "variant": "lp2", "title": "Tone", "x": 520, "y": 140,
+      "params": { "freq": { "value": 3000, "exposed": true } } }
+  ],
+  "wires": [
+    { "from": "input", "to": "gain1", "port": 0 },
+    { "from": "gain1", "to": "waveshaper1", "port": 0 },
+    { "from": "waveshaper1", "to": "filter1", "port": 0 },
+    { "from": "filter1", "to": "output", "port": 0 }
+  ]
+}

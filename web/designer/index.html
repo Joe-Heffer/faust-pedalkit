@@ -1,0 +1,147 @@
+<!doctype html>
+<!--
+SPDX-FileCopyrightText: 2026 Joe Heffer
+SPDX-License-Identifier: MIT
+
+Effect designer: wire blocks into an effect and hear it. designer.js turns
+the diagram into Faust (generate.js), compiles it in a worker with
+faustwasm's libfaust and plays it through the same audio host as the demo.
+-->
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedal Kit Designer</title>
+  <meta name="description" content="Design a guitar or bass effect from blocks in the browser and hear it straight away.">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../demo.css">
+  <link rel="stylesheet" href="designer.css">
+  <script type="module" src="designer.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Faust Pedal Kit <span>effect designer</span></h1>
+    <p>Add blocks, wire them from an output (right) to an input (left), and
+      press Start to hear the result. The page writes the Faust code for you;
+      <strong>Code</strong> shows it. Use headphones with a microphone or
+      instrument input to avoid feedback.</p>
+  </header>
+
+  <main>
+    <section class="panel wide" aria-labelledby="design-heading">
+      <h2 id="design-heading">Design</h2>
+      <div class="toolbar" role="toolbar" aria-label="Add a block">
+        <span class="toolbar-label">Add</span>
+        <span id="palette" class="palette"></span>
+      </div>
+      <svg id="canvas" class="canvas"></svg>
+      <div class="toolbar">
+        <button id="delete" type="button" class="secondary" disabled>Delete selected</button>
+        <button id="show-code" type="button" class="secondary">Code</button>
+        <button id="export" type="button" class="secondary">Export</button>
+        <label class="button secondary">Import <input id="import" type="file" accept="application/json,.json" hidden></label>
+        <button id="new" type="button" class="secondary">New</button>
+      </div>
+      <p id="design-status" class="status" role="status" aria-live="polite">Loading the compiler…</p>
+      <ul id="warnings" class="warnings"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="block-heading">
+      <h2 id="block-heading">Block</h2>
+      <div id="inspector">
+        <p class="hint">Select a block to set it up.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="effect-heading">
+      <h2 id="effect-heading">Effect</h2>
+      <div class="row">
+        <label for="fx-name">Name</label>
+        <input id="fx-name" type="text" maxlength="40">
+      </div>
+      <div class="row">
+        <label for="fx-author">Author</label>
+        <input id="fx-author" type="text" maxlength="60" placeholder="Your name">
+      </div>
+      <div class="row">
+        <label for="fx-description">About</label>
+        <input id="fx-description" type="text" maxlength="120">
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="setup-heading">
+      <h2 id="setup-heading">Play</h2>
+      <div class="row">
+        <label for="source">Source</label>
+        <select id="source">
+          <option value="riff">Test riff (synthesised bass)</option>
+          <option value="file">Audio file…</option>
+          <option value="mic">Microphone or audio interface</option>
+        </select>
+      </div>
+      <div class="row" id="riff-row">
+        <label for="riff">Riff</label>
+        <select id="riff"></select>
+      </div>
+      <div class="row" id="file-row" hidden>
+        <label for="file">File</label>
+        <input id="file" type="file" accept="audio/*">
+      </div>
+      <div class="row" id="device-row" hidden>
+        <label for="device">Input</label>
+        <select id="device"></select>
+      </div>
+      <div class="buttons">
+        <button id="start" type="button" disabled>Start</button>
+        <label class="toggle"><input id="bypass" type="checkbox"> Bypass</label>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">Press Start to listen.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">Controls</h2>
+      <p id="controls-hint" class="hint">Tick <em>Expose</em> on a block's
+        parameter to make it a control of the finished effect.</p>
+      <div id="controls" class="controls"></div>
+      <dl id="readouts" class="readouts"></dl>
+    </section>
+
+    <section class="panel" aria-labelledby="levels-heading">
+      <h2 id="levels-heading">Levels</h2>
+      <div class="control">
+        <label for="input-trim">Input trim <output id="input-trim-value">0.0 dB</output></label>
+        <input id="input-trim" type="range" min="-24" max="12" step="0.5" value="0">
+      </div>
+      <div class="control">
+        <label for="output-trim">Output trim <output id="output-trim-value">0.0 dB</output></label>
+        <input id="output-trim" type="range" min="-24" max="6" step="0.5" value="0">
+      </div>
+      <div class="meter-label">Output peak <output id="peak-value">−∞ dBFS</output></div>
+      <meter id="peak" min="-60" max="0" low="-12" high="-3" optimum="-18" value="-60"></meter>
+    </section>
+  </main>
+
+  <dialog id="code-dialog" aria-labelledby="code-heading">
+    <h2 id="code-heading">Generated Faust code</h2>
+    <p id="code-error" class="status error" hidden></p>
+    <p class="hint">Put it in <code>src/&lt;name&gt;.dsp</code> to start a new
+      effect; the checklist in AGENTS.md still applies.</p>
+    <pre><code id="code"></code></pre>
+    <div class="buttons">
+      <button id="copy" type="button">Copy</button>
+      <button id="download" type="button" class="secondary">Download .dsp</button>
+      <button id="close-code" type="button" class="secondary">Close</button>
+    </div>
+  </dialog>
+
+  <footer>
+    <p><a href="../../">Documentation</a> ·
+      <a href="../../usage/designer/">About the designer</a> ·
+      <a href="../">Effects demo</a> ·
+      <a href="https://github.com/Joe-Heffer/faust-pedalkit">Source</a></p>
+    <p>Page and generated code: MIT. Compiler and audio runtime:
+      <a href="https://github.com/grame-cncm/faustwasm">faustwasm</a>
+      with libfaust, <a href="../faustwasm/COPYING.txt">LGPL</a>, served unmodified.</p>
+  </footer>
+</body>
+</html>
