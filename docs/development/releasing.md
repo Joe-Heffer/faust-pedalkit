@@ -31,7 +31,7 @@ To try the workflow without releasing, run it from the Actions tab (*Run workflo
 |---|---|
 | **build** | On a tag, checks it with `tools/release/release-info.py`. Builds `Dockerfile.release` (Debian 12, Faust built from source) and runs `make lv2 vst3 clap dist` in it, for the tagged effect or, on a dry run, for every effect. Steinberg's validator runs on each VST3 bundle as part of the build. |
 | **validate** | In stock Ubuntu 22.04 and Debian 12, `tools/release/check-portable.sh` checks that every plugin binary links: no missing libraries and no missing glibc or libstdc++ symbol versions. It prints the newest versions each binary needs (currently `GLIBC_2.35` and `GLIBCXX_3.4.29`). In the Arch toolchain image, `lv2lint`, pluginval (strictness 10) and clap-validator run on the plugins *as shipped*, and `install.sh` installs into and uninstalls from temporary folders. |
-| **publish** | On a tag only: creates the draft release with the tarball and `SHA256SUMS`, titled from the effect's `declare name`, with the changelog section as its notes. |
+| **publish** | On a tag only: cuts one archive per format (`…-clap.tar.gz`, `…-vst3.tar.gz`, `…-lv2.tar.gz`) from the checked tarball, rewrites `SHA256SUMS` to cover all four, and creates the draft release with them, titled from the effect's `declare name`, with the changelog section as its notes. |
 
 ## Why a separate image
 
@@ -47,3 +47,7 @@ ls build/dist/                     # bassdrive-<version>-linux-x86_64.tar.gz and
 ```
 
 Without `FX`, `make dist` packs one tarball per effect. It also works on the host, but the result only runs on systems with a glibc at least as new as yours.
+
+## Download links on the website
+
+The effect pages and the [effects page](../effects/index.md#download) get their download links from `tools/downloads.py`, called by `tools/mkdocs_hooks.py` at build time. For each effect it takes the newest *published* release (not a draft or pre-release) whose tag is `<name>-vX.Y.Z` and links its CLAP, VST3 and LV2 archives (CLAP first), the all-formats tarball and `SHA256SUMS`. Publishing a draft release triggers the docs workflow (`release: published`), which rebuilds the site from `main`, so the links update without a commit. The Pages deployment environment must allow that trigger. While an effect has no published release, or GitHub cannot be reached, its block says so and links the releases page. A page gets its block from the marker `<!-- downloads:<name> -->`, which `tools/check-effects.py` requires. `tools/test_downloads.py` checks the selection and wording offline.

@@ -12,6 +12,10 @@ A bass overdrive with a clean/driven blend and a two-band EQ, modelled on a clas
 | Research | [Circuit notes](circuit-notes.md) |
 | Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 
+## Download
+
+<!-- downloads:bassdrive -->
+
 ## Controls
 
 | Control | Range | Default | What it does |
