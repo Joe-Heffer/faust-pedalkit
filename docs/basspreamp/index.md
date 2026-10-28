@@ -13,6 +13,10 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 | Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
 
+## Download
+
+<!-- downloads:basspreamp -->
+
 ## Controls
 
 | Control | Range | Default | What it does |

@@ -118,7 +118,8 @@ jobs:
 
           ## Install
 
-          Download the tarball and `SHA256SUMS`, then:
+          Download the CLAP, VST3 or LV2 archive for one format and unpack it into your plugin folder,
+          or take the all-formats tarball with `SHA256SUMS` and run the installer:
 
           ```sh
           sha256sum -c SHA256SUMS --ignore-missing
@@ -129,6 +130,21 @@ jobs:
           Needs x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later).
           See the [install guide](https://joe-heffer.github.io/faust-pedalkit/install/).
           EOF
+          # One archive per format as well, so the website can link each of
+          # CLAP, VST3 and LV2 directly. They are cut from the tarball that
+          # the validate job has just checked.
+          cd dist
+          full=$(ls ./*-linux-*.tar.gz)
+          stem=${full#./}; stem=${stem%.tar.gz}
+          tar -xzf "$full"
+          for fmt in clap vst3 lv2; do
+            mkdir "$stem-$fmt"
+            cp -r "$stem/$fmt"/. "$stem-$fmt"/
+            cp "$stem/LICENSE" "$stem/CHANGELOG.md" "$stem-$fmt"/
+            tar --sort=name --owner=0 --group=0 --numeric-owner -czf "$stem-$fmt.tar.gz" "$stem-$fmt"
+          done
+          sha256sum ./*.tar.gz > SHA256SUMS
+          cd ..
           gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "$title" --notes-file "$RUNNER_TEMP/notes.md"

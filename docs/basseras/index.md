@@ -13,6 +13,10 @@ It borrows its control set and signal chain from a bass preamp/DI pedal whose Ch
 | Latency | 64 samples (1.33 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
 
+## Download
+
+<!-- downloads:basseras -->
+
 ## Controls
 
 | Control | Range | Default | What it does |

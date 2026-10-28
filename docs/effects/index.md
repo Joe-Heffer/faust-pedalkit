@@ -1,5 +1,13 @@
 # Effects
 
+## Download
+
+<!-- downloads:all -->
+
+The CLAP plugin is the default choice: it is the newest of the three formats and fully open. The tarball holds all three plus an installer, `install.sh`; see [Install a release](../install.md#install-a-release).
+
+## The effects
+
 | Effect | Type | Kind | Latency | Pages |
 |---|---|---|---|---|
 | **BassDrive** | Bass overdrive | Modelled: a classic compact two-band bass overdrive pedal | 32 samples | [controls and measurements](../bassdrive/index.md) · [circuit notes](../bassdrive/circuit-notes.md) |

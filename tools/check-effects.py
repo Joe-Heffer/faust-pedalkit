@@ -116,6 +116,10 @@ def check_docs(root, fx, version):
         problems.append(f"docs/{fx}/: no design-notes.md or circuit-notes.md")
     if not (docs / "index.md").exists():
         problems.append(f"docs/{fx}/index.md is missing")
+    elif f"<!-- downloads:{fx} -->" not in (docs / "index.md").read_text():
+        problems.append(
+            f"docs/{fx}/index.md: no `<!-- downloads:{fx} -->` marker for the download links"
+        )
     changelog = docs / "changelog.md"
     if not changelog.exists():
         problems.append(f"docs/{fx}/changelog.md is missing")

@@ -26,14 +26,23 @@ fails on its broken link.
 import glob
 import logging
 import os
+import re
+import sys
 
 from mkdocs.structure.files import File
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import downloads  # noqa: E402
+
+from dspmeta import declares  # noqa: E402
 
 log = logging.getLogger("mkdocs.hooks.measurements")
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUBLISHED = (".svg", ".csv")
 WEB = os.path.join(ROOT, "build", "web")
+MARKER = re.compile(r"<!-- downloads:([a-z0-9_]+) -->")
+_latest = {}
 
 
 def publish(files, config, src_dir, site_dir, suffixes):
@@ -61,3 +70,35 @@ def on_files(files, config):
             uri = "demo/" + os.path.relpath(path, WEB).replace(os.sep, "/")
             files.append(File.generated(config, uri, abs_src_path=path))
     return files
+
+
+def effects():
+    """(name, display name) for every effect, from the `declare name` lines."""
+    out = []
+    for dsp in sorted(glob.glob(os.path.join(ROOT, "src", "*.dsp"))):
+        name = os.path.splitext(os.path.basename(dsp))[0]
+        out.append((name, declares(dsp).get("name", name)))
+    return out
+
+
+def on_pre_build(config):
+    """Look up the latest published release of each effect once per build."""
+    releases = downloads.fetch_releases()
+    if releases is None:
+        log.info("GitHub is unreachable; download links fall back to the releases page")
+    _latest.clear()
+    _latest.update(downloads.latest_by_effect(releases))
+
+
+def on_page_markdown(markdown, page, config, files):
+    """Swap `<!-- downloads:<name> -->` (or `all`) for the download links."""
+    names = dict(effects())
+
+    def swap(m):
+        if m[1] == "all":
+            return downloads.table(effects(), _latest)
+        if m[1] not in names:
+            raise ValueError(f"{page.file.src_uri}: downloads marker for unknown effect {m[1]!r}")
+        return downloads.block(m[1], names[m[1]], _latest.get(m[1]))
+
+    return MARKER.sub(swap, markdown)

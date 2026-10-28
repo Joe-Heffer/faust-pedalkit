@@ -11,6 +11,10 @@ A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
 
+## Download
+
+<!-- downloads:midhump -->
+
 ## Controls
 
 | Control | Range | Default | What it does |
