@@ -1,6 +1,6 @@
 # AGENTS.md: working on this repository
 
-This file is for coding agents (and humans) adding or changing effects here. Read it before touching anything. `README.md` covers users, building and hosts.
+This file is for coding agents (and humans) adding or changing effects here. Read it before touching anything. `README.md` is a short overview that links to the docs; per-effect detail lives under `docs/`.
 
 ## What this repo is
 
@@ -63,7 +63,7 @@ Prefer the first two when you have the choice. When you build a model, say what 
    - If the effect's behaviour depends on time or playing level, test that too with `pluck`, `burst`, `harmonics_over_time` and `harmonic_trajectory` (see `tests/midhump/test_dynamics.py`).
    - Write results to `OUT` (`tests/out/<name>/`) in open formats. Save plots as SVG with `save_plot(fig, name)`. Save the numbers behind every plot as CSV with `write_csv(name, header, rows)`, one row per data point in long format, so others can reuse them without reading values off an image. Use WAV via `write_wav` for listening renders.
 4. **Build and check:** `make lv2 lint test FX=<name>`, `make vst3 pluginval FX=<name>`, `make clap clap-validate FX=<name>`, then `make check` (`pre-commit run --all-files`). Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure. The `effect-checklist` hook (`tools/check-effects.py`) fails on any part of this checklist it can see without compiling: missing `declare`s, a control without a unit or `si.smoo`, `oversample4` without a `Latency` bargraph, no `pk.safety`, missing notes, docs pages, table rows, nav entries, changelog section or minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`, plus `test_presets.py` with presets and a `RENDER_1X` comparison with oversampling). Read the plots before reporting results. CI runs both on every push and pull request.
-5. **Docs.** Add a row to the README's effect table and a controls table for the effect. On the documentation site (`docs/`, published to GitHub Pages):
+5. **Docs.** Add a row to the README's effect table. On the documentation site (`docs/`, published to GitHub Pages):
    - add `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations. For an original effect, open with the idea and the sound it is after rather than a reference device.
    - put `<!-- downloads:<name> -->` under a *Download* heading near the top of the page; the site build swaps it for links to the latest published release (`tools/downloads.py`)
    - add a row to the effect tables in `docs/index.md` and `docs/effects/index.md`
@@ -81,7 +81,7 @@ Prefer the first two when you have the choice. When you build a model, say what 
    - title block: neutral effect name, "Redrawn from public sources; see circuit notes", "Licence: CC-BY-4.0", the reference hardware named for identification only, and that this is the modelled circuit
    - commit the script and the generated `.kicad_sch` and `.kicad_pro`; run `make schematic-check erc schematics FX=<name>`, read every rendered sheet, and embed each sheet next to its section of the circuit notes and the root sheet under *Signal path* on the effect page
    - if drawing the circuit shows that the notes and the DSP disagree, add it to the notes' open questions rather than silently changing either
-7. **Presets (optional).** Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The same file feeds all three formats. Treat the settings as chosen values and say so in the file. Add a `tests/<name>/test_presets.py` that renders each preset, checks its peak and loudness-matches it with `loudness()`, and list the presets in the README and on the effect's docs page.
+7. **Presets (optional).** Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The same file feeds all three formats. Treat the settings as chosen values and say so in the file. Add a `tests/<name>/test_presets.py` that renders each preset, checks its peak and loudness-matches it with `loudness()`, and list the presets on the effect's docs page.
 
 ## Shared library (`src/lib/pedalkit.lib`)
 

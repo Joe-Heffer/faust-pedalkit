@@ -11,7 +11,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and the hard rules in [AGENTS.md](../A
 - [ ] `make lv2 lint test FX=<name>` passes, the tests check the design notes' measurable targets (original effects), and I have read the plots in `tests/out/<name>/`
 - [ ] `pre-commit run --all-files` passes, including `params-stable`: no released control renamed, retyped or moved
 - [ ] The checks in `tests/common/` pass (latency, zipper, CPU, recovery), and any change in `cpu.csv` of more than about 10 % against `main` is explained here
-- [ ] README has a row in the effect table and a controls table (new effects)
+- [ ] README has a row in the effect table, and the effect page has a controls table (new effects)
 - [ ] No trademarks: plugin names, `declare name`, UI labels, URIs and file names are neutral
 - [ ] British English in docs, comments and UI text
 - [ ] New files have an SPDX header or a `REUSE.toml` entry

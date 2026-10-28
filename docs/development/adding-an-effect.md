@@ -109,7 +109,7 @@ Every effect with circuit notes has a KiCad schematic of the modelled circuit, w
 
 ## Presets (optional)
 
-Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables, each with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The settings are chosen values, and the file says so. Add `tests/<name>/test_presets.py` to render each preset, check its peak and loudness-match it with `loudness()`, and list the presets in the README and on the effect's docs page.
+Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables, each with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The settings are chosen values, and the file says so. Add `tests/<name>/test_presets.py` to render each preset, check its peak and loudness-match it with `loudness()`, and list the presets on the effect's docs page.
 
 ## 6. Report back
 
