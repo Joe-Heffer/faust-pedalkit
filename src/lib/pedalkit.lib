@@ -159,6 +159,18 @@ with { ws = min(w, tfMaxW); };
 tf1a(b1, b0, a0, w) = fi.tf1s(b1, b0 / ws, a0 / ws, ws)
 with { ws = min(w, tfMaxW); };
 
+// Second-order shelving EQ (the analogue prototypes of the RBJ cookbook
+// shelves, Q = 0.707) with gain g in dB at corner f in Hz. Cut mirrors boost
+// exactly, as on an active Baxandall-style tone control: the response is g/2
+// at f, within 0.2 dB of g a factor of 3 beyond f, and under 1 dB a factor
+// of 2 on the other side. g can be a smoothed control. fi.low_shelf and
+// fi.high_shelf are not symmetric (a cut reaches only about g/4 at f).
+lowShelf2(g, f) = tf2a(1, sqrt(A) / sQ * w, A * w * w, w / (sqrt(A) * sQ), w * w / A, w)
+with { A = pow(10, g / 40); w = 2 * ma.PI * f; };
+highShelf2(g, f) = tf2a(A * A, A * sqrt(A) / sQ * w, A * w * w, sqrt(A) / sQ * w, A * w * w, w)
+with { A = pow(10, g / 40); w = 2 * ma.PI * f; };
+sQ = 0.707;
+
 //============================== Output safety =================================
 
 // Transparent below 90 % of the ceiling lim, then a tanh knee that

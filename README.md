@@ -28,6 +28,7 @@ Two of the four effects so far are models. Original and circuit-inspired effects
 | **BassDrive** (`src/bassdrive.dsp`) | Modelled | Bass overdrive with clean/driven blend and two-band EQ, modelled on a classic compact bass overdrive pedal | [circuit notes](docs/bassdrive/circuit-notes.md) |
 | **BassPreamp** (`src/basspreamp.dsp`) | Modelled | Tube-voiced bass preamp/DI with blend, presence, built-in speaker voicing and three-band EQ with shiftable bass and mid, modelled on a classic bass preamp/DI pedal | [circuit notes](docs/basspreamp/circuit-notes.md) |
 | **BassGrit** (`src/bassgrit.dsp`) | Circuit-inspired | Hard-clipping op-amp distortion for bass (Distortion, Filter, Level, Low Blend, Crossover) with a 4th-order split that keeps the low band clean | [circuit notes](docs/bassgrit/circuit-notes.md), [design notes](docs/bassgrit/design-notes.md) |
+| **BassEras** (`src/basseras.dsp`) | Circuit-inspired | Bass preamp/DI whose Character knob sweeps the pre-clip EQ, the gain and a bias bloom on hard notes, with Blend, Drive, Bite, Cab Bypass and a Low/Mid/High EQ | [circuit notes](docs/basseras/circuit-notes.md), [design notes](docs/basseras/design-notes.md) |
 | **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend and a Bloom (bias shift) control that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
 
 > [!NOTE]
@@ -245,6 +246,22 @@ MidHump ships four factory presets, loudness-matched on a −12 dBFS guitar line
 | Crossover | 40 to 400 Hz | 120 Hz | Below this the signal bypasses the clipper |
 
 BassGrit ships six factory presets, loudness-matched on a −12 dBFS bass line: **Edge of Grit** (Distortion 20), **Mid Grit** (the defaults, Level −5.5), **Full Grit** (Distortion 100, Low Blend 50), **Clean Sub** (Crossover 200, Low Blend 100), **Dark Growl** (Filter 80) and **Five-String** (Crossover 70). They live in `src/bassgrit.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/bassgrit/index.md). The values behind it are in the [circuit notes](docs/bassgrit/circuit-notes.md) and [design notes](docs/bassgrit/design-notes.md).
+
+## BassEras controls
+
+| Control | Range | Default | What it does |
+|---|---|---|---|
+| Level | −40 to +12 dB | 0 dB | Output level |
+| Blend | 0 to 100 % | 100 % | 0 = clean only (EQ and Level stay active), 100 = preamp only |
+| Drive | 0 to 100 % | 30 % | Gain into the two clipping stages, 0 to 30 dB |
+| Character | 0 to 100 % | 50 % | Low-mid cut at 0, flat at 50, upper-mid boost with more gain and a bias bloom on hard notes at 100 |
+| Low | −12 to +12 dB | 0 dB | Shelf at 125 Hz |
+| Mid | −12 to +12 dB | 0 dB | Band at 1 kHz |
+| High | −12 to +12 dB | 0 dB | Shelf at 3.2 kHz |
+| Bite | 0 to 100 % | 100 % | Subsonic high-pass before the clipping and a presence peak after it |
+| Cab Bypass | off / on | off | Removes the speaker sim from the preamp path |
+
+BassEras ships eight factory presets, loudness-matched on a −12 dBFS bass line: **Studio Flip** (the defaults), **Clean DI**, **Seventies Stack**, **Thumpy Funk**, **Fat Tube**, **Warm Compression**, **Modern Crunch** and **Fuzzed Out**. They live in `src/basseras.presets.toml`. Measurements, the preset table and what to tune by ear are on [its page](docs/basseras/index.md). The values behind it are in the [circuit notes](docs/basseras/circuit-notes.md) and [design notes](docs/basseras/design-notes.md).
 
 ## BassDrive controls
 

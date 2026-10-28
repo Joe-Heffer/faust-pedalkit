@@ -20,6 +20,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 | **BassDrive** | Bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal | [controls and measurements](bassdrive/index.md) · [circuit notes](bassdrive/circuit-notes.md) |
 | **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) |
 | **MidHump** | Mid-hump overdrive with Drive, Tone, Level and an optional full-range clean Blend | [controls](midhump/index.md) · [circuit notes](midhump/circuit-notes.md) · [design notes](midhump/design-notes.md) |
+| **BassEras** | Bass preamp/DI whose Character knob sweeps the pre-clip EQ, the gain and a bias bloom on hard notes, with Blend, Drive, Bite, Cab Bypass and a Low/Mid/High EQ | [controls](basseras/index.md) · [circuit notes](basseras/circuit-notes.md) · [design notes](basseras/design-notes.md) |
 | **BassGrit** | Hard-clipping distortion for bass with a clean low band: Distortion, Filter, Level, Low Blend and Crossover | [controls](bassgrit/index.md) · [circuit notes](bassgrit/circuit-notes.md) · [design notes](bassgrit/design-notes.md) |
 
 ## Design your own effect in the browser

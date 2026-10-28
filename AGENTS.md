@@ -96,6 +96,7 @@ Prefer the first two when you have the choice. When you build a model, say what 
 | `biased(f)` | `f(x, b) = f(x + b) - f(b)`: shaper moved off centre by `b`, with no DC step |
 | `biasShift(thr, maxShift, att, rel)` | Base-rate bias control that charges on peaks above `thr` and recovers with `rel`; feed it to `biased(f)` in `oversample4c` |
 | `tf2a(b2,b1,b0,a1,a0,w)` / `tf1a(b1,b0,a0,w)` | Analogue 2nd/1st-order section with coefficients in rad/s (as from a circuit analysis), bilinear-transformed with prewarp at `w`. `fi.tf2s` expects s normalised to `w`, so use these instead. |
+| `lowShelf2(g, f)` / `highShelf2(g, f)` | 2nd-order shelves (Q 0.707), gain `g` dB at corner `f` Hz; cut mirrors boost, `g/2` at `f` |
 | `safety(lim)` | Transparent-below-90 % soft limiter that never exceeds `lim` |
 
 When you add something reusable, put it here rather than copying it into an effect, and document it in this table and in `docs/development/pedalkit-lib.md`. Don't change existing signatures without updating every effect that uses them, and rerun `make test` across all effects.

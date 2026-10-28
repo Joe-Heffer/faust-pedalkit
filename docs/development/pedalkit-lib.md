@@ -22,6 +22,7 @@ The Makefile copies `src/lib/*.lib` next to each `.dsp` before building and pass
 | `biased(f)` | Turns shaper `f` into `f(x, b)`, moved off centre by `b` with no DC step; `biased(f)(x, 0) = f(x)` |
 | `biasShift(thr, maxShift, att, rel)` | Base-rate bias control: charges towards up to −`maxShift` when the input passes `thr`, with attack `att` and release `rel` in seconds |
 | `tf2a(b2, b1, b0, a1, a0, w)` / `tf1a(b1, b0, a0, w)` | Analogue 2nd/1st-order section with coefficients in rad/s, bilinear-transformed with prewarp at `w` (held below Nyquist) |
+| `lowShelf2(g, f)` / `highShelf2(g, f)` | Second-order shelving EQ, gain `g` dB at corner `f` Hz, whose cut mirrors its boost |
 | `safety(lim)` | Soft limiter, transparent below 90 % of `lim`, that never exceeds `lim` |
 
 When you write something reusable, put it here rather than copying it into an effect, and add it to this table and to the one in `AGENTS.md`. Don't change an existing signature without updating every effect that uses it, then rerun `make test` across all effects.
@@ -147,6 +148,15 @@ First- and second-order analogue sections, with the coefficients in rad/s as the
 They are discretised with the bilinear transform, prewarped so that the digital response matches the analogue one exactly at `w` (rad/s). Pick `w` near the section's pole frequency. `fi.tf2s` and `fi.tf1s` expect s normalised to `w`, and these wrappers do that scaling.
 
 The prewarp frequency is held at or below `tfMaxW`, 90 % of Nyquist. The bilinear constant is 1 / tan(w / 2·SR), which goes infinite at Nyquist and negative above it, and a negative constant gives an unstable filter. BassPreamp's first post-drive Sallen-Key section (`postSK1`) prewarps at 36 172 rad/s (5.76 kHz), above Nyquist at 8 kHz and 11.025 kHz, and produced NaN there before the clamp. The coefficients are normalised by the clamped value, so H(s) is unchanged and only the frequency matched exactly moves. At 44.1 kHz and above, no section in the repository is clamped.
+
+### `lowShelf2(g, f)` / `highShelf2(g, f)`
+
+```faust
+lowShelf2(g, f) = tf2a(1, sqrt(A) / sQ * w, A * w * w, w / (sqrt(A) * sQ), w * w / A, w)
+with { A = pow(10, g / 40); w = 2 * ma.PI * f; };
+```
+
+Second-order shelving EQ: the analogue prototypes of the RBJ cookbook shelves with Q 0.707, discretised with `tf2a`. The gain is `g` dB well beyond the corner, `g/2` at the corner `f`, within 0.2 dB of `g` a factor of 3 beyond it and under 1 dB a factor of 2 on the other side. Cut mirrors boost exactly, as on an active Baxandall-style tone control. `g` can be a smoothed control. `fi.low_shelf` and `fi.high_shelf` are not symmetric: a cut of 12 dB reaches only about 2.7 dB at the corner. Used by BassEras for its Low and High controls.
 
 ## Output safety
 
