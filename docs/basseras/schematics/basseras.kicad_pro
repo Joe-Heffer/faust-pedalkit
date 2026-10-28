@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "filename": "basseras.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "d05aebb8-42fe-5108-b74a-ebfe3fa39c4f",
+      "Root"
+    ],
+    [
+      "8f46ae59-1f28-5984-8f32-e52c52fd350a",
+      "1 Supply and bias"
+    ],
+    [
+      "09ffe457-c37d-5e61-8bff-cb41891f5725",
+      "2 Input buffer"
+    ],
+    [
+      "8d4f4704-21a8-52e4-8059-4c09a4a82386",
+      "3 Bite subsonic filter"
+    ],
+    [
+      "ce562868-2776-5f9e-8258-ad8d2ac899b7",
+      "4 Character"
+    ],
+    [
+      "850c8873-2bf0-5a66-a0ea-956f442c3c2b",
+      "5 Stage 1"
+    ],
+    [
+      "f114ee1b-9ac6-5df2-9ec2-4f31710bf140",
+      "6 Stage 2 and bloom"
+    ],
+    [
+      "2fc7ecb7-86c2-5996-861b-dfe59adc76c0",
+      "7 Bite presence"
+    ],
+    [
+      "c126e8bd-f078-57dd-89c7-56c22f110b21",
+      "8 Speaker sim"
+    ],
+    [
+      "79879787-9213-5616-97ba-a3207d9d4379",
+      "9 Blend"
+    ],
+    [
+      "84aa5dae-0236-55d6-adba-e8b4eac0a53b",
+      "10 Low Mid High"
+    ],
+    [
+      "3a15d900-19ec-53c9-80b9-f5eebbabd169",
+      "11 Level"
+    ]
+  ],
+  "text_variables": {}
+}

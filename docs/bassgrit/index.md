@@ -11,6 +11,10 @@ A hard-clipping distortion for bass. It borrows the sound of a classic op-amp di
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
 
+## Download
+
+<!-- downloads:bassgrit -->
+
 ## Controls
 
 | Control | Range | Default | What it does |

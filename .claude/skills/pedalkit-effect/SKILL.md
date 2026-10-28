@@ -95,7 +95,7 @@ Write `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the temp
 
 ### 6. Docs
 
-- Add a row to the `README.md` effect table, with a controls table. Keep the README terse and put the detail in `docs/<name>/index.md`.
+- Add a row to the `README.md` effect table. Keep the README terse: the controls table and all other detail go in `docs/<name>/index.md`.
 - Write `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: controls, signal path, measured behaviour with plots from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations. An original effect opens with the idea.
 - Add rows to the effect tables in `docs/index.md` and `docs/effects/index.md`.
 - Write `docs/<name>/changelog.md` with a `## [0.1.0]` section. The release workflow refuses a tag without one.

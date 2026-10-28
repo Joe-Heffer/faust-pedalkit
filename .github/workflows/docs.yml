@@ -40,6 +40,10 @@ on:
       - "tests/**"
       - "tools/**"
       - "web/**"
+  # A published release changes the download links, so rebuild the site from
+  # main (the Pages environment must allow deployments from release events).
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -62,6 +66,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+          # A release event runs on the tag; the site is always built from main.
+          ref: ${{ github.event_name == 'release' && 'main' || github.ref }}
       - name: Build docs image
         run: make image
       - name: Offline tests (plots and CSV data for the effect pages)
@@ -77,14 +83,14 @@ jobs:
       - name: Build site
         run: make container RUN=docs
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'release')
         uses: actions/upload-pages-artifact@v5
         with:
           path: build/site
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'release')
     needs: build
     runs-on: ubuntu-latest
     permissions:

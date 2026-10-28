@@ -13,6 +13,10 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 | Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
 
+## Download
+
+<!-- downloads:basspreamp -->
+
 ## Controls
 
 | Control | Range | Default | What it does |
@@ -157,6 +161,12 @@ The right-hand panel compares a 1x build with the 4x-oversampled plugin for a 3.
 Data: [`sweep_level.csv`](../measurements/basspreamp/sweep_level.csv) (`drive, freq_hz, level_db`) and [`lowE_fundamental.csv`](../measurements/basspreamp/lowE_fundamental.csv) (`sweep, setting, fundamental_dbfs`).
 
 The spectrograms show the harmonics spreading as Drive rises. The bottom row shows the level of the 41 Hz fundamental: at Blend 50 % it rises with Drive and never drops, because the clean path is full-range and the preamp path adds to it.
+
+## Listening scenarios
+
+`make test FX=basspreamp` also renders ten realistic settings (clean, warm, grit, heavy, a hot input, low B, slap, extreme EQ and the Blend cancellation case) to `tests/out/basspreamp/scenarios/`. Each has the dry input, the output, an RMS-matched output and an `_ab.wav` that alternates dry and matched, so loudness does not bias the comparison. Measurements (peak, crest factor, spectral centroid, band spectra) are in `scenarios_metrics.csv` and `scenarios_spectra.csv`.
+
+The default source is a synthesised plucked bass. To audition a real clean DI recording instead, save it as `tests/data/bass-di.flac` (or `.wav`), or set `BASS_DI=/path/to/file`. It needs `ffmpeg`, and the output then goes to `scenarios-<file name>/`. Only commit a recording whose licence allows it, and record the source in `docs/`.
 
 ## What to tune by ear
 

@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+# Factory presets for BassEras. tools/presets.py builds this file into the
+# LV2 bundle (presets.ttl) and into the VST3 and CLAP plugins (presets.h), and
+# tests/basseras/test_presets.py renders each one.
+#
+# Keys under `controls` are the UI labels from src/basseras.dsp. Every preset
+# sets every control, because an LV2 host leaves unlisted controls where they
+# were.
+#
+# The settings are chosen starting points. The names follow the kinds of sound
+# the reference pedal's manual lists as sample settings, but the knob
+# positions are not taken from it. Bite is on in every preset, as in all of
+# the manual's sample settings, and the speaker sim is on. Level is chosen per
+# preset so that a -12 dBFS plucked bass line comes out within about 1 dB of
+# "Studio Flip" (measured by test_presets.py), so switching presets doesn't
+# jump in loudness.
+
+[[preset]]
+name = "Studio Flip"
+comment = "The defaults: Character at noon, a warm, flat studio amp voicing with light grit and Bite on."
+[preset.controls]
+Level = 0
+Blend = 100
+Drive = 30
+Character = 50
+Low = 0
+Mid = 0
+High = 0
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Clean DI"
+comment = "Blend 0: the preamp bypassed, only the EQ and Level active, as the manual describes."
+[preset.controls]
+Level = 0
+Blend = 0
+Drive = 30
+Character = 50
+Low = 0
+Mid = 0
+High = 0
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Seventies Stack"
+comment = "Character low: deep and scooped in the low mids, pushed a little harder, with a touch of Low and Mid."
+[preset.controls]
+Level = -4.2
+Blend = 100
+Drive = 45
+Character = 20
+Low = 3
+Mid = 2
+High = -2
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Thumpy Funk"
+comment = "Little drive, some clean blended in, Low and High up and Mid down for a hollow, percussive attack."
+[preset.controls]
+Level = 2.9
+Blend = 80
+Drive = 15
+Character = 35
+Low = 4
+Mid = -3
+High = 3
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Fat Tube"
+comment = "More drive just past noon on Character: thick, rounded breakup with the top end eased off."
+[preset.controls]
+Level = -7.4
+Blend = 100
+Drive = 55
+Character = 60
+Low = 2
+Mid = 0
+High = -3
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Warm Compression"
+comment = "Driven preamp blended with 30 % clean: the clipping evens out the level while the clean path keeps the attack."
+[preset.controls]
+Level = -4.0
+Blend = 70
+Drive = 60
+Character = 40
+Low = 1
+Mid = 0
+High = -2
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Modern Crunch"
+comment = "Character high: pushed upper mids, more gain and second harmonic that blooms on hard notes."
+[preset.controls]
+Level = -8.8
+Blend = 100
+Drive = 60
+Character = 80
+Low = 0
+Mid = 2
+High = 2
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Fuzzed Out"
+comment = "Everything up: heavy, compressed distortion with a little clean blended in to keep the low end defined."
+[preset.controls]
+Level = -10.8
+Blend = 85
+Drive = 90
+Character = 100
+Low = 3
+Mid = -2
+High = 0
+Bite = 100
+"Cab Bypass" = 0

@@ -115,6 +115,11 @@ nav:
           - Circuit notes: bassgrit/circuit-notes.md
           - Design notes: bassgrit/design-notes.md
           - Changelog: bassgrit/changelog.md
+      - BassEras:
+          - basseras/index.md
+          - Circuit notes: basseras/circuit-notes.md
+          - Design notes: basseras/design-notes.md
+          - Changelog: basseras/changelog.md
   - Development:
       - development/index.md
       - How it works: development/how-it-works.md

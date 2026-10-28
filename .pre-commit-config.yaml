@@ -84,6 +84,13 @@ repos:
         name: no trademarks in names and UI text
         language: python
         entry: tools/check-trademarks.py
+      # The download-link picker for the website (tools/downloads.py), offline.
+      - id: downloads-test
+        name: download links pick the right releases
+        language: python
+        entry: tools/test_downloads.py
+        pass_filenames: false
+        files: ^tools/(downloads|test_downloads)\.py$
       # Workflows grant no write scope at the top level, never `write-all`,
       # and pin every action to a version tag or SHA (tools/check-workflows.py).
       - id: workflow-permissions

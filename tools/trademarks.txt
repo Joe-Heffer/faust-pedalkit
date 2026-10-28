@@ -20,11 +20,17 @@ Bass OD
 Tech 21
 SansAmp
 Bass Driver DI
+VT Bass
+VT Bass DI
+Character Series
 Pro Co RAT
 
 # Other bass and pedal makers and products likely to be modelled.
 Aguilar
 Ampeg
+SVT
+B-15
+Portaflex
 Darkglass
 Microtubes
 Dunlop
