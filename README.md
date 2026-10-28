@@ -8,7 +8,7 @@
 A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2, VST3 and CLAP plugins and checked by offline measurement tests.
 
 > [!NOTE]
-> **Documentation: <https://joe-heffer.github.io/faust-pedalkit/>**, with each effect's controls, design and circuit research, and current measurement plots.
+> Please [**read the documentation**](https://joe-heffer.github.io/faust-pedalkit/) for each effect's controls, design and circuit research, and current measurement plots.
 
 [Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2, a VST3 and a CLAP plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
 
