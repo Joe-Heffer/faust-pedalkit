@@ -1,6 +1,13 @@
-# Development
+# Make effects
 
-This section is for anyone, human or coding agent, adding an effect or changing an existing one. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth. To get a change merged, see [`CONTRIBUTING.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/CONTRIBUTING.md). To report a vulnerability, see [`SECURITY.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/SECURITY.md).
+This section is for anyone, human or coding agent, designing a new sound, adding an effect or changing an existing one. To use the effects as they are, [download](../download.md) them instead.
+
+Two ways in:
+
+- **No install:** the [effect designer](../usage/designer.md) builds an effect from blocks in your browser and writes the Faust code for you.
+- **The full toolchain:** [build from source](../install.md), then follow [How it works](how-it-works.md) and [Adding an effect](adding-an-effect.md).
+
+The rest of this section is the reference. [`AGENTS.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/AGENTS.md) in the repository is the short checklist. These pages explain the same rules in more depth. To get a change merged, see [`CONTRIBUTING.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/CONTRIBUTING.md). To report a vulnerability, see [`SECURITY.md`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/SECURITY.md).
 
 - [How it works](how-it-works.md): what DSP and Faust are, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements. Start here if you are new to either.
 - [Designing new sounds](designing-new-sounds.md): the project's aim, the three kinds of effect, and how to write design notes for an original one.

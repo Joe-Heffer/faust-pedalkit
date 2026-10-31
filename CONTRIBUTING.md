@@ -19,7 +19,7 @@ The full wording is in [AGENTS.md § Hard rules](AGENTS.md#hard-rules). In short
 ## Workflow
 
 1. Open an issue first, using the forms for bugs, sound feedback or a new effect. A new effect can be an original idea; sources are needed only for what it borrows from existing hardware. The design or circuit notes come before any DSP: see [Adding a new effect](AGENTS.md#adding-a-new-effect-name).
-2. Set up the tools (see [Install and build](docs/install.md#dependencies)) and install the hooks once with `pre-commit install`.
+2. Set up the tools (see [Build from source](docs/install.md#dependencies)) and install the hooks once with `pre-commit install`.
 3. Make the change on a branch. Before you push, run:
 
    ```sh

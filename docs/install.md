@@ -1,28 +1,9 @@
-# Install and build
+# Build from source
 
-The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional standalone JACK application per effect. Most people only need a release. Build from source to change an effect or to run the tests.
+!!! tip "Just want to play?"
+    You don't need to build anything to use the effects. [Download](download.md) a release and run its installer.
 
-## Install a release
-
-The [effects page](effects/index.md#download) links the latest published version of every effect, one file per format (CLAP, VST3, LV2). Each effect is released on its own. Its [GitHub release](https://github.com/Joe-Heffer/faust-pedalkit/releases), tagged `<name>-v<version>`, has a tarball, `<name>-<version>-linux-x86_64.tar.gz`, holding that effect in all three formats, and a `SHA256SUMS` file to check it against.
-
-```sh
-sha256sum -c SHA256SUMS                 # in the folder you downloaded both files to
-tar -xzf bassdrive-*-linux-x86_64.tar.gz # or whichever effect you downloaded
-cd bassdrive-*-linux-x86_64
-./install.sh
-```
-
-`install.sh` copies the plugins into `~/.lv2`, `~/.vst3` and `~/.clap`, the per-user folders that REAPER, Bitwig, Ardour and Carla scan. It needs no root and touches only the bundles in the tarball, replacing any older copies of them. Rescan plugins in your DAW afterwards (see [Loading in a host](usage/hosts.md)).
-
-| Command | Effect |
-|---|---|
-| `./install.sh` | install every format |
-| `./install.sh --lv2 --clap` | install only the formats named (`--lv2`, `--vst3`, `--clap`) |
-| `./install.sh --uninstall` | remove the plugins again; combine with format flags to remove only some |
-| `LV2DIR=… VST3DIR=… CLAPDIR=… ./install.sh` | install into other folders |
-
-The release plugins need x86_64 Linux with glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later, or any current rolling distribution. They are built on Debian 12, and CI checks that they link on Ubuntu 22.04 and Debian 12. On anything else, build from source as below.
+Build from source to change an effect, add one of your own, run the tests, or use the plugins on a system older than the releases support. The effects build on Linux into LV2, VST3 and CLAP plugins, plus an optional standalone JACK application per effect.
 
 ## Dependencies
 

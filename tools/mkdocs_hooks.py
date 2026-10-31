@@ -41,7 +41,7 @@ log = logging.getLogger("mkdocs.hooks.measurements")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUBLISHED = (".svg", ".csv")
 WEB = os.path.join(ROOT, "build", "web")
-MARKER = re.compile(r"<!-- downloads:([a-z0-9_]+) -->")
+MARKER = re.compile(r"^([ \t]*)<!-- (downloads|download-button):([a-z0-9_]+) -->", re.M)
 _latest = {}
 
 
@@ -73,11 +73,12 @@ def on_files(files, config):
 
 
 def effects():
-    """(name, display name) for every effect, from the `declare name` lines."""
+    """(name, display name, description) for every effect, from its `declare` lines."""
     out = []
     for dsp in sorted(glob.glob(os.path.join(ROOT, "src", "*.dsp"))):
         name = os.path.splitext(os.path.basename(dsp))[0]
-        out.append((name, declares(dsp).get("name", name)))
+        meta = declares(dsp)
+        out.append((name, meta.get("name", name), meta.get("description", "")))
     return out
 
 
@@ -91,14 +92,23 @@ def on_pre_build(config):
 
 
 def on_page_markdown(markdown, page, config, files):
-    """Swap `<!-- downloads:<name> -->` (or `all`) for the download links."""
-    names = dict(effects())
+    """Swap the download markers for links (see tools/downloads.py)."""
+    names = {name: display for name, display, _ in effects()}
+    base = "../" * page.file.src_uri.count("/")
+
+    def links(kind, name):
+        if kind == "downloads" and name == "all":
+            return downloads.table(effects(), _latest, base)
+        if name not in names:
+            raise ValueError(f"{page.file.src_uri}: {kind} marker for unknown effect {name!r}")
+        if kind == "download-button":
+            return downloads.button(name, names[name], _latest.get(name), base)
+        return downloads.block(name, names[name], _latest.get(name), base)
 
     def swap(m):
-        if m[1] == "all":
-            return downloads.table(effects(), _latest)
-        if m[1] not in names:
-            raise ValueError(f"{page.file.src_uri}: downloads marker for unknown effect {m[1]!r}")
-        return downloads.block(m[1], names[m[1]], _latest.get(m[1]))
+        # Keep the marker's indent on every line, so it works inside a card or list item.
+        indent, kind, name = m[1], m[2], m[3]
+        lines = links(kind, name).rstrip("\n").split("\n")
+        return "\n".join(indent + line if line else "" for line in lines)
 
     return MARKER.sub(swap, markdown)
