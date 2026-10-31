@@ -33,7 +33,7 @@ for depth in (0, 50, 100):
     y = render(x, Follow=0, Sweep=0, Feedback=0, Depth=depth)
     f, H = transfer(x, y)
     # The 5 Hz DC blocker alone takes 0.26 dB off at 20 Hz, so the flatness
-    # band starts at 40 Hz (0.02 dB from the blocker).
+    # band starts at 40 Hz (0.07 dB from the blocker).
     band = (f > 40) & (f < 20000)
     dev = np.max(np.abs(db(H[band])))
     check(dev < 0.1, f"at rest, Depth {depth}: flat within {dev:.3f} dB (< 0.1)")
