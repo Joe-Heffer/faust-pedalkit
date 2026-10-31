@@ -23,7 +23,13 @@ def release(tag, names, **flags):
 
 def assets_for(name, version):
     stem = f"{name}-{version}-linux-x86_64"
-    return [f"{stem}.tar.gz", f"{stem}-clap.tar.gz", f"{stem}-vst3.tar.gz", f"{stem}-lv2.tar.gz", "SHA256SUMS"]
+    return [
+        f"{stem}.tar.gz",
+        f"{stem}-clap.tar.gz",
+        f"{stem}-vst3.tar.gz",
+        f"{stem}-lv2.tar.gz",
+        "SHA256SUMS",
+    ]
 
 
 releases = [
@@ -42,7 +48,8 @@ assert set(latest) == {"bassdrive", "bassgrit"}, latest
 assert latest["bassdrive"]["tag_name"] == "bassdrive-v0.10.0", "versions compare as numbers"
 
 md = downloads.block("bassdrive", "BassDrive", latest["bassdrive"])
-assert "Download BassDrive 0.10.0 (CLAP)" in md and md.index("-clap.tar.gz") < md.index("-vst3.tar.gz"), md
+assert "Download BassDrive 0.10.0 (CLAP)" in md, md
+assert md.index("-clap.tar.gz") < md.index("-vst3.tar.gz"), md
 assert BASE + "bassdrive-0.10.0-linux-x86_64-lv2.tar.gz" in md and BASE + "SHA256SUMS" in md, md
 
 md = downloads.block("bassgrit", "BassGrit", latest["bassgrit"])
