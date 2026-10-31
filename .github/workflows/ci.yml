@@ -85,8 +85,13 @@ jobs:
         run: make container RUN=lv2
       - name: lv2lint
         run: make container RUN=lint
+      - name: LV2 bundles and presets are complete
+        run: make container RUN="check-outputs OUTPUTS=lv2"
       - name: Offline tests
         run: make container RUN=test
+      # Every plot and CSV the effect pages link was written by the tests.
+      - name: Measurements the docs rely on
+        run: make container RUN="check-outputs OUTPUTS=measurements"
       - name: Upload plots and renders
         if: always()
         uses: actions/upload-artifact@v7
@@ -122,6 +127,8 @@ jobs:
         run: make container RUN=vst3
       - name: pluginval
         run: make container RUN=pluginval
+      - name: VST3 bundles are complete
+        run: make container RUN="check-outputs OUTPUTS=vst3"
       - name: Upload VST3 bundles
         uses: actions/upload-artifact@v7
         with:
@@ -154,6 +161,8 @@ jobs:
           clap-validator --version
       - name: clap-validator
         run: make clap-validate
+      - name: CLAP plugins are complete
+        run: make check-outputs OUTPUTS=clap
       - name: Upload CLAP plugins
         uses: actions/upload-artifact@v7
         with:

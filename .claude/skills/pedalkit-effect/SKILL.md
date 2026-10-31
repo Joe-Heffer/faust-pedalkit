@@ -130,7 +130,7 @@ make check     # pre-commit run --all-files
 make format    # fixes Python lint and formatting if ruff complains
 ```
 
-`make check` runs ruff, shellcheck, markdownlint, codespell (including British English), `reuse`, `no-trademarks`, `params-stable`, `schematics-present`, `effect-checklist` (`tools/check-effects.py`: declares, controls, latency, notes, docs pages, downloads placeholder and minimum tests) and `faust-compile`.
+`make check` runs ruff, shellcheck, markdownlint, codespell (including British English), `reuse`, `no-trademarks`, `params-stable`, `schematics-present`, `effect-checklist` (`tools/check-effects.py`: declares, controls, latency, notes, docs pages and their contents, downloads placeholder, and minimum tests) and `faust-compile`. After `make test`, run `make check-outputs FX=<name>` to confirm every plot and CSV the docs link was written; CI also runs it for the plugins and schematics.
 
 Then open a draft PR from a branch, following `.github/pull_request_template.md`: tick or justify every checklist item and fill in “What to listen for”. Add the `new-effect` and `effect: <name>` labels (create the latter). Never push to `main` or force-push.
 

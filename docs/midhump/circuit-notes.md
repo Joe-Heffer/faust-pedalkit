@@ -35,6 +35,8 @@ The schematic's root sheet is this block diagram plus Blend, with one sub-sheet 
 
 ![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/midhump/midhump.svg)
 
+![Sheet 1: the 9 V supply and the bias rail VB, both chosen](../schematics/midhump/midhump-1-supply-and-bias.svg)
+
 ## 3. Input coupling
 
 **Inferred:** a 20 nF coupling capacitor into a 510 kΩ bias resistor gives a high-pass at

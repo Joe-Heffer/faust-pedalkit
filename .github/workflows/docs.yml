@@ -80,6 +80,10 @@ jobs:
         run: make container RUN=erc
       - name: Render schematics
         run: make container RUN=schematics
+      # Every measurement and schematic sheet the pages embed was generated,
+      # and every rendered sheet is embedded.
+      - name: Measurements and schematics the docs rely on
+        run: make container RUN="check-outputs OUTPUTS=measurements,schematics"
       - name: Build site
         run: make container RUN=docs
       - name: Upload Pages artifact
