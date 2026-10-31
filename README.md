@@ -21,7 +21,7 @@ Studying classic hardware is part of the method rather than the goal. Clean-room
 - **Circuit-inspired:** a real circuit deliberately taken somewhere it couldn't go.
 - **Modelled:** a measured, sourced model of one device, written up in circuit notes.
 
-Two of the four effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
+Two of the five effects so far are models. Original and circuit-inspired effects are where the project is heading: see [Designing new sounds](docs/development/designing-new-sounds.md).
 
 | Effect | Kind | Description | Notes |
 |---|---|---|---|
