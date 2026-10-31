@@ -120,6 +120,10 @@ nav:
           - Circuit notes: basseras/circuit-notes.md
           - Design notes: basseras/design-notes.md
           - Changelog: basseras/changelog.md
+      - BassTide:
+          - basstide/index.md
+          - Design notes: basstide/design-notes.md
+          - Changelog: basstide/changelog.md
   - Development:
       - development/index.md
       - How it works: development/how-it-works.md
