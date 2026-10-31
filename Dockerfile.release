@@ -26,10 +26,11 @@ ARG FAUST_VERSION=2.88.0
 ARG FAUST_SHA256=e4e175cf236924b5b7d4784cbb8c50cc01e211159e169655dd9e6d8f92b871d9
 
 # libboost-dev and lv2-dev are what faust2lv2 compiles against; git and cmake
-# build the VST3 bundles.
+# build the VST3 bundles, and ccache saves compiling the VST3 SDK once per
+# effect.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-        ca-certificates curl g++ make cmake git python3 \
+        ca-certificates ccache curl g++ make cmake git python3 \
         libboost-dev lv2-dev pkg-config \
  && rm -rf /var/lib/apt/lists/*
 

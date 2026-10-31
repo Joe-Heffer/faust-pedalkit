@@ -32,16 +32,24 @@ pre-commit run --all-files
 
 ## GitHub Actions
 
-Every workflow starts from a read-only token (`permissions: contents: read`, or `{}`), and a job that needs to write declares just those scopes itself. At present that is only Dependabot auto-merge (`contents` and `pull-requests`) and the Pages deployment (`pages` and `id-token`). Checkouts set `persist-credentials: false`, because no job pushes. Actions are referenced by version tag and kept current by Dependabot.
+Every workflow starts from a read-only token (`permissions: contents: read`, or `{}`), and a job that needs to write declares just those scopes itself. At present that is only Dependabot auto-merge (`contents` and `pull-requests`) and the Pages deployment (`pages` and `id-token`). CI's change detection reads the pull request's file list, so it has `pull-requests: read`. Checkouts set `persist-credentials: false`, because no job pushes. Actions are referenced by version tag and kept current by Dependabot.
 
 ### CI (`.github/workflows/ci.yml`)
 
 Runs on every push to `main` and every pull request:
 
-1. **Lint and format.** The pre-commit hooks above, except `faust-compile`, which the build job covers.
-2. **Build, lv2lint and tests.** In an Arch Linux container, `make lv2 lint test describe` for every effect. After lv2lint, `make check-outputs OUTPUTS=lv2` checks that each bundle has its manifest, TTL and shared object, and, when the effect has presets, a `presets.ttl` with every preset from `src/<name>.presets.toml`. After the tests, `make check-outputs OUTPUTS=measurements` checks that every plot and CSV file the docs link was written to `tests/out/<name>/`, and that no plot or CSV is empty. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact, and each effect's JSON description and block diagram as the `describe` artifact.
-3. **VST3 build and pluginval.** In the same container, `make vst3` fetches the pinned VST3 SDK (cached between runs), builds each bundle and runs Steinberg's validator on it. `make pluginval` then runs pluginval at strictness 10, and `make check-outputs OUTPUTS=vst3` checks that every effect has a bundle with a Linux shared object. The bundles are uploaded as the `vst3` artifact.
-4. **CLAP build and clap-validator.** In the same container, `make clap` fetches the pinned CLAP headers and builds each plugin. clap-validator is downloaded from its GitHub release, and `make clap-validate` runs it on every plugin. Its `preset-discovery-crawl` and `preset-discovery-load` tests are skipped, because clap-validator deadlocks on any container of two or more presets; `tools/clap/check-presets.cpp` crawls and loads the presets instead and checks every parameter against the effect's `presets.h`. `make check-outputs OUTPUTS=clap` then checks that every effect has a plugin. The plugins are uploaded as the `clap` artifact.
+1. **Detect changes.** If a change touches only prose outside `docs/` (the README, `AGENTS.md`, `RELEASING.md` and similar), the build, VST3 and CLAP jobs are skipped and only lint runs. A change to `src/`, `tests/`, `tools/`, `docs/`, `mkdocs.yml`, the Makefile, the Dockerfile or `.github/`, or a manual run, runs everything.
+2. **Lint and format.** The pre-commit hooks above, except `faust-compile`, which the build job covers.
+3. **Build, lv2lint and tests.** In an Arch Linux container, `make lv2 lint test describe` for every effect. After lv2lint, `make check-outputs OUTPUTS=lv2` checks that each bundle has its manifest, TTL and shared object, and, when the effect has presets, a `presets.ttl` with every preset from `src/<name>.presets.toml`. After the tests, `make check-outputs OUTPUTS=measurements` checks that every plot and CSV file the docs link was written to `tests/out/<name>/`, and that no plot or CSV is empty. The plots, CSV data and WAV renders from `tests/out/` are uploaded as the `test-output` artifact, and each effect's JSON description and block diagram as the `describe` artifact.
+4. **VST3 build and pluginval.** In the same container, `make vst3` fetches the pinned VST3 SDK (cached between runs), builds each bundle and runs Steinberg's validator on it. `make pluginval` then runs pluginval at strictness 10, and `make check-outputs OUTPUTS=vst3` checks that every effect has a bundle with a Linux shared object. The bundles are uploaded as the `vst3` artifact.
+5. **CLAP build and clap-validator.** In the same container, `make clap` fetches the pinned CLAP headers and builds each plugin, and `make clap-validate` runs clap-validator (installed in the image) on every plugin. Its `preset-discovery-crawl` and `preset-discovery-load` tests are skipped, because clap-validator deadlocks on any container of two or more presets; `tools/clap/check-presets.cpp` crawls and loads the presets instead and checks every parameter against the effect's `presets.h`. `make check-outputs OUTPUTS=clap` then checks that every effect has a plugin. The plugins are uploaded as the `clap` artifact.
+
+### Keeping CI quick
+
+* **Image layer cache.** Each job builds its image with `docker/build-push-action` and a GitHub Actions layer cache (one scope per image: `pedalkit-build`, `pedalkit-docs`, `pedalkit-release`), then runs `make container` with `SKIP_IMAGE=1` so the image isn't built again. An image is rebuilt only when its Dockerfile or base image changes. This matters most for the release image, which compiles Faust.
+* **Parallel make.** The workflows run `make -j4` (GitHub's Linux runners have four cores), so the effects build and test in parallel. See [Tests](testing.md) for how `make test` keeps the CPU timings on their own.
+* **Compiler cache.** The images include ccache, and `make container` keeps its cache in `build/ccache`, which `make clean` keeps. Every VST3 build compiles the same VST3 SDK sources; ccache compiles them once. The build and VST3 jobs carry the cache between runs with `actions/cache`. Set `CCACHE=` to build without it.
+* **Shared test results.** CI and the docs workflow run the same tests. Both store `tests/out/` in one cache, keyed on a hash of `src/`, `tests/`, `tools/`, the Makefile and the two Arch Dockerfiles, and skip `make test` when the key matches: on a rerun, or when the other workflow has already passed on the same sources. Only passing results are saved. Both workflows start together on a push, so the first run of a new commit usually tests in both.
 
 ### What is checked, and where
 
@@ -63,7 +71,7 @@ Run the output checks locally after the matching build, e.g. `make test check-ou
 
 Builds this site and publishes it to GitHub Pages:
 
-1. Build the docs image (`Dockerfile.docs`: the Faust toolchain plus KiCad, Node.js and MkDocs) and, in it, run `make test`, so the effect pages show the current measurements.
+1. Build the docs image (`Dockerfile.docs`: the Faust toolchain plus KiCad, Node.js and MkDocs) and, in it, run `make test`, so the effect pages show the current measurements. The test results are shared with CI (see [Keeping CI quick](#keeping-ci-quick)).
 2. Build the [browser demo](../usage/browser.md) with `make web` and check it against the native renderers with `make web-test`.
 3. Run `make schematic-check`, which fails if a committed schematic differs from what its script generates, then `make erc` and `make schematics`, which check each effect's KiCad schematic and render it to SVG (see [Schematics](schematics.md)). `make check-outputs OUTPUTS=measurements,schematics` then checks that every measurement and sheet the pages embed was generated, and that every rendered sheet is embedded.
 4. Build the site with `mkdocs build --strict` into `build/site/`. Any broken link, missing page, missing measurement or missing demo fails the build.
