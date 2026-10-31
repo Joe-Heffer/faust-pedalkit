@@ -44,7 +44,7 @@ in → DC block (5 Hz) ─┬→ envelope (peak, attack/release, in dB)
 | Block | New or reused |
 |---|---|
 | DC blocker | Reused, `fi.dcblockerat(5)` |
-| Envelope follower | New: peak follower with separate attack and release, output in dB. Candidate for `pedalkit.lib` as `envDb(att, rel)`, since BassForge’s Tighten needs the same thing |
+| Envelope follower | New: peak follower with separate attack and release, output in dB. Candidate for `pedalkit.lib` as `envDb(att, rel)`, for later envelope-driven effects |
 | Level-to-frequency map | New: `fc = soft · (hard / soft)^t`, where `t` runs from 0 to 1 as the envelope rises from Sensitivity to Sensitivity + Range, clamped and eased |
 | Modulated LR4 split | New in `pedalkit.lib` as `lr4splitv(fc)`. Built from TPT state-variable sections so that a moving `fc` stays stable. The high band is formed as `AP(x) − LP4(x)`, where `AP` is the matching 2nd-order all-pass, so the two bands still sum to that all-pass while `fc` moves |
 | Shaper | Reused: `pk.asymSoftHard` inside `pk.oversample4` (memoryless) |
@@ -129,4 +129,4 @@ Each phase ends with a commit to this PR. The PR stays a draft until phase 6 pas
 
 * **Audible sweep.** The main risk is item 1 of section 9. The fallback is to move the crossover only between notes (a slower envelope), at the cost of the bloom.
 * **Modulated filter artefacts.** Covered by target 2. If the TPT sections still produce sidebands, the fallback is to crossfade between two fixed splits, which is cheaper and can’t modulate but gives a coarser control.
-* **Overlap with BassForge** (draft PR #131): its Tighten control applies the same idea to a pre-clip shelf. If both land, they share `envDb` and the BassForge notes should point here. Whichever merges second rebases its `mkdocs.yml` nav entry under *Plans*.
+* **Relation to BassForge** (draft PR #131): BassForge is the clean-room model of the parallel clean-and-drive style and has no playing-strength controls, so the two don’t overlap. DigSplit can reuse BassForge’s `cmosInv` shaper if listening prefers it to `asymSoftHard`. Whichever merges second rebases its `mkdocs.yml` nav entry under *Plans*.
