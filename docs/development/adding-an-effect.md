@@ -93,7 +93,9 @@ make clap clap-validate FX=<name>
 make check                       # pre-commit run --all-files
 ```
 
-Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). Run it on its own with `python3 tools/check-effects.py <name>`.
+Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). It also reads the effect page: the standard sections, a Controls table row for each control, each preset under *Presets*, a CSV link under each plot, and every schematic sheet embedded. Run it on its own with `python3 tools/check-effects.py <name>`.
+
+Once the outputs are built, `make check-outputs` checks them: `OUTPUTS=measurements` after `make test` (every plot and CSV the docs link was written), `OUTPUTS=schematics` after `make schematics` (every sheet rendered and embedded), and `OUTPUTS=lv2`, `vst3` or `clap` after the plugin builds. CI runs each one after its build step.
 
 ## 5. Document it
 

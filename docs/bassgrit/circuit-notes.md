@@ -36,6 +36,8 @@ The root sheet is this block diagram plus the band split of the design notes, wi
 
 ![Root sheet: the block diagram, one hierarchical sheet per stage](../schematics/bassgrit/bassgrit.svg)
 
+![Sheet 1: the 9 V supply and the bias rail VB, both chosen](../schematics/bassgrit/bassgrit-1-supply-and-bias.svg)
+
 ## 3. Input and coupling networks
 
 Read from the schematic in [6] (**reported**), with the corners **derived**:
