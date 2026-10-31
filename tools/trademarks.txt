@@ -24,6 +24,9 @@ VT Bass
 VT Bass DI
 Character Series
 Pro Co RAT
+Metal Zone
+MT-2
+MT-2W
 
 # Other bass and pedal makers and products likely to be modelled.
 Aguilar
