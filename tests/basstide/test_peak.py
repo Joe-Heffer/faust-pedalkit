@@ -20,9 +20,7 @@ worst = -np.inf
 for name, x in signals.items():
     for feedback in (-90, 90):
         for follow in (0, 100):
-            y = render(
-                x, Level=12, Feedback=feedback, Follow=follow, Sweep=100, Depth=100, Rate=5
-            )
+            y = render(x, Level=12, Feedback=feedback, Follow=follow, Sweep=100, Depth=100, Rate=5)
             peak = np.max(np.abs(y))
             worst = max(worst, db(peak))
             check(

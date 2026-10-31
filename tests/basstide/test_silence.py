@@ -17,7 +17,7 @@ for sweep, follow, feedback, depth, level in combos:
     if peak > 1e-6 or not np.all(np.isfinite(y)):
         check(
             False,
-            f"silence S={sweep} Fo={follow} Fb={feedback} D={depth} L={level}: "
+            f"silence S={sweep} Follow={follow} Fb={feedback} D={depth} L={level}: "
             f"peak {db(peak):.1f} dBFS",
         )
         break
