@@ -133,5 +133,7 @@ nav:
       - Linting and CI: development/ci.md
       - Releasing: development/releasing.md
       - Logo: development/logo.md
+      - Plans:
+          - BassForge: development/plans/bassforge.md
   - Where this project sits: ecosystem.md
   - About: about.md
