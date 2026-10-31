@@ -29,9 +29,13 @@ Confidence is one of Documented, Reported, Inferred or Chosen.
 
 ## 5. Measurable targets
 
-What the tests check to show the idea works, for example "H2 rises above H3 as Drive passes noon".
+What the tests check to show the idea works, for example “H2 rises above H3 as Drive passes noon”.
 
-## 6. Open questions
+## 6. Dynamics and feel
+
+How it responds to picking strength and over the life of a note: the cleanup curve, attack against sustain, what a loud passage leaves behind. State each as a target, for example “THD rises from 1 % to 10 % over at least 18 dB of input”. Mechanisms and measurements are in `docs/development/designing-for-feel.md`.
+
+## 7. Open questions
 
 Especially those only listening can answer.
 
@@ -77,6 +81,12 @@ outCeil = 0.989;  // safety-limiter ceiling, about -0.1 dBFS
 // Memoryless shaper only: it runs on four parallel phase streams.
 shaper(x) = pk.softSat(1.0, x * ba.db2linear(drive * driveDB));
 
+// A stage with memory (bias shift, sag) splits into a base-rate control and a
+// memoryless shaper f(x, c), e.g. (constants from designing-for-feel.md):
+//   clip  = pk.biased(pk.softSat(0.6));
+//   bias  = pk.biasShift(0.6, 0.3, 0.015, 0.15);
+//   stage = _ <: _, bias : pk.oversample4c(clip);
+
 wet = fi.highpass(1, preHz) : pk.oversample4(shaper) : fi.dcblockerat(5);
 dry = @(pk.os4Latency);
 
@@ -119,7 +129,7 @@ finish()
 
 Controls are addressed by their label as written in the `hslider`, without the `[n]` prefix or the bracketed tags.
 
-Other tests to copy from `tests/bassdrive/`: `test_peak.py`, `test_freqresp.py`, `test_harmonics.py` (includes the aliasing comparison), `test_sweep.py` and `test_samplerates.py`.
+Other tests to copy from `tests/bassdrive/`: `test_peak.py`, `test_freqresp.py`, `test_harmonics.py` (includes the aliasing comparison), `test_sweep.py` and `test_samplerates.py`. For targets and dynamics, copy from `tests/midhump/`: `test_targets.py` and `test_dynamics.py`.
 
 ## Changelog: `docs/<name>/changelog.md`
 
