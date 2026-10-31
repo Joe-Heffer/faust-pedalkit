@@ -1,69 +1,112 @@
-# Faust Pedal Kit
+---
+hide:
+  - navigation
+  - toc
+---
 
-![Pedal Kit logo: a pedal with a sine wave going in and a clipped wave coming out](assets/logo-wordmark.svg){ width="360" }
+<!-- markdownlint-disable-next-line MD041 -->
+<div class="pk-hero" markdown>
 
-A workshop for designing new guitar and bass effects: new sounds, and new kinds of effect that a box of components couldn't easily be. The effects are written in [Faust](https://faust.grame.fr/), built as native Linux [LV2](https://lv2plug.in/) and VST3 plugins, and checked by offline measurement tests.
+![Pedal Kit logo: a pedal with a sine wave going in and a clipped wave coming out](assets/logo-wordmark.svg){ .pk-hero-logo width="320" }
 
-Each effect is one Faust file. It comes with notes that say where every value came from or what it is for, and with tests that render signals through the compiled DSP and check the results numerically: silence, peak level, frequency response, harmonics and aliasing.
+# Free effect plugins for bass and guitar { .pk-hero-title }
 
-Classic hardware is studied here too. Clean-room models of well-known circuits show how they get their character and supply tested building blocks (clippers, analogue filter sections, voicings) that original designs can reuse, bend and recombine. The first two effects are models of this kind; see [Designing new sounds](development/designing-new-sounds.md) for where the project is heading.
+Overdrive, distortion and preamps for Linux, as CLAP, VST3 and LV2 plugins. Download one, run the installer and play. There is no account, licence key or root password.
+{ .pk-hero-lead }
 
-[Install and build](install.md){ .md-button .md-button--primary }
-[Browse the effects](effects/index.md){ .md-button }
-[Try them in your browser](demo/index.html){ .md-button }
-[Design an effect in your browser](demo/designer/index.html){ .md-button }
+[Download the effects](download.md){ .md-button .md-button--primary }
+[Play them in your browser](demo/index.html){ .md-button }
 
-## Effects
+</div>
 
-| Effect | What it is | Pages |
-|---|---|---|
-| **BassDrive** | Bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal | [controls and measurements](bassdrive/index.md) · [circuit notes](bassdrive/circuit-notes.md) |
-| **BassPreamp** | Tube-voiced bass preamp/DI with a clean blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal | [controls and measurements](basspreamp/index.md) · [circuit notes](basspreamp/circuit-notes.md) |
-| **MidHump** | Mid-hump overdrive with Drive, Tone, Level and an optional full-range clean Blend | [controls](midhump/index.md) · [circuit notes](midhump/circuit-notes.md) · [design notes](midhump/design-notes.md) |
-| **BassEras** | Bass preamp/DI whose Character knob sweeps the pre-clip EQ, the gain and a bias bloom on hard notes, with Blend, Drive, Bite, Cab Bypass and a Low/Mid/High EQ | [controls](basseras/index.md) · [circuit notes](basseras/circuit-notes.md) · [design notes](basseras/design-notes.md) |
-| **BassGrit** | Hard-clipping distortion for bass with a clean low band: Distortion, Filter, Level, Low Blend and Crossover | [controls](bassgrit/index.md) · [circuit notes](bassgrit/circuit-notes.md) · [design notes](bassgrit/design-notes.md) |
+## The effects
 
-## Design your own effect in the browser
+Each download holds the effect as CLAP, VST3 and LV2 plugins, with an installer, so one file suits any Linux DAW.
 
-The [effect designer](demo/designer/index.html) lets you build an effect from blocks, wire them together and hear it straight away, with no install. It writes the Faust code for you, and you can download it as the starting point for a new `src/<name>.dsp`. [How the designer works](usage/designer.md) explains the blocks, the rules the generated code follows and what it does not do yet.
+<div class="grid cards pk-cards" markdown>
 
-## Quick start
+* **BassDrive** · bass overdrive
 
-On Arch (other distributions are covered in [Install and build](install.md)):
+    ---
 
-```sh
-sudo pacman -S --needed faust boost gcc lv2 jalv
-git clone https://github.com/Joe-Heffer/faust-pedalkit.git
-cd faust-pedalkit
-make lv2 install
-jalv urn:pedalkit/bassdrive
-```
+    Grit on top, with a solid low end underneath. A clean/driven Balance, Gain, and Bass and Treble controls.
 
-The plugins install into `~/.lv2`, where Ardour, REAPER, Carla and other LV2 hosts find them. See [Loading in a host](usage/hosts.md) and the [REAPER guide](usage/reaper.md).
+    <!-- download-button:bassdrive -->
 
-## How the effects are made
+    [More about BassDrive](bassdrive/index.md) · [Try it](demo/index.html?fx=bassdrive)
 
-New to DSP or Faust? [How it works](development/how-it-works.md) explains what an effect is in code, how Faust describes it, and how one `.dsp` file becomes LV2, VST3 and CLAP plugins plus measurements.
+* **BassPreamp** · bass preamp and DI
 
-**Ideas first, models as a means.** An effect is *original* (a sonic idea with no single reference device), *circuit-inspired* (a real circuit taken somewhere it couldn't go), or *modelled* (a measured, sourced model of one device). Original effects are documented in design notes, models in circuit notes.
+    ---
 
-**Clean-room.** Anything taken from existing hardware is built from public schematics, circuit analyses, measurements, reviews and manuals. No proprietary plugin, binary or firmware is decompiled, disassembled or used as a reference.
+    A tube-voiced preamp that you can plug straight into a desk: drive, Presence, a clean blend and a three-band EQ with shiftable Bass and Mid.
 
-**Every value has a confidence level.** The design and circuit notes mark each value and design decision as one of:
+    <!-- download-button:basspreamp -->
 
-| Level | Meaning |
-|---|---|
-| Documented | Stated by the manufacturer |
-| Reported | Stated by one or more third parties, such as a forum post, review or measurement |
-| Inferred | Reasoned from the reported facts |
-| Chosen | A free design choice, with its intent stated |
+    [More about BassPreamp](basspreamp/index.md) · [Try it](demo/index.html?fx=basspreamp)
 
-The "chosen" values are named constants at the top of each `.dsp` file, so you can retune them.
+* **MidHump** · overdrive
 
-**Measured, then tuned by ear.** The effects are judged by measurement: harmonics, frequency response, aliasing and levels. Each effect page shows the current measurements and lists the constants a human should tune by ear.
+    ---
 
-**Neutral names.** Plugins carry no manufacturer branding. Product names appear in the docs only to identify reference or inspiring hardware.
+    A mid-forward overdrive that keeps the lows tight. Blend brings back the full-range clean sound, and Bloom lets the distortion change as each note rings.
 
-## Licence
+    <!-- download-button:midhump -->
 
-The code is MIT and the documentation is CC BY 4.0. See [About](about.md) for details and how to cite the project.
+    [More about MidHump](midhump/index.md) · [Try it](demo/index.html?fx=midhump)
+
+* **BassEras** · bass preamp and DI
+
+    ---
+
+    One Character knob takes the preamp from deep and scooped, through flat and warm, to pushed and growling, with hard notes blooming as they ring.
+
+    <!-- download-button:basseras -->
+
+    [More about BassEras](basseras/index.md) · [Try it](demo/index.html?fx=basseras)
+
+* **BassGrit** · distortion
+
+    ---
+
+    Heavy hard-clipping distortion on the upper band only. The lows stay clean and tight, with a Crossover and Low Blend to set how much.
+
+    <!-- download-button:bassgrit -->
+
+    [More about BassGrit](bassgrit/index.md) · [Try it](demo/index.html?fx=bassgrit)
+
+</div>
+
+## Install in three steps
+
+1. **Download** an effect from its card above or from the [Download](download.md) page.
+2. **Install** it. Unpack the file, open a terminal in the folder and run `./install.sh`. It copies the plugins into `~/.lv2`, `~/.vst3` and `~/.clap` in your home folder and needs no root.
+3. **Play.** Rescan plugins in your DAW and add the effect to a mono track. The [host guides](usage/hosts.md) show where to click in REAPER, Ardour and Carla.
+
+The plugins need 64-bit Linux with glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later, or any current rolling distribution such as Arch or Fedora.
+
+## Make your own sounds
+
+Every effect here is one short [Faust](https://faust.grame.fr/) file, with notes that say where each value came from and tests that measure the result. The kit is also a workshop for designing new effects.
+
+<div class="grid cards pk-cards" markdown>
+
+* **Design in your browser**
+
+    ---
+
+    Build an effect from blocks, wire them up and hear it straight away, with nothing to install. The designer writes the Faust code for you.
+
+    [Open the effect designer](demo/designer/index.html){ .md-button }
+
+* **Build and change the effects**
+
+    ---
+
+    Build the plugins from source, retune the named constants, or add an effect of your own with its notes, tests and measurements.
+
+    [Start developing](development/index.md){ .md-button }
+
+</div>
+
+[How the effects are made](about.md#how-the-effects-are-made) explains the rules every effect follows: clean-room research, a confidence level for every value, and judging by measurement before tuning by ear.

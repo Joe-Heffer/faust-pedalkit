@@ -2,6 +2,12 @@
 
 A bass overdrive with a clean/driven blend and a two-band EQ, modelled on a classic compact bass overdrive pedal. The full-range clean path keeps the low end solid while the driven path adds grind on top.
 
+## Download
+
+<!-- downloads:bassdrive -->
+
+## Details
+
 | Property | Value |
 |---|---|
 | Source | [`src/bassdrive.dsp`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/bassdrive.dsp) |
@@ -11,10 +17,6 @@ A bass overdrive with a clean/driven blend and a two-band EQ, modelled on a clas
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md) |
 | Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
-
-## Download
-
-<!-- downloads:bassdrive -->
 
 ## Controls
 

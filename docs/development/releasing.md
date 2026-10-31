@@ -1,6 +1,6 @@
 # Releasing
 
-Each effect is versioned and released on its own. A release is a GitHub release for one effect, tagged `<name>-vX.Y.Z` (for example `bassdrive-v0.1.0`), with one tarball, `<name>-X.Y.Z-linux-x86_64.tar.gz`, and its `SHA256SUMS`. The tarball holds that effect as LV2, VST3 and CLAP, plus `install.sh` (see [Install a release](../install.md#install-a-release)) and the effect's changelog. `.github/workflows/release.yml` builds and checks it, and leaves the release as a draft for a person to publish.
+Each effect is versioned and released on its own. A release is a GitHub release for one effect, tagged `<name>-vX.Y.Z` (for example `bassdrive-v0.1.0`), with one tarball, `<name>-X.Y.Z-linux-x86_64.tar.gz`, and its `SHA256SUMS`. The tarball holds that effect as LV2, VST3 and CLAP, plus `install.sh` (see [Download](../download.md#install)) and the effect's changelog. `.github/workflows/release.yml` builds and checks it, and leaves the release as a draft for a person to publish.
 
 ## Versions
 

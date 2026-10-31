@@ -1,0 +1,65 @@
+/* SPDX-FileCopyrightText: 2026 Joe Heffer
+ * SPDX-License-Identifier: MIT
+ *
+ * Site styles on top of MkDocs Material: the home page hero and the effect
+ * cards. Colours come from Material's own variables, so the light and dark
+ * palettes in mkdocs.yml both apply.
+ */
+
+.pk-hero {
+  text-align: center;
+  padding: 1.5rem 0 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.pk-hero .pk-hero-logo {
+  max-width: 70%;
+  height: auto;
+}
+
+.md-typeset .pk-hero h1.pk-hero-title {
+  margin: 1rem 0 0.5rem;
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+}
+
+/* Material hides the page title's permalink only for its own h1. */
+.md-typeset .pk-hero h1.pk-hero-title .headerlink {
+  display: none;
+}
+
+.md-typeset .pk-hero .pk-hero-lead {
+  max-width: 36rem;
+  margin: 0 auto 1.25rem;
+  font-size: 1.05rem;
+}
+
+.md-typeset .pk-hero .md-button {
+  margin: 0.25rem;
+}
+
+/* Effect cards: keep the button and links at the bottom of every card. */
+.md-typeset .grid.cards.pk-cards > ul > li {
+  display: flex;
+  flex-direction: column;
+}
+
+.md-typeset .grid.cards.pk-cards > ul > li > :last-child {
+  margin-top: auto;
+}
+
+.md-typeset .grid.cards.pk-cards .md-button {
+  margin-top: 0.25rem;
+}
+
+@media screen and (max-width: 30em) {
+  .md-typeset .pk-hero h1.pk-hero-title {
+    font-size: 1.6rem;
+  }
+
+  .md-typeset .pk-hero .md-button {
+    display: block;
+    margin: 0.5rem 0;
+  }
+}

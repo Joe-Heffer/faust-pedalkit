@@ -2,6 +2,12 @@
 
 A hard-clipping distortion for bass. It borrows the sound of a classic op-amp distortion pedal (a very high-gain stage that darkens as the gain rises, diodes clipping to ground, and a low-pass that gets darker as it is turned up) and adds what a bass needs: the signal is split at a **Crossover**, and only the upper band is clipped. The low band stays clean and comes back at **Low Blend**, so the fundamental stays tight while the harmonics get the full treatment.
 
+## Download
+
+<!-- downloads:bassgrit -->
+
+## Details
+
 | Property | Value |
 |---|---|
 | Source | [`src/bassgrit.dsp`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/bassgrit.dsp) |
@@ -10,10 +16,6 @@ A hard-clipping distortion for bass. It borrows the sound of a classic op-amp di
 | Channels | Mono in, mono out |
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
-
-## Download
-
-<!-- downloads:bassgrit -->
 
 ## Controls
 

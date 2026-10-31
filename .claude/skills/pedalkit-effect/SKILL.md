@@ -116,8 +116,8 @@ Write `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the temp
 ### 6. Docs
 
 * Add a row to the `README.md` effect table. Keep the README terse: the controls table and all other detail go in `docs/<name>/index.md`.
-* Write `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: a *Download* heading near the top holding `<!-- downloads:<name> -->`, then controls, signal path, measured behaviour with plots from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations. An original effect opens with the idea.
-* Add rows to the effect tables in `docs/index.md` and `docs/effects/index.md`.
+* Write `docs/<name>/index.md`, modelled on `docs/bassdrive/index.md`: the intro, a *Download* heading holding `<!-- downloads:<name> -->`, the property table, then controls, signal path, measured behaviour with plots from `../measurements/<name>/` and the CSV linked, what to tune by ear, and known limitations. An original effect opens with the idea.
+* Add a row to the effect table in `docs/effects/index.md`, and a card to `docs/index.md` like the others: name and type, one plain-language sentence about the sound, `<!-- download-button:<name> -->`, and links to the effect page and `demo/index.html?fx=<name>`.
 * Write `docs/<name>/changelog.md` with a `## [0.1.0]` section. The release workflow refuses a tag without one.
 * Add the page, the notes and the changelog to `nav` in `mkdocs.yml`, under *Effects*.
 * Required whenever there are circuit notes: write `tools/schematics/<name>.py` (start from the closest existing script), following `docs/development/schematics.md`. It draws the modelled circuit, one sub-sheet per section of the notes, with `Confidence` and `Source` fields on every part and `expect()` on every corner frequency and gain the notes quote. Run `make schematic-sources FX=<name>`, then `make schematic-check erc schematics FX=<name>`, read every sheet, never hand-edit the `.kicad_sch`, and embed the sheets in the circuit notes and the effect page.

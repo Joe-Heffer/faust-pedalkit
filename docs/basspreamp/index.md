@@ -2,6 +2,12 @@
 
 A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in speaker voicing and a three-band EQ with shiftable Bass and Mid, modelled on a classic bass preamp/DI pedal. The clean path is full-range, and the preamp path's fixed voicing makes it usable straight into a desk.
 
+## Download
+
+<!-- downloads:basspreamp -->
+
+## Details
+
 | Property | Value |
 |---|---|
 | Source | [`src/basspreamp.dsp`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/basspreamp.dsp) |
@@ -12,10 +18,6 @@ A tube-voiced bass preamp and DI with a clean/preamp blend, Presence, built-in s
 | Research | [Circuit notes](circuit-notes.md) |
 | Try it | [Browser demo](../demo/index.html) (no install; see [how it works](../usage/browser.md)) |
 | Host guides | [Loading in a host](../usage/hosts.md) · [Using the effects in REAPER](../usage/reaper.md) |
-
-## Download
-
-<!-- downloads:basspreamp -->
 
 ## Controls
 

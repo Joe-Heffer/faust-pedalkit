@@ -1,10 +1,9 @@
 # Loading in a host
 
-After `make install`, the bundles are in `~/.lv2`, which every common Linux LV2 host scans. The plugins are mono, take their names from the effect (for example "BassDrive"), and report their latency to the host so it can compensate.
+Install an effect first: [download](../download.md) it and run `./install.sh`, which puts the plugins in `~/.lv2`, `~/.vst3` and `~/.clap`. Every common Linux host scans those folders. The plugins are mono, take their names from the effect (for example “BassDrive”), and report their latency to the host so it can compensate.
 
-For VST3, run `make install-vst3` instead. It copies the bundles to `~/.vst3`, the standard per-user VST3 folder on Linux, which REAPER, Bitwig, Ardour and Carla scan; the effects then appear in their VST3 lists under the same names.
-
-For CLAP, run `make install-clap`. It copies the plugins to `~/.clap`, the per-user CLAP folder on Linux, which REAPER, Bitwig and Carla scan. In REAPER the effects are listed under *CLAP* in the FX browser; if they don't appear, use *Options → Preferences → Plug-ins → CLAP → Re-scan*.
+!!! note "Built from source?"
+    `make install`, `make install-vst3` and `make install-clap` copy the LV2, VST3 and CLAP builds into the same folders (see [Build from source](../install.md)).
 
 ## Ardour
 
@@ -16,8 +15,8 @@ On the track's mixer strip, right-click the processor box, choose *New Plugin �
 
 The [REAPER guide](reaper.md) covers this in more detail, including input level, latency and presets.
 
-1. Go to *Options → Preferences → Plug-ins → LV2*. Check that `~/.lv2` is in the path list, then click *Re-scan*.
-2. Open the track's FX window, choose *Add*, and find the effect under *LV2*.
+1. Go to *Options → Preferences → Plug-ins* and choose *CLAP*, *VST* or *LV2*. Check that `~/.clap`, `~/.vst3` or `~/.lv2` is in the path list, then click *Re-scan*.
+2. Open the track's FX window, choose *Add*, and find the effect under *CLAP*, *VST3* or *LV2*.
 3. The effects are mono. On a stereo track, REAPER feeds a mono plugin channel 1, so record onto a mono track or set the plugin's pin connector.
 
 ## Carla

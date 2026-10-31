@@ -16,8 +16,8 @@ compiling anything:
   output
 * the notes: docs/<name>/design-notes.md or circuit-notes.md
 * the docs: docs/<name>/index.md, docs/<name>/changelog.md with a section for
-  the declared version, rows in README.md, docs/index.md and
-  docs/effects/index.md, and the pages in the mkdocs.yml nav
+  the declared version, rows in README.md, docs/index.md (an effect card
+  with a download button) and docs/effects/index.md, and the pages in the mkdocs.yml nav
 * the tests: tests/<name>/ with the minimum set (test_silence.py,
   test_peak.py, test_freqresp.py, test_harmonics.py), an aliasing comparison
   against RENDER_1X when the effect oversamples, test_presets.py when it has
@@ -133,6 +133,8 @@ def check_docs(root, fx, version):
     ):
         if needle not in (root / path).read_text():
             problems.append(f"{path}: no effect table row linking {needle.strip('()`')}")
+    if f"<!-- download-button:{fx} -->" not in (root / "docs/index.md").read_text():
+        problems.append(f"docs/index.md: no effect card with `<!-- download-button:{fx} -->`")
 
     nav = (root / "mkdocs.yml").read_text().partition("\nnav:")[2]
     for page in ("index.md", "changelog.md", *notes):

@@ -2,6 +2,12 @@
 
 A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes at unity gain, which keeps the low end tight. An optional clean Blend, which the original circuit does not have, brings back the full range, and Bloom adds a bias shift that makes the distortion change over the life of each note.
 
+## Download
+
+<!-- downloads:midhump -->
+
+## Details
+
 | Property | Value |
 |---|---|
 | Source | [`src/midhump.dsp`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/midhump.dsp) |
@@ -10,10 +16,6 @@ A mid-hump overdrive. Mids are driven into soft diode clipping while bass passes
 | Channels | Mono in, mono out |
 | Latency | 32 samples (0.67 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
-
-## Download
-
-<!-- downloads:midhump -->
 
 ## Controls
 
