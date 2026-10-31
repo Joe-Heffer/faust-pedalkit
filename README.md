@@ -30,6 +30,7 @@ Two of the four effects so far are models. Original and circuit-inspired effects
 | **BassGrit** (`src/bassgrit.dsp`) | Circuit-inspired | Hard-clipping op-amp distortion for bass (Distortion, Filter, Level, Low Blend, Crossover) with a 4th-order split that keeps the low band clean | [circuit notes](docs/bassgrit/circuit-notes.md), [design notes](docs/bassgrit/design-notes.md) |
 | **BassEras** (`src/basseras.dsp`) | Circuit-inspired | Bass preamp/DI whose Character knob sweeps the pre-clip EQ, the gain and a bias bloom on hard notes, with Blend, Drive, Bite, Cab Bypass and a Low/Mid/High EQ | [circuit notes](docs/basseras/circuit-notes.md), [design notes](docs/basseras/design-notes.md) |
 | **MidHump** (`src/midhump.dsp`) | Circuit-inspired | Mid-hump overdrive (Drive, Tone, Level) with an optional full-range clean Blend and a Bloom (bias shift) control that the original circuit lacks | [circuit notes](docs/midhump/circuit-notes.md), [design notes](docs/midhump/design-notes.md) |
+| **BassTide** (`src/basstide.dsp`) | Original (draft) | Through-zero flanger for bass (Rate, Sweep, Follow, Glide, Feedback, Depth, Crossover, Level) with a dry low band, where each note can start its own sweep | [design notes](docs/basstide/design-notes.md) |
 
 > [!NOTE]
 > To hear them without installing anything, open the [browser demo](https://joe-heffer.github.io/faust-pedalkit/demo/): the same Faust code compiled to WebAssembly, with a test riff, an audio file or live input ([how it works](docs/usage/browser.md)).
@@ -68,7 +69,7 @@ Add `FX=<name>` to any target to build one effect. The full guide is in the docu
 
 Each effect's controls, presets, signal path, measured behaviour, listening notes and known limitations are on its documentation page:
 
-[BassDrive](docs/bassdrive/index.md) · [BassPreamp](docs/basspreamp/index.md) · [BassGrit](docs/bassgrit/index.md) · [BassEras](docs/basseras/index.md) · [MidHump](docs/midhump/index.md)
+[BassDrive](docs/bassdrive/index.md) · [BassPreamp](docs/basspreamp/index.md) · [BassGrit](docs/bassgrit/index.md) · [BassEras](docs/basseras/index.md) · [MidHump](docs/midhump/index.md) · [BassTide](docs/basstide/index.md)
 
 ## Contributing
 

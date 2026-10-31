@@ -22,6 +22,7 @@ Classic hardware is studied here too. Clean-room models of well-known circuits s
 | **MidHump** | Mid-hump overdrive with Drive, Tone, Level and an optional full-range clean Blend | [controls](midhump/index.md) · [circuit notes](midhump/circuit-notes.md) · [design notes](midhump/design-notes.md) |
 | **BassEras** | Bass preamp/DI whose Character knob sweeps the pre-clip EQ, the gain and a bias bloom on hard notes, with Blend, Drive, Bite, Cab Bypass and a Low/Mid/High EQ | [controls](basseras/index.md) · [circuit notes](basseras/circuit-notes.md) · [design notes](basseras/design-notes.md) |
 | **BassGrit** | Hard-clipping distortion for bass with a clean low band: Distortion, Filter, Level, Low Blend and Crossover | [controls](bassgrit/index.md) · [circuit notes](bassgrit/circuit-notes.md) · [design notes](bassgrit/design-notes.md) |
+| **BassTide** | Through-zero flanger for bass with a dry low band, where each note can start its own sweep (draft) | [controls](basstide/index.md) · [design notes](basstide/design-notes.md) |
 
 ## Design your own effect in the browser
 

@@ -15,6 +15,7 @@ The CLAP plugin is the default choice: it is the newest of the three formats and
 | **MidHump** | Overdrive | Circuit-inspired: a mid-hump overdrive with a clean blend | 32 samples | [controls](../midhump/index.md) · [circuit notes](../midhump/circuit-notes.md) · [design notes](../midhump/design-notes.md) |
 | **BassEras** | Bass preamp/DI | Circuit-inspired: a Character knob that sweeps the pre-clip EQ, gain and attack | 64 samples | [controls](../basseras/index.md) · [circuit notes](../basseras/circuit-notes.md) · [design notes](../basseras/design-notes.md) |
 | **BassGrit** | Distortion | Circuit-inspired: an op-amp hard-clipping distortion with the low band kept clean | 32 samples | [controls](../bassgrit/index.md) · [circuit notes](../bassgrit/circuit-notes.md) · [design notes](../bassgrit/design-notes.md) |
+| **BassTide** | Flanger | Original: through-zero flanging above a dry low band, with a sweep each note can start (draft) | 96 samples | [controls](../basstide/index.md) · [design notes](../basstide/design-notes.md) |
 
 Every effect page covers:
 
