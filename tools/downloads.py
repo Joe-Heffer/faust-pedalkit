@@ -103,10 +103,16 @@ def block(name, display, release):
             f"[releases page]({RELEASES_PAGE}) when they are.\n"
         )
     first, *rest = found
-    buttons = f"[Download {display} {version_of(release)} ({first[0]})]({first[1]}){{ .md-button .md-button--primary }}"
+    buttons = (
+        f"[Download {display} {version_of(release)} ({first[0]})]({first[1]})"
+        "{ .md-button .md-button--primary }"
+    )
     others = " · ".join(f"[{label}]({url})" for label, url in rest)
     sums = release_sums(release)
-    tail = f"Linux x86_64. {sums}[Release notes]({release['html_url']}) · [Install guide](../install.md#install-a-release)"
+    tail = (
+        f"Linux x86_64. {sums}[Release notes]({release['html_url']}) · "
+        "[Install guide](../install.md#install-a-release)"
+    )
     return f"{buttons}\n\nAlso: {others}\n\n{tail}\n"
 
 
@@ -117,12 +123,24 @@ def release_sums(release):
 
 def table(effects, latest):
     """Markdown table of every effect: name, version and one link per format."""
-    rows = ["| Effect | Version | " + " | ".join(label for _, label in FORMATS) + " | All |", "|---|---|" + "---|" * (len(FORMATS) + 1)]
+    rows = [
+        "| Effect | Version | " + " | ".join(label for _, label in FORMATS) + " | All |",
+        "|---|---|" + "---|" * (len(FORMATS) + 1),
+    ]
     for name, display in effects:
         release = latest.get(name)
         urls = assets(release) if release else {}
-        cells = [f"[{label}]({urls.get(fmt) or urls.get('all')})" if urls.get(fmt) or urls.get("all") else "–" for fmt, label in FORMATS]
+        cells = [
+            f"[{label}]({urls.get(fmt) or urls.get('all')})"
+            if urls.get(fmt) or urls.get("all")
+            else "–"
+            for fmt, label in FORMATS
+        ]
         everything = f"[tarball]({urls['all']})" if urls.get("all") else "–"
         version = version_of(release) if release else "not yet published"
         rows.append(f"| **{display}** | {version} | " + " | ".join(cells) + f" | {everything} |")
-    return "\n".join(rows) + f"\n\nLinux x86_64 only. Older versions and checksums are on the [releases page]({RELEASES_PAGE}).\n"
+    note = (
+        "Linux x86_64 only. Older versions and checksums are on the "
+        f"[releases page]({RELEASES_PAGE}).\n"
+    )
+    return "\n".join(rows) + "\n\n" + note

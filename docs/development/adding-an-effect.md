@@ -93,7 +93,9 @@ make clap clap-validate FX=<name>
 make check                       # pre-commit run --all-files
 ```
 
-Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). Run it on its own with `python3 tools/check-effects.py <name>`.
+Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). It also reads the effect page: the standard sections, a Controls table row for each control, each preset under *Presets*, a CSV link under each plot, and every schematic sheet embedded. Run it on its own with `python3 tools/check-effects.py <name>`.
+
+Once the outputs are built, `make check-outputs` checks them: `OUTPUTS=measurements` after `make test` (every plot and CSV the docs link was written), `OUTPUTS=schematics` after `make schematics` (every sheet rendered and embedded), and `OUTPUTS=lv2`, `vst3` or `clap` after the plugin builds. CI runs each one after its build step.
 
 ## 5. Document it
 
@@ -109,7 +111,7 @@ Every effect with circuit notes has a KiCad schematic of the modelled circuit, w
 
 ## Presets (optional)
 
-Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables, each with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The settings are chosen values, and the file says so. Add `tests/<name>/test_presets.py` to render each preset, check its peak and loudness-match it with `loudness()`, and list the presets in the README and on the effect's docs page.
+Add `src/<name>.presets.toml`, using `src/basspreamp.presets.toml` as the template: a list of `[[preset]]` tables, each with a `name`, a `comment` and a `controls` table keyed by UI label. Set every control, because LV2 hosts leave unlisted controls where they were. The settings are chosen values, and the file says so. Add `tests/<name>/test_presets.py` to render each preset, check its peak and loudness-match it with `loudness()`, and list the presets on the effect's docs page.
 
 ## 6. Report back
 
