@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Joe Heffer
+# SPDX-License-Identifier: MIT
+
+# Rebuilds the website when a release is published, so the download links
+# follow. A release event runs on the tag, and the github-pages environment
+# only deploys from main, so this starts the Docs workflow on main instead.
+
+name: Docs after release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  actions: write
+
+jobs:
+  docs:
+    name: Rebuild the site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start the Docs workflow on main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run docs.yml --repo "$GITHUB_REPOSITORY" --ref main
