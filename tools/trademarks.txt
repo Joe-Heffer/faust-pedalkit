@@ -24,6 +24,9 @@ VT Bass
 VT Bass DI
 Character Series
 Pro Co RAT
+OC-2
+OC-3
+OC-5
 
 # Other bass and pedal makers and products likely to be modelled.
 Aguilar
