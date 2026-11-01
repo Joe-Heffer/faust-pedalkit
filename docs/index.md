@@ -75,6 +75,16 @@ Each download holds the effect as CLAP, VST3 and LV2 plugins, with an installer,
 
     [More about BassGrit](bassgrit/index.md) · [Try it](demo/index.html?fx=bassgrit)
 
+* **BassTide** · flanger
+
+    ---
+
+    A through-zero flanger that leaves the low end dry. Each note can start its own sweep, so the attack swooshes and the sustain stays clean. Draft.
+
+    <!-- download-button:basstide -->
+
+    [More about BassTide](basstide/index.md) · [Try it](demo/index.html?fx=basstide)
+
 </div>
 
 ## Install in three steps

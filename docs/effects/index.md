@@ -1,6 +1,6 @@
 # Effects
 
-Five effects so far, all mono and all for Linux as CLAP, VST3 and LV2 plugins. Every one can be [played in your browser](../demo/index.html) before you download it.
+Six effects so far, all mono and all for Linux as CLAP, VST3 and LV2 plugins. Every one can be [played in your browser](../demo/index.html) before you download it.
 
 | Effect | What it sounds like | Type | Latency | Pages |
 |---|---|---|---|---|
@@ -9,6 +9,7 @@ Five effects so far, all mono and all for Linux as CLAP, VST3 and LV2 plugins. E
 | **MidHump** | Mid-forward overdrive with tight lows and an optional clean blend | Overdrive | 32 samples | [controls and sound](../midhump/index.md) · [circuit notes](../midhump/circuit-notes.md) · [design notes](../midhump/design-notes.md) |
 | **BassEras** | One Character knob from deep and scooped to pushed and growling | Bass preamp/DI | 64 samples | [controls and sound](../basseras/index.md) · [circuit notes](../basseras/circuit-notes.md) · [design notes](../basseras/design-notes.md) |
 | **BassGrit** | Heavy hard clipping on the upper band, with clean, tight lows | Distortion | 32 samples | [controls and sound](../bassgrit/index.md) · [circuit notes](../bassgrit/circuit-notes.md) · [design notes](../bassgrit/design-notes.md) |
+| **BassTide** | A through-zero flanger that leaves the lows dry, with a sweep each note can start (draft) | Flanger | 96 samples | [controls and sound](../basstide/index.md) · [design notes](../basstide/design-notes.md) |
 
 Latency is the fixed delay the effect reports to the host, which compensates for it (32 samples is 0.67 ms at 48 kHz).
 
