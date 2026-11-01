@@ -8,13 +8,27 @@
 # sets every control, because an LV2 host leaves unlisted controls where they
 # were.
 #
-# The settings are chosen starting points. The names follow the kinds of sound
-# the reference pedal's manual lists as sample settings, but the knob
-# positions are not taken from it. Bite is on in every preset, as in all of
-# the manual's sample settings, and the speaker sim is on. Level is chosen per
-# preset so that a -12 dBFS plucked bass line comes out within about 1 dB of
-# "Studio Flip" (measured by test_presets.py), so switching presets doesn't
-# jump in loudness.
+# Two kinds of preset:
+#
+# * Reported from the manual's "Sample Settings" page (reference [1] in
+#   docs/basseras/circuit-notes.md): Big Valve, Fat Tube, Flip Lid, Rage,
+#   Thumpy Funk, Fuzzed Out, Warm Compression and Bright Prog. Each knob
+#   position in the manual's drawing was read as an angle on a 300 degree
+#   travel (7 to 5 o'clock, noon = 50 %) and converted: Blend, Drive and
+#   Character as a percentage of travel, Low, Mid and High as
+#   (position - 0.5) x 24 dB, rounded to 0.5 dB. The reading is by eye from a
+#   drawing, so each value is good to about +-5 % (+-1 dB). Blend reads as
+#   about 95 % in every drawing, so it is 95 here. The manual's names that
+#   are trademarks are replaced by neutral ones (Big Valve, Flip Lid, Bright
+#   Prog). Bite is on in every preset, as in all of the manual's settings,
+#   and the speaker sim is on.
+# * Chosen: Studio Flip, Clean DI, Seventies Stack and Modern Crunch are
+#   not from the manual.
+#
+# Level is chosen in every preset, because the manual's Level knob is an
+# output trim with no documented scale. It is set so that a -12 dBFS plucked
+# bass line comes out within about 1 dB of "Studio Flip" (measured by
+# test_presets.py), so switching presets doesn't jump in loudness.
 
 [[preset]]
 name = "Studio Flip"
@@ -45,6 +59,20 @@ Bite = 100
 "Cab Bypass" = 0
 
 [[preset]]
+name = "Big Valve"
+comment = "From the manual: Character low for a big valve stack voicing, a little Mid scoop, Low and High lifted."
+[preset.controls]
+Level = -4.8
+Blend = 95
+Drive = 50
+Character = 20
+Low = 3
+Mid = -3
+High = 2.5
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
 name = "Seventies Stack"
 comment = "Character low: deep and scooped in the low mids, pushed a little harder, with a touch of Low and Mid."
 [preset.controls]
@@ -59,44 +87,86 @@ Bite = 100
 "Cab Bypass" = 0
 
 [[preset]]
-name = "Thumpy Funk"
-comment = "Little drive, some clean blended in, Low and High up and Mid down for a hollow, percussive attack."
+name = "Fat Tube"
+comment = "From the manual: moderate drive with Character just below noon and flat EQ, for a thick, rounded tone."
 [preset.controls]
-Level = 2.9
-Blend = 80
-Drive = 15
-Character = 35
-Low = 4
-Mid = -3
-High = 3
+Level = -2.7
+Blend = 95
+Drive = 45
+Character = 40
+Low = 0
+Mid = 0
+High = 0
 Bite = 100
 "Cab Bypass" = 0
 
 [[preset]]
-name = "Fat Tube"
-comment = "More drive just past noon on Character: thick, rounded breakup with the top end eased off."
+name = "Flip Lid"
+comment = "From the manual: Character at noon (the flip-top combo voicing), Mid pushed up and a little Low."
 [preset.controls]
-Level = -7.4
-Blend = 100
-Drive = 55
-Character = 60
+Level = -3.3
+Blend = 95
+Drive = 40
+Character = 50
+Low = 2
+Mid = 4
+High = 0
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Rage"
+comment = "From the manual: Character well past noon for the gain and crunch, moderate Drive, Low and High up a little."
+[preset.controls]
+Level = -8.9
+Blend = 95
+Drive = 50
+Character = 90
 Low = 2
 Mid = 0
-High = -3
+High = 2
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Thumpy Funk"
+comment = "From the manual: low Drive and Character, Mid cut hard, High up and Low up for a hollow, percussive attack."
+[preset.controls]
+Level = -1.8
+Blend = 95
+Drive = 35
+Character = 35
+Low = 3
+Mid = -7
+High = 7
+Bite = 100
+"Cab Bypass" = 0
+
+[[preset]]
+name = "Fuzzed Out"
+comment = "From the manual: Drive and Character both high for heavy distortion, Mid scooped, Low up."
+[preset.controls]
+Level = -11.3
+Blend = 95
+Drive = 80
+Character = 80
+Low = 3
+Mid = -5.5
+High = -1
 Bite = 100
 "Cab Bypass" = 0
 
 [[preset]]
 name = "Warm Compression"
-comment = "Driven preamp blended with 30 % clean: the clipping evens out the level while the clean path keeps the attack."
+comment = "From the manual: low Character and moderate Drive with Low, Mid and High all lifted."
 [preset.controls]
-Level = -4.0
-Blend = 70
-Drive = 60
-Character = 40
-Low = 1
-Mid = 0
-High = -2
+Level = -1.7
+Blend = 95
+Drive = 35
+Character = 20
+Low = 3
+Mid = 3
+High = 3
 Bite = 100
 "Cab Bypass" = 0
 
@@ -115,15 +185,15 @@ Bite = 100
 "Cab Bypass" = 0
 
 [[preset]]
-name = "Fuzzed Out"
-comment = "Everything up: heavy, compressed distortion with a little clean blended in to keep the low end defined."
+name = "Bright Prog"
+comment = "From the manual: Character high and Low up, a small Mid lift and High eased off for a bright, clanky voicing."
 [preset.controls]
-Level = -10.8
-Blend = 85
-Drive = 90
-Character = 100
-Low = 3
-Mid = -2
-High = 0
+Level = -10.4
+Blend = 95
+Drive = 55
+Character = 70
+Low = 5.5
+Mid = 2
+High = -2.5
 Bite = 100
 "Cab Bypass" = 0
