@@ -33,24 +33,28 @@ It borrows its control set and signal chain from a bass preamp/DI pedal whose Ch
 | Bite | 0 to 100 % | 100 % | Subsonic high-pass before the clipping (10 Hz up to 40 Hz) and a presence peak after it (up to +6 dB at 2.5 kHz). Continuous, where the pedal has a switch |
 | Cab Bypass | off / on | off | Removes the speaker sim from the preamp path, for a cabinet or an impulse response. Crossfaded, so it doesn't click |
 
-Every control is smoothed. The plugin also has a read-only *Latency* output for the host. The LV2, VST3 and CLAP plugins ship with [eight factory presets](#presets).
+Every control is smoothed. The plugin also has a read-only *Latency* output for the host. The LV2, VST3 and CLAP plugins ship with [twelve factory presets](#presets).
 
 ## Presets
 
 Each preset sets every control. Level is set so that a −12 dBFS plucked bass line (E1 to G2) comes out within 0.05 dB of "Studio Flip" (K-weighted), so switching presets doesn't jump in loudness. Bite is on and the speaker sim is in every preset.
 
-| Preset | Level | Blend | Drive | Character | Low | Mid | High | Idea |
-|---|---|---|---|---|---|---|---|---|
-| Studio Flip | 0 | 100 | 30 | 50 | 0 | 0 | 0 | The defaults: warm, flat, light grit |
-| Clean DI | 0 | 0 | 30 | 50 | 0 | 0 | 0 | Preamp bypassed; EQ and Level only |
-| Seventies Stack | −4.2 | 100 | 45 | 20 | +3 | +2 | −2 | Deep and scooped in the low mids |
-| Thumpy Funk | +2.9 | 80 | 15 | 35 | +4 | −3 | +3 | Hollow, percussive attack |
-| Fat Tube | −7.4 | 100 | 55 | 60 | +2 | 0 | −3 | Thick, rounded breakup |
-| Warm Compression | −4.0 | 70 | 60 | 40 | +1 | 0 | −2 | Clipping evens the level; clean keeps the attack |
-| Modern Crunch | −8.8 | 100 | 60 | 80 | 0 | +2 | +2 | Pushed upper mids and the bloom |
-| Fuzzed Out | −10.8 | 85 | 90 | 100 | +3 | −2 | 0 | Heavy, compressed distortion |
+| Preset | Source | Level | Blend | Drive | Character | Low | Mid | High | Idea |
+|---|---|---|---|---|---|---|---|---|---|
+| Studio Flip | chosen | 0 | 100 | 30 | 50 | 0 | 0 | 0 | The defaults: warm, flat, light grit |
+| Clean DI | chosen | 0 | 0 | 30 | 50 | 0 | 0 | 0 | Preamp bypassed; EQ and Level only |
+| Big Valve | manual | −4.8 | 95 | 50 | 20 | +3 | −3 | +2.5 | Valve stack voicing: deep, slight Mid scoop |
+| Seventies Stack | chosen | −4.2 | 100 | 45 | 20 | +3 | +2 | −2 | Deep and scooped in the low mids |
+| Fat Tube | manual | −2.7 | 95 | 45 | 40 | 0 | 0 | 0 | Thick, rounded breakup, flat EQ |
+| Flip Lid | manual | −3.3 | 95 | 40 | 50 | +2 | +4 | 0 | Flip-top combo voicing with Mid pushed |
+| Rage | manual | −8.9 | 95 | 50 | 90 | +2 | 0 | +2 | Character well past noon: gain and crunch |
+| Thumpy Funk | manual | −1.8 | 95 | 35 | 35 | +3 | −7 | +7 | Hollow, percussive attack |
+| Fuzzed Out | manual | −11.3 | 95 | 80 | 80 | +3 | −5.5 | −1 | Heavy, compressed distortion, Mid scooped |
+| Warm Compression | manual | −1.7 | 95 | 35 | 20 | +3 | +3 | +3 | Low Character, all three bands lifted |
+| Modern Crunch | chosen | −8.8 | 100 | 60 | 80 | 0 | +2 | +2 | Pushed upper mids and the bloom |
+| Bright Prog | manual | −10.4 | 95 | 55 | 70 | +5.5 | +2 | −2.5 | Bright, clanky, Low up and High eased |
 
-Levels and EQ are in dB, the rest in %. The names follow the kinds of sound the reference pedal's manual suggests, but the settings are chosen, not taken from it, and nobody has listened to them. They live in [`src/basseras.presets.toml`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/basseras.presets.toml).
+Levels and EQ are in dB, the rest in %. The eight presets marked *manual* are read from the drawings on the reference pedal's manual page of sample settings (source 1 in the [circuit notes](circuit-notes.md)): each knob's pointer angle, taken by eye on a 300° travel with noon at 50 %, becomes Drive, Character and Blend as a percentage of travel, and Low, Mid and High as (position − 0.5) × 24 dB, rounded to 0.5 dB. Expect each value to be off by about 5 % or 1 dB. Blend reads as about 95 % in every drawing. The manual's Level knob has no documented scale, so Level is chosen, and the manual's trademarked names are replaced by neutral ones. The four marked *chosen* are not from the manual. Nobody has listened to any of them. They live in [`src/basseras.presets.toml`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/basseras.presets.toml).
 
 [![Long-term third-octave spectrum of a plucked bass line through each preset](../measurements/basseras/presets_spectrum.svg)](../measurements/basseras/presets_spectrum.svg "Open the full-size plot")
 
