@@ -93,12 +93,14 @@ make clap clap-validate FX=<name>
 make check                       # pre-commit run --all-files
 ```
 
-Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). Run it on its own with `python3 tools/check-effects.py <name>`.
+Fix every `lv2lint`, VST3 validator, pluginval, clap-validator and pre-commit failure, and read the plots before reporting results. The `effect-checklist` hook runs `tools/check-effects.py`, which lists anything from this page still missing: `declare`s, control units and smoothing, latency reporting, `pk.safety`, notes, docs pages, table rows, `mkdocs.yml` nav entries, the changelog section for the declared version and the minimum tests (`test_silence.py`, `test_peak.py`, `test_freqresp.py`, `test_harmonics.py`). It also reads the effect page: the standard sections, a Controls table row for each control, each preset under *Presets*, a CSV link under each plot, and every schematic sheet embedded. Run it on its own with `python3 tools/check-effects.py <name>`.
+
+Once the outputs are built, `make check-outputs` checks them: `OUTPUTS=measurements` after `make test` (every plot and CSV the docs link was written), `OUTPUTS=schematics` after `make schematics` (every sheet rendered and embedded), and `OUTPUTS=lv2`, `vst3` or `clap` after the plugin builds. CI runs each one after its build step.
 
 ## 5. Document it
 
-- Add a row to the effect table in `README.md`, on the [home page](../index.md) and on the [effects page](../effects/index.md).
-- Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
+- Add a row to the effect table in `README.md` and on the [effects page](../effects/index.md), and a card to the [home page](../index.md) in the same form as the others: the name and type, one plain-language sentence about the sound, `<!-- download-button:<name> -->` (the site build turns it into a download button for the latest release) and links to the effect page and the browser demo.
+- Add `docs/<name>/index.md`, modelled on [the BassDrive page](../bassdrive/index.md): the intro, then a *Download* heading holding `<!-- downloads:<name> -->`, then the property table, controls, signal path, measured behaviour with the plots embedded from `../measurements/<name>/`, what to tune by ear, and known limitations. For an original effect, open with the idea rather than a reference device.
 - Add `docs/<name>/changelog.md`, modelled on [the BassDrive changelog](../bassdrive/changelog.md), with a `## [0.1.0]` section. Every effect starts at version 0.1.0 and is released on its own (see [Releasing](releasing.md)).
 - Add the effect page, its notes and its changelog to `nav` in `mkdocs.yml`, under *Effects*.
 - Build the site with `make test web schematics docs` (install the tools with `pip install -r tools/docs-requirements.txt`) and check that it has no warnings. The build is strict, so every warning fails it.

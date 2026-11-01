@@ -14,8 +14,8 @@
 
 site_name: Faust Pedal Kit
 site_description: >-
-  A workshop for designing new guitar and bass effects in Faust, built as
-  native Linux LV2 and VST3 plugins and checked by offline measurement tests.
+  Free bass and guitar effect plugins for Linux (CLAP, VST3 and LV2), and a
+  workshop for designing new ones in Faust, checked by measurement tests.
 site_author: Joe Heffer
 site_url: https://joe-heffer.github.io/faust-pedalkit/
 repo_url: https://github.com/Joe-Heffer/faust-pedalkit
@@ -56,12 +56,17 @@ theme:
     - navigation.footer
     - navigation.indexes
     - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
     - search.highlight
     - toc.follow
 
 hooks:
   - tools/mkdocs_hooks.py
+
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
@@ -88,13 +93,7 @@ validation:
 
 nav:
   - Home: index.md
-  - Getting started:
-      - Install and build: install.md
-  - Usage:
-      - Loading in a host: usage/hosts.md
-      - Using the effects in REAPER: usage/reaper.md
-      - Trying the effects in a browser: usage/browser.md
-      - Designing an effect in the browser: usage/designer.md
+  - Download: download.md
   - Effects:
       - effects/index.md
       - BassDrive:
@@ -120,8 +119,14 @@ nav:
           - Circuit notes: basseras/circuit-notes.md
           - Design notes: basseras/design-notes.md
           - Changelog: basseras/changelog.md
-  - Development:
+  - Play:
+      - Loading in a host: usage/hosts.md
+      - Using the effects in REAPER: usage/reaper.md
+      - Trying the effects in a browser: usage/browser.md
+  - Make effects:
       - development/index.md
+      - Designing an effect in the browser: usage/designer.md
+      - Build from source: install.md
       - How it works: development/how-it-works.md
       - Designing new sounds: development/designing-new-sounds.md
       - Designing for feel: development/designing-for-feel.md
@@ -133,5 +138,6 @@ nav:
       - Linting and CI: development/ci.md
       - Releasing: development/releasing.md
       - Logo: development/logo.md
-  - Where this project sits: ecosystem.md
-  - About: about.md
+  - About:
+      - about.md
+      - Where this project sits: ecosystem.md

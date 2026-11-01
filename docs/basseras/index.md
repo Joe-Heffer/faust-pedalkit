@@ -4,6 +4,12 @@ A bass preamp and DI built around one knob. **Character** re-voices the whole pr
 
 It borrows its control set and signal chain from a bass preamp/DI pedal whose Character knob sweeps through amp voicings of several eras. That pedal's circuit is not public, so the stages are chosen. See the [design notes](design-notes.md) for the idea and the [circuit notes](circuit-notes.md) for what is borrowed.
 
+## Download
+
+<!-- downloads:basseras -->
+
+## Details
+
 | Property | Value |
 |---|---|
 | Source | [`src/basseras.dsp`](https://github.com/Joe-Heffer/faust-pedalkit/blob/main/src/basseras.dsp) |
@@ -12,10 +18,6 @@ It borrows its control set and signal chain from a bass preamp/DI pedal whose Ch
 | Channels | Mono in, mono out |
 | Latency | 64 samples (1.33 ms at 48 kHz), reported to the host |
 | Research | [Circuit notes](circuit-notes.md), [design notes](design-notes.md) |
-
-## Download
-
-<!-- downloads:basseras -->
 
 ## Controls
 
