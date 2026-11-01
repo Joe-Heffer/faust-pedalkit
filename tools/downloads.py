@@ -8,13 +8,19 @@ effect. This finds, for each effect, the newest published (neither draft nor
 pre-release) release and links its assets:
 
   <name>-<version>-linux-<arch>.tar.gz          all formats, with install.sh
-  <name>-<version>-linux-<arch>-clap.tar.gz     one format each (clap, vst3, lv2)
+  <name>-<version>-linux-<arch>-clap.tar.gz     one format each (clap, vst3, lv2),
+                                                if a release has them
   SHA256SUMS
 
-tools/mkdocs_hooks.py swaps the markers `<!-- downloads:<name> -->` and
-`<!-- downloads:all -->` in the pages for the Markdown made here. If no
+tools/mkdocs_hooks.py swaps the markers in the pages for the Markdown made
+here: `<!-- downloads:<name> -->` (an effect page's download block),
+`<!-- downloads:all -->` (the table on the Download page) and
+`<!-- download-button:<name> -->` (one button, for the effect cards). If no
 release is published yet, or GitHub cannot be reached (an offline build), the
-links point at the Releases page instead, so they never 404.
+links offer the browser demo and the releases page instead, so they never 404.
+
+`base` is the relative path from the page to the site root ("" or "../"), so
+the same Markdown works on the home page and on an effect page.
 """
 
 import json
@@ -81,39 +87,55 @@ def version_of(release):
     return release["tag_name"].partition("-v")[2]
 
 
-def links(release):
-    """The links for one effect, CLAP first; the combined tarball stands in for a missing format."""
-    if release is None:
-        return None
-    urls = assets(release)
-    out = [(label, urls.get(fmt) or urls.get("all")) for fmt, label in FORMATS]
-    out = [(label, url) for label, url in out if url]
+def demo_link(name, base):
+    return f"{base}demo/index.html?fx={name}"
+
+
+def primary(release):
+    """(label suffix, URL) of an effect's main download: the combined tarball, else CLAP."""
+    urls = assets(release) if release else {}
     if urls.get("all"):
-        out.append(("All formats + installer", urls["all"]))
-    return out or None
+        return "", urls["all"]
+    if urls.get("clap"):
+        return " (CLAP)", urls["clap"]
+    return None
 
 
-def block(name, display, release):
+def block(name, display, release, base="../"):
     """Markdown for one effect page."""
-    found = links(release)
-    if not found:
+    main = primary(release)
+    if not main:
         return (
-            f'!!! note "Download"\n'
-            f"    No release of {display} is published yet. Releases appear on the "
-            f"[releases page]({RELEASES_PAGE}) when they are.\n"
+            f'!!! note "Not released yet"\n'
+            f"    {display} has no published release yet. You can "
+            f"[play it in your browser]({demo_link(name, base)}) now, or "
+            f"[build it from source]({base}install.md). Releases appear on the "
+            f"[releases page]({RELEASES_PAGE}) when they are published.\n"
         )
-    first, *rest = found
+    urls = assets(release)
     buttons = (
-        f"[Download {display} {version_of(release)} ({first[0]})]({first[1]})"
+        f"[Download {display} {version_of(release)}{main[0]}]({main[1]})"
         "{ .md-button .md-button--primary }"
+        f" [Try it in your browser]({demo_link(name, base)}){{ .md-button }}"
     )
-    others = " · ".join(f"[{label}]({url})" for label, url in rest)
-    sums = release_sums(release)
+    single = [f"[{label}]({urls[fmt]})" for fmt, label in FORMATS if urls.get(fmt)]
+    also = f"Single formats: {' · '.join(single)}\n\n" if single and urls.get("all") else ""
     tail = (
-        f"Linux x86_64. {sums}[Release notes]({release['html_url']}) · "
-        "[Install guide](../install.md#install-a-release)"
+        f"Linux x86_64. CLAP, VST3 and LV2 with an installer. {release_sums(release)}"
+        f"[Release notes]({release['html_url']}) · [How to install]({base}download.md#install)"
     )
-    return f"{buttons}\n\nAlso: {others}\n\n{tail}\n"
+    return f"{buttons}\n\n{also}{tail}\n"
+
+
+def button(name, display, release, base=""):
+    """One download button for an effect card, or a browser-demo button if unreleased."""
+    main = primary(release)
+    if not main:
+        return (
+            f"[Play in your browser]({demo_link(name, base)}){{ .md-button }}\n\nNot released yet."
+        )
+    label, url = main
+    return f"[Download {version_of(release)}{label}]({url}){{ .md-button .md-button--primary }}"
 
 
 def release_sums(release):
@@ -121,26 +143,27 @@ def release_sums(release):
     return f"[SHA256SUMS]({url}) · " if url else ""
 
 
-def table(effects, latest):
-    """Markdown table of every effect: name, version and one link per format."""
-    rows = [
-        "| Effect | Version | " + " | ".join(label for _, label in FORMATS) + " | All |",
-        "|---|---|" + "---|" * (len(FORMATS) + 1),
-    ]
-    for name, display in effects:
+def table(effects, latest, base=""):
+    """Markdown table of every effect: what it is, version, download and browser demo.
+
+    `effects` is (name, display name, description) per effect. The download
+    cell links the combined tarball, then any single-format archives.
+    """
+    rows = ["| Effect | Version | Download | Try it |", "|---|---|---|---|"]
+    for name, display, description in effects:
         release = latest.get(name)
         urls = assets(release) if release else {}
-        cells = [
-            f"[{label}]({urls.get(fmt) or urls.get('all')})"
-            if urls.get(fmt) or urls.get("all")
-            else "–"
-            for fmt, label in FORMATS
-        ]
-        everything = f"[tarball]({urls['all']})" if urls.get("all") else "–"
-        version = version_of(release) if release else "not yet published"
-        rows.append(f"| **{display}** | {version} | " + " | ".join(cells) + f" | {everything} |")
+        found = []
+        if urls.get("all"):
+            found.append(f"**[All formats]({urls['all']})**")
+        found += [f"[{label}]({urls[fmt]})" for fmt, label in FORMATS if urls.get(fmt)]
+        download = " · ".join(found) or "not released yet"
+        version = version_of(release) if release else "–"
+        effect = f"**[{display}]({base}{name}/index.md)**<br>{description}"
+        demo = f"[Play in your browser]({demo_link(name, base)})"
+        rows.append(f"| {effect} | {version} | {download} | {demo} |")
     note = (
-        "Linux x86_64 only. Older versions and checksums are on the "
-        f"[releases page]({RELEASES_PAGE}).\n"
+        "Linux x86_64. Each download holds CLAP, VST3 and LV2 plugins and an installer. "
+        f"Older versions and checksums are on the [releases page]({RELEASES_PAGE}).\n"
     )
     return "\n".join(rows) + "\n\n" + note
