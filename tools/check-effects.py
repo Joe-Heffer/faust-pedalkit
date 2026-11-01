@@ -18,8 +18,9 @@ compiling anything:
   sections their outlines require (prior art, measurable targets and open
   questions in design notes; sources and open questions in circuit notes)
 * the docs: docs/<name>/index.md, docs/<name>/changelog.md with a section for
-  the declared version, rows in README.md, docs/index.md and
-  docs/effects/index.md, and the pages in the mkdocs.yml nav
+  the declared version, rows in README.md, docs/index.md (an effect card
+  with a download button) and docs/effects/index.md, and the pages in the
+  mkdocs.yml nav
 * the effect page: the sections every page has (Download, Controls, Signal
   path, Measured behaviour, What to tune by ear, Known limitations, and
   Presets when there are presets), every control and every preset named, and
@@ -210,6 +211,8 @@ def check_docs(root, fx, version):
     ):
         if needle not in (root / path).read_text():
             problems.append(f"{path}: no effect table row linking {needle.strip('()`')}")
+    if f"<!-- download-button:{fx} -->" not in (root / "docs/index.md").read_text():
+        problems.append(f"docs/index.md: no effect card with `<!-- download-button:{fx} -->`")
 
     nav = (root / "mkdocs.yml").read_text().partition("\nnav:")[2]
     for page in ("index.md", "changelog.md", *notes):

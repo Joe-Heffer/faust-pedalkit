@@ -1,20 +1,20 @@
 # Using the effects in REAPER (Linux)
 
-This guide takes you from a built plugin to a track in REAPER. It applies to every effect in the kit; the examples use BassPreamp. It assumes a mono input, such as a DI or an instrument input on your interface. For other hosts, see [Loading in a host](hosts.md).
+This guide takes you from a downloaded plugin to a track in REAPER. It applies to every effect in the kit; the examples use BassPreamp. It assumes a mono input, such as a DI or an instrument input on your interface. For other hosts, see [Loading in a host](hosts.md).
 
-## 1. Build and install
+## 1. Download and install
 
-Pick one plugin format. REAPER loads all three, so there is no need to install more than one.
+[Download](../download.md) the effect, unpack it and run `./install.sh` in a terminal in the unpacked folder. It installs the CLAP, VST3 and LV2 plugins into `~/.clap`, `~/.vst3` and `~/.lv2`. REAPER loads all three, and CLAP is the best choice in REAPER: `./install.sh --clap` installs only that one.
+
+To build from source instead (see [Build from source](../install.md)):
 
 ```sh
-make lv2 lint test FX=basspreamp   # build, lint and run the offline tests
-make install FX=basspreamp         # LV2: copies build/basspreamp.lv2 to ~/.lv2
-
+make clap install-clap FX=basspreamp   # CLAP, into ~/.clap
 make vst3 install-vst3 FX=basspreamp   # or VST3, into ~/.vst3
-make clap install-clap FX=basspreamp   # or CLAP, into ~/.clap
+make lv2 install FX=basspreamp         # or LV2, into ~/.lv2
 ```
 
-Leave out `FX=…` to build and install every effect. The install targets replace only this repository's own bundles; anything else in `~/.lv2`, `~/.vst3` or `~/.clap` is left alone. The LV2 build prints "bad port property" messages. They are harmless.
+Leave out `FX=…` to build and install every effect. The install targets replace only this repository's own bundles; anything else in those folders is left alone. The LV2 build prints “bad port property” messages. They are harmless.
 
 ## 2. Let REAPER find the plugins
 

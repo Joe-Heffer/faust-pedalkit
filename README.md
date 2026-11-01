@@ -7,8 +7,8 @@
 
 A workshop for designing new guitar and bass effects in Faust: new sounds, and new kinds of effect, built as native Linux LV2, VST3 and CLAP plugins and checked by offline measurement tests.
 
-> [!NOTE]
-> Please [**read the documentation**](https://joe-heffer.github.io/faust-pedalkit/) for each effect's controls, design and circuit research, and current measurement plots.
+> [!TIP]
+> **Just want to play?** [Download the effects](https://joe-heffer.github.io/faust-pedalkit/download/) for Linux (CLAP, VST3 and LV2, with a one-step installer), or [play them in your browser](https://joe-heffer.github.io/faust-pedalkit/demo/). The [documentation](https://joe-heffer.github.io/faust-pedalkit/) has each effect's controls, design and circuit research, and current measurement plots.
 
 [Faust](https://faust.grame.fr/) makes it cheap to try ideas a box of components can't easily be: clippers whose shape follows the playing, filters that track pitch, stages that never share a circuit board. Each effect is compiled to an LV2, a VST3 and a CLAP plugin, with an optional standalone JACK build, and has offline tests that render signals and check them numerically, so a new idea is measured before anyone has to trust their ears.
 
@@ -36,7 +36,7 @@ Two of the four effects so far are models. Original and circuit-inspired effects
 
 ## Install
 
-Each effect is released on its own. Download its tarball from the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases) (tagged `<name>-v<version>`), unpack it and run its installer:
+Each effect is released on its own. Download it from the [Download page](https://joe-heffer.github.io/faust-pedalkit/download/) (or the [releases page](https://github.com/Joe-Heffer/faust-pedalkit/releases), tagged `<name>-v<version>`), unpack it and run its installer:
 
 ```sh
 tar -xzf bassdrive-*-linux-x86_64.tar.gz
@@ -44,7 +44,7 @@ cd bassdrive-*-linux-x86_64
 ./install.sh          # copies the LV2, VST3 and CLAP plugins into ~/.lv2, ~/.vst3 and ~/.clap
 ```
 
-Then rescan plugins in your DAW. `./install.sh --help` lists the options, including `--uninstall`. The release plugins need x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). See [Install and build](https://joe-heffer.github.io/faust-pedalkit/install/) for details, or read on to build from source.
+Then rescan plugins in your DAW. `./install.sh --help` lists the options, including `--uninstall`. The release plugins need x86_64 Linux with glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later). See [Download](https://joe-heffer.github.io/faust-pedalkit/download/) for details, or read on to build from source.
 
 ## Build from source
 
@@ -59,7 +59,8 @@ make help                 # every target and effect
 
 Add `FX=<name>` to any target to build one effect. The full guide is in the documentation:
 
-- [Install and build](docs/install.md): dependencies for Arch and Debian/Ubuntu, building in a container, VST3 and CLAP, plugin URIs and the repository layout
+- [Download](docs/download.md): installing a release, which format to use, and troubleshooting
+- [Build from source](docs/install.md): dependencies for Arch and Debian/Ubuntu, building in a container, VST3 and CLAP, plugin URIs and the repository layout
 - [Loading in a host](docs/usage/hosts.md): Ardour, REAPER, Carla and `jalv` ([REAPER guide](docs/usage/reaper.md))
 - [Linting and CI](docs/development/ci.md): pre-commit hooks, GitHub Actions and building the documentation site
 - [Tests and measurements](docs/development/testing.md)
