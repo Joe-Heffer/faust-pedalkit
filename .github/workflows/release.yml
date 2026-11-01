@@ -39,20 +39,35 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: tools/release/release-info.py "$TAG" >> "$GITHUB_OUTPUT"
+      # Keyed on the pinned tag, so editing the Makefile doesn't refetch it.
+      - name: VST3 SDK tag
+        id: sdk
+        run: echo "tag=$(sed -n 's/^VST3_SDK_TAG *:= *//p' Makefile)" >> "$GITHUB_OUTPUT"
       - name: Cache the VST3 SDK
         uses: actions/cache@v6
         with:
           path: build/vst3sdk
-          key: vst3sdk-${{ hashFiles('Makefile') }}
+          key: vst3sdk-${{ steps.sdk.outputs.tag }}
       # Debian 12 with Faust built from source, so the plugins load on older
-      # distributions than the Arch toolchain image's would.
+      # distributions than the Arch toolchain image's would. Compiling Faust
+      # is the slowest part of this job, so the image's layers are cached
+      # between runs and rebuilt only when Dockerfile.release changes.
+      - uses: docker/setup-buildx-action@v3
       - name: Build release toolchain image
-        run: make image DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release
-      # FX is empty on a dry run, so every effect is built.
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.release
+          tags: pedalkit-release
+          load: true
+          cache-from: type=gha,scope=pedalkit-release
+          cache-to: type=gha,scope=pedalkit-release,mode=max
+      # FX is empty on a dry run, so every effect is built, in parallel.
       - name: Build plugins and tarball (runs Steinberg's validator)
         env:
           FX: ${{ steps.tag.outputs.fx }}
-        run: make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release RUN="lv2 vst3 clap dist" ${FX:+FX="$FX"}
+          SKIP_IMAGE: "1"
+        run: make container DOCKERFILE=Dockerfile.release IMAGE=pedalkit-release RUN="-j4 lv2 vst3 clap dist" ${FX:+FX="$FX"}
       - name: Upload tarball
         uses: actions/upload-artifact@v7
         with:
@@ -85,8 +100,16 @@ jobs:
         run: docker run --rm -v "$PWD":/src -w /src ubuntu:22.04 tools/release/check-portable.sh dist/unpacked
       - name: Check the plugins link on Debian 12
         run: docker run --rm -v "$PWD":/src -w /src debian:12 tools/release/check-portable.sh dist/unpacked
+      - uses: docker/setup-buildx-action@v3
       - name: Build toolchain image
-        run: make image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: pedalkit-build
+          load: true
+          cache-from: type=gha,scope=pedalkit-build
+          cache-to: type=gha,scope=pedalkit-build,mode=max
       - name: Install, validate and uninstall
         run: |
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/src -w /src pedalkit-build \

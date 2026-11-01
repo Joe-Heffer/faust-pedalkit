@@ -24,7 +24,7 @@ This page sets out the rules for each, the budgets an effect has to meet, and wh
 | Settings recall | `tools/check-params.py` (`params-stable` hook) | a released effect's controls keep their label, type and place | `make check` |
 | Settings recall, presets, automation | Steinberg's validator, pluginval at strictness 10, clap-validator | state round trip, parameter fuzzing, varying block sizes and rates | `make vst3 pluginval clap clap-validate` |
 
-The limits are chosen values, explained next to each constant in the test. Each test writes its numbers as CSV to `tests/out/<name>/` (`latency.csv`, `zipper.csv`, `cpu.csv`), and `latency.svg` and `zipper.svg` plot them. The effect pages publish them with the other measurements. If an effect needs a looser limit, change it in the test in a reviewed pull request and say why in the effect's design or circuit notes. Don't loosen it quietly.
+`make test` runs `test_cpu.py` on its own, after every effect's other tests, even with `-j`, so that other tests running at the same time don't slow the timings. The limits are chosen values, explained next to each constant in the test. Each test writes its numbers as CSV to `tests/out/<name>/` (`latency.csv`, `zipper.csv`, `cpu.csv`), and `latency.svg` and `zipper.svg` plot them. The effect pages publish them with the other measurements. If an effect needs a looser limit, change it in the test in a reviewed pull request and say why in the effect's design or circuit notes. Don't loosen it quietly.
 
 ## Playing feel and latency
 

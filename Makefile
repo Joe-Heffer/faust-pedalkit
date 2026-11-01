@@ -27,13 +27,15 @@
 #   make install-vst3 copy the VST3 bundles into ~/.vst3
 #   make install-clap copy the CLAP plugins into ~/.clap
 #   make uninstall    remove them from ~/.lv2, ~/.vst3 and ~/.clap
-#   make clean        remove build/ and tests/out/, keeping the downloaded VST3 SDK
+#   make clean        remove build/ and tests/out/, keeping the VST3 SDK and compiler cache
 #   make distclean    remove build/, tests/out/ and tools/web/node_modules/ entirely
 #   make help         list these targets and the effects
 #   make image        build the toolchain image from the Dockerfile (or DOCKERFILE)
 #   make container    run the RUN targets in that image (default RUN="lv2 lint test")
 #
 # By default every effect is built. Restrict with FX, e.g. `make test FX=bassdrive`.
+# Effects build and test independently, so `make -j4 lv2 test` (or -j$(nproc))
+# runs them in parallel; output is grouped per effect.
 
 EFFECTS    := $(basename $(notdir $(wildcard src/*.dsp)))
 FX         ?= $(EFFECTS)
@@ -58,6 +60,8 @@ VST3_SDK_TAG := v3.8.1_build_84
 VST3_SDK     ?= $(BUILD)/vst3sdk
 VST3_ARCH    := tools/vst3/faust-vst3.cpp
 PLUGINVAL    ?= pluginval
+# Compile jobs within each VST3 build (on top of make's own -j).
+VST3_JOBS    ?= $(shell nproc 2>/dev/null || echo 4)
 
 # CLAP headers (MIT), fetched into build/ on first use. Point CLAP_SDK at an
 # existing checkout of github.com/free-audio/clap to skip the download.
@@ -76,6 +80,12 @@ CLAP_VALIDATOR ?= clap-validator
 FAUSTFLAGS ?= -ftz 1
 CXX        ?= g++
 CXXFLAGS   ?= -O2 -std=c++17
+# ccache, if installed, caches every C++ compile: the renderers, the CLAP
+# plugins and the VST3 builds, where it saves compiling the same VST3 SDK
+# sources once per effect. CCACHE= turns it off. The toolchain images install
+# it, and `make container` keeps its cache in build/ccache.
+CCACHE     ?= $(shell command -v ccache 2>/dev/null)
+COMPILE     = $(strip $(CCACHE) $(CXX))
 # Extra flags for linking the plugins. Dockerfile.release sets
 # -static-libgcc for release builds.
 LDFLAGS    ?=
@@ -108,6 +118,9 @@ DOCKERFILE      ?= Dockerfile
 IMAGE           ?= pedalkit-build
 RUN             ?= lv2 lint test
 CONTAINER_FLAGS ?=
+# SKIP_IMAGE=1 runs `make container` in an image that is already built (CI
+# builds it with a layer cache first) instead of running `make image`.
+SKIP_IMAGE      ?=
 # Run as the caller so build/ and tests/out/ stay theirs. Rootless Podman
 # maps the caller's UID with keep-id instead.
 ifneq ($(findstring podman,$(CONTAINER)),)
@@ -120,6 +133,10 @@ endif
         install install-vst3 install-clap uninstall clean distclean help \
         image container
 .SECONDARY:
+# With -j, print each target's output in one piece rather than interleaved.
+ifneq ($(filter output-sync,$(.FEATURES)),)
+MAKEFLAGS += --output-sync=target
+endif
 # A failed recipe deletes its half-written target, so the next run rebuilds it.
 .DELETE_ON_ERROR:
 
@@ -163,8 +180,22 @@ clap-validate: clap $(foreach f,$(FX),$(BUILD)/$(f)/clap/check-presets)
 	    $(BUILD)/$$f/clap/check-presets $(BUILD)/$$f.clap || status=1; \
 	done; exit $$status
 
-test: $(foreach f,$(FX),$(BUILD)/$(f)/render $(BUILD)/$(f)/render_1x $(BUILD)/$(f)/controls.json)
-	@status=0; for f in $(FX); do bash tests/run.sh $$f || status=1; done; exit $$status
+# Each effect's tests are one target, test-<name>, so `make -j test` runs the
+# effects in parallel. A failure is recorded in build/<name>/tests.failed
+# rather than stopping make, so every effect is still tested. Then the CPU
+# check (tests/common/test_cpu.py) runs for each effect in turn, with nothing
+# else running, since it measures time; and `test` fails if anything did.
+test: $(foreach f,$(FX),test-$(f))
+	@status=0; for f in $(FX); do \
+	    FX=$$f PYTHONPATH=tests/lib python3 tests/common/test_cpu.py || status=1; echo; \
+	done; \
+	for f in $(FX); do \
+	    [ ! -f $(BUILD)/$$f/tests.failed ] || { echo "== tests failed: $$f"; status=1; }; \
+	done; exit $$status
+
+test-%: $(BUILD)/%/render $(BUILD)/%/render_1x $(BUILD)/%/controls.json
+	@rm -f $(BUILD)/$*/tests.failed
+	@bash tests/run.sh --no-cpu $* || touch $(BUILD)/$*/tests.failed
 
 describe: $(foreach f,$(FX),$(BUILD)/$(f)/describe.stamp)
 
@@ -383,8 +414,9 @@ $(BUILD)/%/vst3.stamp: src/%.dsp $(LIBS) $(VST3_ARCH) tools/vst3/CMakeLists.txt 
 	    -DFX_NAME=$* -DFX_VERSION=$(call fxversion,$*) \
 	    -DFX_GEN_DIR=$(abspath $(@D)/vst3) -DFAUST_INC=$(FAUST_INC) \
 	    -DVST3_SDK_DIR=$(abspath $(VST3_SDK)) \
+	    $(if $(CCACHE),-DCMAKE_C_COMPILER_LAUNCHER=$(CCACHE) -DCMAKE_CXX_COMPILER_LAUNCHER=$(CCACHE)) \
 	    -DCMAKE_SHARED_LINKER_FLAGS="$(LDFLAGS)" -DCMAKE_MODULE_LINKER_FLAGS="$(LDFLAGS)"
-	cmake --build $(@D)/vst3/build --config Release --parallel
+	cmake --build $(@D)/vst3/build --config Release --parallel $(VST3_JOBS)
 	rm -rf $(BUILD)/$*.vst3
 	cp -r $(@D)/vst3/build/VST3/Release/$*.vst3 $(BUILD)/
 	touch $@
@@ -404,14 +436,14 @@ $(BUILD)/%.clap: src/%.dsp $(LIBS) $(CLAP_ARCH) tools/clap-meta.py tools/dspmeta
 	faust $(FAUSTFLAGS) -I src/lib -a $(CLAP_ARCH) -o $(BUILD)/$*/clap/$*.cpp $<
 	python3 tools/clap-meta.py $< $* $(BUILD)/$*/clap/plugin_meta.h
 	python3 tools/presets.py header $(call presets-src,$*) $(BUILD)/$*/controls.json $(BUILD)/$*/clap/presets.h
-	$(CXX) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
+	$(COMPILE) $(CXXFLAGS) -shared -fPIC -fvisibility=hidden \
 	    -I$(BUILD)/$*/clap -I$(FAUST_INC) -I$(CLAP_SDK)/include \
 	    $(BUILD)/$*/clap/$*.cpp $(LDFLAGS) -o $@
 
 # A minimal host that checks the plug-in's presets against the presets.h it
 # was built from (see clap-validate).
 $(BUILD)/%/clap/check-presets: tools/clap/check-presets.cpp $(BUILD)/%.clap
-	$(CXX) $(CXXFLAGS) -I$(BUILD)/$*/clap -I$(CLAP_SDK)/include $< -ldl -o $@
+	$(COMPILE) $(CXXFLAGS) -I$(BUILD)/$*/clap -I$(CLAP_SDK)/include $< -ldl -o $@
 
 $(BUILD)/%/standalone.stamp: $(BUILD)/%/stage.stamp
 	cd $(BUILD)/$* && (command -v faust2jaqt >/dev/null && faust2jaqt $(FAUSTFLAGS) $*.dsp || faust2jack $(FAUSTFLAGS) $*.dsp)
@@ -430,18 +462,19 @@ $(BUILD)/%/describe.stamp: $(BUILD)/%/stage.stamp
 $(BUILD)/%/render: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
 	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render.cpp $<
-	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render.cpp -o $@
+	$(COMPILE) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render.cpp -o $@
 
 $(BUILD)/%/render_1x: src/%.dsp $(LIBS) $(ARCH)
 	mkdir -p $(@D)
 	sed -E 's/oversample4(c?)\(/oversample1\1(/g' $< > $(@D)/$*_1x.dsp
 	faust $(FAUSTFLAGS) -I src/lib -a $(ARCH) -o $(@D)/render_1x.cpp $(@D)/$*_1x.dsp
-	$(CXX) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
+	$(COMPILE) $(CXXFLAGS) -I$(FAUST_INC) $(@D)/render_1x.cpp -o $@
 
-# The VST3 SDK clone is slow to fetch and rarely changes, so `clean` keeps it.
+# The VST3 SDK clone is slow to fetch and rarely changes, and the compiler
+# cache is what makes rebuilds quick, so `clean` keeps both.
 clean:
 	rm -rf tests/out
-	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk -exec rm -rf {} +
+	[ ! -d $(BUILD) ] || find $(BUILD) -mindepth 1 -maxdepth 1 ! -name vst3sdk ! -name ccache -exec rm -rf {} +
 
 distclean:
 	rm -rf $(BUILD) tests/out tools/web/node_modules
@@ -454,6 +487,7 @@ help:
 image:
 	$(CONTAINER) build -f $(DOCKERFILE) -t $(IMAGE) .
 
-container: image
+container: $(if $(SKIP_IMAGE),,image)
 	$(CONTAINER) run --rm $(CONTAINER_USER) $(CONTAINER_FLAGS) -v "$(CURDIR)":/src -w /src \
+	    -e CCACHE_DIR=/src/$(BUILD)/ccache -e CCACHE_BASEDIR=/src \
 	    $(IMAGE) make $(RUN) FX="$(FX)"

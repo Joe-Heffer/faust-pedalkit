@@ -47,7 +47,45 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # The toolchain image is built (with a layer cache) by docker/build-push-action
+  # in each job, so `make container` doesn't build it again.
+  SKIP_IMAGE: "1"
+  # Effects build and test in parallel (GitHub's Linux runners have 4 cores).
+  JOBS: "-j4"
+
 jobs:
+  # Prose-only changes (README, AGENTS.md and other Markdown outside docs/)
+  # need only the lint job. Everything the plugins, tests or output checks
+  # read still triggers the build jobs, as does a manual run.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      build: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.build == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            build:
+              - ".github/**"
+              - ".dockerignore"
+              - "Dockerfile"
+              - "Makefile"
+              - "docs/**"
+              - "mkdocs.yml"
+              - "src/**"
+              - "tests/**"
+              - "tools/**"
+
   pre-commit:
     name: Lint and format
     runs-on: ubuntu-latest
@@ -72,23 +110,58 @@ jobs:
 
   build-test:
     name: Build, lv2lint and tests
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       # The toolchain image (Dockerfile) is the same one contributors use with
-      # `make container`. Later steps reuse its layer cache.
+      # `make container`. Its layers are cached between runs, so it is only
+      # rebuilt when the Dockerfile or its base image changes.
+      - uses: docker/setup-buildx-action@v3
       - name: Build toolchain image
-        run: make image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: pedalkit-build
+          load: true
+          cache-from: type=gha,scope=pedalkit-build
+          cache-to: type=gha,scope=pedalkit-build,mode=max
+      # The compiler cache (build/ccache, see CCACHE in the Makefile).
+      - name: Restore the compiler cache
+        uses: actions/cache@v6
+        with:
+          path: build/ccache
+          key: ccache-build-test-${{ hashFiles('Dockerfile') }}-${{ github.sha }}
+          restore-keys: ccache-build-test-${{ hashFiles('Dockerfile') }}-
       - name: Build LV2 bundles
-        run: make container RUN=lv2
+        run: make container RUN="$JOBS lv2"
       - name: lv2lint
         run: make container RUN=lint
       - name: LV2 bundles and presets are complete
         run: make container RUN="check-outputs OUTPUTS=lv2"
+      # The tests are deterministic for given sources and toolchain, and the
+      # docs workflow runs the same ones, so their output is cached under a
+      # hash of everything they depend on. A hit (a rerun, or the docs
+      # workflow got there first) skips them. Only passing results are saved.
+      - name: Restore test results
+        id: tests-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: tests/out
+          key: tests-${{ hashFiles('src/**', 'tests/**', 'tools/**', 'Makefile', 'Dockerfile', 'Dockerfile.docs') }}
       - name: Offline tests
-        run: make container RUN=test
+        if: steps.tests-cache.outputs.cache-hit != 'true'
+        run: make container RUN="$JOBS test"
+      - name: Save test results
+        if: steps.tests-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: tests/out
+          key: ${{ steps.tests-cache.outputs.cache-primary-key }}
       # Every plot and CSV the effect pages link was written by the tests.
       - name: Measurements the docs rely on
         run: make container RUN="check-outputs OUTPUTS=measurements"
@@ -100,7 +173,7 @@ jobs:
           path: tests/out/
           if-no-files-found: ignore
       - name: Describe effects (JSON and block diagrams)
-        run: make container RUN=describe
+        run: make container RUN="$JOBS describe"
       - name: Upload effect descriptions
         uses: actions/upload-artifact@v7
         with:
@@ -111,20 +184,42 @@ jobs:
 
   vst3:
     name: VST3 build and pluginval
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
       - name: Build toolchain image
-        run: make image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: pedalkit-build
+          load: true
+          cache-from: type=gha,scope=pedalkit-build
+          cache-to: type=gha,scope=pedalkit-build,mode=max
+      # Keyed on the pinned tag, so editing the Makefile doesn't refetch it.
+      - name: VST3 SDK tag
+        id: sdk
+        run: echo "tag=$(sed -n 's/^VST3_SDK_TAG *:= *//p' Makefile)" >> "$GITHUB_OUTPUT"
       - name: Cache the VST3 SDK
         uses: actions/cache@v6
         with:
           path: build/vst3sdk
-          key: vst3sdk-${{ hashFiles('Makefile') }}
+          key: vst3sdk-${{ steps.sdk.outputs.tag }}
+      # ccache compiles the SDK's sources once, not once per effect, and
+      # carries them over to the next run.
+      - name: Restore the compiler cache
+        uses: actions/cache@v6
+        with:
+          path: build/ccache
+          key: ccache-vst3-${{ steps.sdk.outputs.tag }}-${{ hashFiles('Dockerfile') }}-${{ github.sha }}
+          restore-keys: ccache-vst3-${{ steps.sdk.outputs.tag }}-${{ hashFiles('Dockerfile') }}-
       - name: Build VST3 bundles (runs Steinberg's validator)
-        run: make container RUN=vst3
+        run: make container RUN="$JOBS vst3"
       - name: pluginval
         run: make container RUN=pluginval
       - name: VST3 bundles are complete
@@ -137,32 +232,30 @@ jobs:
 
   clap:
     name: CLAP build and clap-validator
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
-    container: archlinux:base-devel
-    env:
-      CLAP_VALIDATOR_URL: https://github.com/free-audio/clap-validator/releases/download/0.4.1/clap-validator-0.4.1-127-g152b982-ubuntu-22.04.zip
     steps:
-      - name: Install toolchain
-        # git fetches the CLAP headers; unzip unpacks clap-validator.
-        run: |
-          pacman -Syu --noconfirm --needed faust git python unzip
-          faust --version
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      # The toolchain image has the pinned Faust and clap-validator.
+      - uses: docker/setup-buildx-action@v3
+      - name: Build toolchain image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: pedalkit-build
+          load: true
+          cache-from: type=gha,scope=pedalkit-build
+          cache-to: type=gha,scope=pedalkit-build,mode=max
       - name: Build CLAP plugins
-        run: make clap
-      - name: Install clap-validator
-        # The release zip wraps a tarball holding the single binary.
-        run: |
-          curl -sSfL -o /tmp/clap-validator.zip "$CLAP_VALIDATOR_URL"
-          unzip -q -d /tmp/clap-validator /tmp/clap-validator.zip
-          tar -xzf /tmp/clap-validator/*.tar.gz -C /usr/local/bin clap-validator
-          clap-validator --version
+        run: make container RUN="$JOBS clap"
       - name: clap-validator
-        run: make clap-validate
+        run: make container RUN="$JOBS clap-validate"
       - name: CLAP plugins are complete
-        run: make check-outputs OUTPUTS=clap
+        run: make container RUN="check-outputs OUTPUTS=clap"
       - name: Upload CLAP plugins
         uses: actions/upload-artifact@v7
         with:

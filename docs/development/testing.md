@@ -4,9 +4,12 @@ The tests render signals through the compiled DSP offline and check the results 
 
 ```sh
 make test                 # every effect
+make -j4 test             # every effect, four at a time
 make test FX=bassdrive    # one effect
 tests/run.sh bassdrive    # the same, once the renderers are built
 ```
+
+With `-j`, each effect's tests run as a separate target (`test-<name>`), in parallel, and their output is printed one effect at a time. A failing effect doesn't stop the others. `test_cpu.py` is left out of that parallel pass (`tests/run.sh --no-cpu`) and runs afterwards for each effect in turn, with nothing else running, because it measures time.
 
 Each script prints `[PASS]` or `[FAIL]` lines and exits non-zero if any check fails. The results go to `tests/out/<name>/`.
 
@@ -71,7 +74,7 @@ finish()
 
 ## Checks every effect gets
 
-`tests/run.sh` runs the scripts in `tests/common/` for every effect after its own, reading the controls from `build/<name>/controls.json`, so they need no per-effect code:
+`tests/run.sh` runs the scripts in `tests/common/` for every effect after its own (`make test` runs `test_cpu.py` separately, see above), reading the controls from `build/<name>/controls.json`, so they need no per-effect code:
 
 | Test | What it checks |
 |---|---|
