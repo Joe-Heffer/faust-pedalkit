@@ -11,13 +11,14 @@ on:
   release:
     types: [published]
 
-permissions:
-  actions: write
+permissions: {}
 
 jobs:
   docs:
     name: Rebuild the site
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
       - name: Start the Docs workflow on main
         env:
