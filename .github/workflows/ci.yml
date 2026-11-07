@@ -122,7 +122,7 @@ jobs:
       # rebuilt when the Dockerfile or its base image changes.
       - uses: docker/setup-buildx-action@v4
       - name: Build toolchain image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
@@ -193,7 +193,7 @@ jobs:
           persist-credentials: false
       - uses: docker/setup-buildx-action@v4
       - name: Build toolchain image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
@@ -242,7 +242,7 @@ jobs:
       # The toolchain image has the pinned Faust and clap-validator.
       - uses: docker/setup-buildx-action@v4
       - name: Build toolchain image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
