@@ -18,7 +18,7 @@
 #   (https://archive.archlinux.org/), so pacman installs the package versions
 #   of that day. Bump it by hand to move to a newer Faust.
 
-FROM archlinux:base-devel@sha256:624bdc7fc6615155d67bc34cf7146c0c9fd0e3c92943977da63a630e4ca49c30
+FROM archlinux:base-devel@sha256:fa2d4ce3310ddd90a4208e5168be8ad367da5129af1245f38fd2d803bcbe3239
 
 ARG ARCH_SNAPSHOT=2026/10/23
 ARG PLUGINVAL_VERSION=v1.0.4
