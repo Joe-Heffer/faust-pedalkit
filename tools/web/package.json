@@ -5,6 +5,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@grame/faustwasm": "0.20.1"
+    "@grame/faustwasm": "0.21.1"
   }
 }
